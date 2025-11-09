@@ -1,0 +1,31 @@
+name: zenit
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  google_nav_bar: ^5.0.7
+  material_symbols_icons: ^4.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: MaterialSymbolsOutlined
+      fonts:
+        - asset: "packages/material_symbols_icons/fonts/MaterialSymbolsOutlined.ttf"
+    - family: MaterialSymbolsRounded
+      fonts:
+        - asset: "packages/material_symbols_icons/fonts/MaterialSymbolsRounded.ttf"
+    - family: MaterialSymbolsSharp
+      fonts:
+        - asset: "packages/material_symbols_icons/fonts/MaterialSymbolsSharp.ttf"
