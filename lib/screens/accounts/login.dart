@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:zenit/common/theme/app_colors.dart';
+import 'package:zenit/common/constants/theme/app_colors.dart';
 import 'package:zenit/common/widgets/input_field.dart';
 import 'package:zenit/common/widgets/password_field.dart';
-import 'package:zenit/common/theme/app_typography.dart';
-import 'package:zenit/common/theme/app_theme.dart';
+import 'package:zenit/common/constants/theme/app_typography.dart';
+import 'package:zenit/common/constants/theme/app_theme.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:zenit/common/theme/app_colors.dart';
-import 'package:zenit/common/theme/app_sizes.dart';
-import 'package:zenit/common/theme/app_theme.dart';
+import 'package:zenit/common/constants//theme/app_colors.dart';
+import 'package:zenit/common/constants//theme/app_sizes.dart';
+import 'package:zenit/common/constants/theme/app_theme.dart';
 
 class InputField extends StatelessWidget {
   final TextEditingController? controller;
@@ -11,13 +11,13 @@ class InputField extends StatelessWidget {
   final TextInputType? keyboardType;
 
   const InputField({
-    Key? key,
+    super.key,
     this.controller,
     this.hintText,
     this.filled = true,
     this.fillColor,
     this.keyboardType = TextInputType.text,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

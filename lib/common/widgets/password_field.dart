@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zenit/common/theme/app_colors.dart';
+import 'package:zenit/common/constants/theme/app_colors.dart';
 
 class PasswordField extends StatefulWidget {
   final TextEditingController? controller;

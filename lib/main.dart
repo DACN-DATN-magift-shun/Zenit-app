@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'homePage.dart';
-import 'common/theme/app_theme.dart';
+import 'package:zenit/common/utils/services/navigation_service.dart';
+import 'package:zenit/screens/main_screen/homepage.dart';
+import 'package:zenit/common/constants/theme/app_theme.dart';
+import 'package:zenit/screens/accounts/login.dart';
 void main() {
   runApp(const MainApp());
 }
@@ -11,11 +13,18 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Finance Manager',
+      title: 'Zenit',
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: ThemeMode.system,
-      home: const HomePage(),
+      navigatorKey: NavigationService.instance.navigatorKey,
+      initialRoute: '/',
+      routes: {
+        '/': (c) => const HomePage(),
+        // (c) => const HomePage() là 1 hàm builder trả về widget HomePage
+        '/login': (c) => const LoginScreen(),
+        '/home': (c) => const HomePage(),
+      }
     );
   }
 }
