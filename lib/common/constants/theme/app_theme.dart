@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_sizes.dart';
 import 'app_typography.dart';
-
 /// Custom ThemeExtension để lưu tất cả màu trong AppColors
 class AppColorExtension extends ThemeExtension<AppColorExtension> {
   final Color primaryMain;

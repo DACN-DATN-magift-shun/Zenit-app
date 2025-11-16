@@ -1,7 +1,7 @@
 // THIS IS JUST A DRAFT TO SHOW THE COMMONS USAGE, NOT THE FINAL IMPLEMENTATION
 import 'package:flutter/material.dart';
-import 'package:zenit/common/widgets/navigation_bar.dart';
-import 'package:zenit/common/widgets/app_bar.dart';
+import 'package:zenit/common/layout/navigation_bar.dart';
+import 'package:zenit/common/layout/app_bar.dart';
 
 // THIS IS JUST A DRAFT TO SHOW THE COMMONS USAGE, NOT THE FINAL IMPLEMENTATION
 class HomePage extends StatefulWidget {
