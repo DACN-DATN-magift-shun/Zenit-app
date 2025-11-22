@@ -67,11 +67,11 @@ class AuthLayout extends StatelessWidget {
                   Text(
                     title,
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.titleLarge?.copyWith(color: appColors.primaryText, fontWeight: FontWeight.w700),
+                    style: theme.textTheme.displayLarge?.copyWith(color: appColors.primaryText, fontWeight: FontWeight.w700),
                   ),
                   if (subtitle != null) ...[
                     const SizedBox(height: 8),
-                    Text(subtitle!, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium?.copyWith(color: appColors.primarySubtext)),
+                    Text(subtitle!, textAlign: TextAlign.center, style: theme.textTheme.headlineLarge?.copyWith(color: appColors.primaryText)),
                   ],
                 ],
               ),

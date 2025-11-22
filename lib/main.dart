@@ -3,6 +3,8 @@ import 'package:zenit/common/utils/services/navigation_service.dart';
 import 'package:zenit/screens/main_screen/homepage.dart';
 import 'package:zenit/common/constants/theme/app_theme.dart';
 import 'package:zenit/screens/accounts/login.dart';
+import 'package:zenit/screens/accounts/signup.dart';
+
 void main() {
   runApp(const MainApp());
 }
@@ -20,10 +22,12 @@ class MainApp extends StatelessWidget {
       navigatorKey: NavigationService.instance.navigatorKey,
       initialRoute: '/',
       routes: {
-        '/': (c) => const HomePage(),
+        '/': (c) => HomePage(),
         // (c) => const HomePage() là 1 hàm builder trả về widget HomePage
         '/login': (c) => const LoginScreen(),
         '/home': (c) => const HomePage(),
+        '/signup': (c) => const SignupScreen(),
+
       }
     );
   }

@@ -28,9 +28,9 @@ class AppTypography {
     ),
     titleMedium: TextStyle(
       fontFamily: _fontFamily,
-      fontSize: AppSizes.textS,
+      fontSize: AppSizes.textM,
       fontWeight: FontWeight.w600,
-      color: AppColors.light.primaryActive,
+      color: AppColors.light.primaryHover,
     ),
     bodyLarge: TextStyle(
       fontFamily: _fontFamily,
@@ -40,6 +40,11 @@ class AppTypography {
     bodyMedium: TextStyle(
       fontFamily: _fontFamily,
       fontSize: AppSizes.textS,
+      color: AppColors.light.primaryActive,
+    ),
+    bodySmall: TextStyle(
+      fontFamily: _fontFamily,
+      fontSize: AppSizes.textXS,
       color: AppColors.light.primaryActive,
     ),
     labelLarge: TextStyle(

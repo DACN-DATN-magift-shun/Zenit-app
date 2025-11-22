@@ -6,6 +6,7 @@ class AppSizes {
   static const double xl = 24.0;
 
   // text sizes
+  static const double textXS = 12.0;
   static const double textS = 14.0;
   static const double textM = 16.0;
   static const double textL = 20.0;
