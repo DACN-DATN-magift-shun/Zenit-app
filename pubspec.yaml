@@ -7,8 +7,10 @@ environment:
   sdk: ^3.9.2
 
 dependencies:
+  dio: ^5.9.0
   flutter:
     sdk: flutter
+  flutter_secure_storage: ^9.2.4
   google_nav_bar: ^5.0.7
   material_symbols_icons: ^4.0.0
 
