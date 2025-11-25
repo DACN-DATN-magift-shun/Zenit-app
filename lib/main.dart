@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zenit/common/utils/services/navigation_service.dart';
-import 'package:zenit/screens/main_screen/homepage.dart';
+import 'package:zenit/services/navigation_service.dart';
+import 'package:zenit/common/layout/main_shell.dart';
 import 'package:zenit/common/constants/theme/app_theme.dart';
 import 'package:zenit/screens/accounts/login.dart';
 import 'package:zenit/screens/accounts/signup.dart';
@@ -20,12 +20,11 @@ class MainApp extends StatelessWidget {
       darkTheme: darkTheme,
       themeMode: ThemeMode.system,
       navigatorKey: NavigationService.instance.navigatorKey,
-      initialRoute: '/',
+      initialRoute: '/login',
       routes: {
-        '/': (c) => HomePage(),
-        // (c) => const HomePage() là 1 hàm builder trả về widget HomePage
+        '/': (c) => const MainShell(),
         '/login': (c) => const LoginScreen(),
-        '/home': (c) => const HomePage(),
+        '/home': (c) => const MainShell(),
         '/signup': (c) => const SignupScreen(),
 
       }
@@ -33,5 +32,3 @@ class MainApp extends StatelessWidget {
   }
 }
 
-// define interface (ref react interface), env const, dung ui component diiiii,
-// ultil, define 1 cai APP call bo trong 1 file trong common, formik + yup cho form, 1 cai common "route"

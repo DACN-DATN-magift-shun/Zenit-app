@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenit/common/constants/theme/app_sizes.dart';
-import 'package:zenit/common/utils/services/navigation_service.dart';
+import 'package:zenit/services/navigation_service.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {

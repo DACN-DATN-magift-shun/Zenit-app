@@ -2,10 +2,17 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:zenit/common/utils/services/navigation_service.dart';
+
 
 class AppNavigationBar extends StatelessWidget {
-  const AppNavigationBar({super.key});
+  final int selectedIndex;
+  final ValueChanged<int>? onTabChange;
+  
+  const AppNavigationBar({
+    super.key, 
+    this.selectedIndex = 0,
+    this.onTabChange,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -69,23 +76,19 @@ class AppNavigationBar extends StatelessWidget {
                   child: Padding(
                     padding: outerPadding,
                     child: GNav(
+                      selectedIndex: selectedIndex,
                       gap: gap,
                       padding: gnavPadding,
                       backgroundColor: Colors.transparent,
                       color: Colors.blue.shade900,
                       activeColor: Colors.blue.shade800,
                       tabBackgroundColor: const Color.fromRGBO(255, 255, 255, 0.5),
-                      onTabChange: (index) {
-                        if (index == 4) {
-                          NavigationService.instance.navigateTo('/login');
-                        }
-                      },
+                      onTabChange: onTabChange,
                       tabs: const [
                         GButton(icon: Symbols.home_app_logo_rounded, text: 'Home'),
                         GButton(icon: Symbols.timelapse_rounded, text: 'Statistic'),
                         GButton(icon: Symbols.view_object_track, text: 'History'),
                         GButton(icon: Symbols.settings_rounded, text: 'Settings'),
-                        GButton(icon: Symbols.login_rounded, text: 'Login'),
                       ],
                     ),
                   ),

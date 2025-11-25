@@ -5,7 +5,7 @@ import 'package:zenit/common/widgets/form_fields/password_form_field.dart';
 import 'package:zenit/common/utils/validators/auth_forms_validator.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:zenit/common/constants/theme/app_theme.dart';
-import 'package:zenit/common/utils/services/navigation_service.dart';
+import 'package:zenit/services/navigation_service.dart';
 class LoginForm extends StatefulWidget {
   final void Function(String email, String password) onSubmit;
 
@@ -86,6 +86,14 @@ class _LoginFormState extends State<LoginForm> {
             ),
               textAlign: TextAlign.center,
             ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'By logging in, you agree to our Terms of Service and Privacy Policy.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).extension<AppColorExtension>()!.neutralTextDisable,
+          ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

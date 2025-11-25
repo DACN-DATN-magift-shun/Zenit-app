@@ -10,6 +10,7 @@ class AuthFormsValidator {
     }
     return null;
   }
+
   // username validator
   static String? username(String? value) {
     if (value == null || value.isEmpty) {
@@ -24,6 +25,7 @@ class AuthFormsValidator {
     }
     return null;
   }
+
   // Password validator
   static String? password(String? value) {
     if (value == null || value.isEmpty) {
@@ -33,7 +35,9 @@ class AuthFormsValidator {
       return 'Mật khẩu phải dài hơn 8 ký tự';
     }
     final hasNumber = RegExp(r'\d').hasMatch(value);
-  final hasSpecial = RegExp(r'[!@#\$%\^&\*\(\)\+\=\{\}\[\]:;"\\<>,\.\?\/\\|~`_    -]').hasMatch(value);
+    final hasSpecial = RegExp(
+      r'[!@#\$%\^&\*\(\)\+\=\{\}\[\]:;"\\<>,\.\?\/\\|~`_    -]',
+    ).hasMatch(value);
     if (!hasNumber) {
       return 'Mật khẩu phải chứa ít nhất một chữ số';
     }
@@ -44,16 +48,42 @@ class AuthFormsValidator {
   }
 
   // Confirm password validator
-  static String? Function(String?) confirmPassword(String password) {
+  static String? Function(String?) confirmPassword(String Function() getPassword) {
     return (String? value) {
       if (value == null || value.isEmpty) {
         return 'Vui lòng xác nhận mật khẩu';
       }
-      if (value != password) {
+      if (value != getPassword()) {
         return 'Mật khẩu không khớp';
       }
       return null;
     };
+  }
+
+  // phone validator
+  static String? phone(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Vui lòng nhập số điện thoại';
+    }
+    final phoneRegex = RegExp(r'^\+?[0-9]{7,15}$');
+    if (!phoneRegex.hasMatch(value)) {
+      return 'Số điện thoại không hợp lệ';
+    }
+    if (value.length != 10) {
+      return 'Số điện thoại phải có 10 chữ số';
+    }
+    return null;
+  }
+
+  // address validator
+  static String? address(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Vui lòng nhập địa chỉ';
+    }
+    if (value.length < 5) {
+      return 'Địa chỉ quá ngắn';
+    }
+    return null;
   }
 
   // Required field validator
