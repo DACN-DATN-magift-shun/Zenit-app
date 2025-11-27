@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:zenit/services/navigation_service.dart';
-import 'package:zenit/common/layout/main_shell.dart';
-import 'package:zenit/common/constants/theme/app_theme.dart';
-import 'package:zenit/screens/accounts/login.dart';
-import 'package:zenit/screens/accounts/signup.dart';
+import 'package:zenit/features/setting_childs/profile_details/screens/account_details.dart';
+import 'package:zenit/core/services/navigation_service.dart';
+import 'package:zenit/core/layout/main_shell.dart';
+import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/features/auth/screens/login.dart';
+import 'package:zenit/features/auth/screens/signup.dart';
 
 void main() {
   runApp(const MainApp());
@@ -26,6 +27,7 @@ class MainApp extends StatelessWidget {
         '/login': (c) => const LoginScreen(),
         '/home': (c) => const MainShell(),
         '/signup': (c) => const SignupScreen(),
+        '/settings/account_details': (c) => const AccountDetails(),
 
       }
     );

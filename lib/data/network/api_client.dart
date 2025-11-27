@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:zenit/common/constants/api_endpoints.dart';
+import 'package:zenit/core/api/api_endpoints.dart';
 import 'package:zenit/data/local/storage_service.dart';
 
 class ApiClient {

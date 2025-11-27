@@ -12,6 +12,7 @@ dependencies:
     sdk: flutter
   flutter_secure_storage: ^9.2.4
   google_nav_bar: ^5.0.7
+  # Thằng này là trùm cuối, nó lo hết font rồi
   material_symbols_icons: ^4.0.0
 
 dev_dependencies:
@@ -21,13 +22,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  fonts:
-    - family: MaterialSymbolsOutlined
-      fonts:
-        - asset: "packages/material_symbols_icons/fonts/MaterialSymbolsOutlined.ttf"
-    - family: MaterialSymbolsRounded
-      fonts:
-        - asset: "packages/material_symbols_icons/fonts/MaterialSymbolsRounded.ttf"
-    - family: MaterialSymbolsSharp
-      fonts:
-        - asset: "packages/material_symbols_icons/fonts/MaterialSymbolsSharp.ttf"
+  assets:
+      - assets/
