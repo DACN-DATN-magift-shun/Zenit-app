@@ -12,4 +12,7 @@ class ApiEndpoints {
   static const String register = "${baseUrl}Accounts/register";
   static const String login = "${baseUrl}Accounts/login";
   // static String accountInfor() => "${baseUrl}Accounts/me";
+  
+  // Categories
+  static const String categories = "${baseUrl}Categories";
 }
