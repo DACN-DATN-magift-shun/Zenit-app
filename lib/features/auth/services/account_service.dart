@@ -3,8 +3,7 @@ import 'package:zenit/core/api/api_endpoints.dart';
 import 'package:zenit/data/network/api_client.dart';
 
 class AccountService {
-  final _apiClient = ApiClient();
-
+  final _api = ApiClient();
 
   Future<Response> register({
     required String username,
@@ -13,7 +12,7 @@ class AccountService {
     required String address,
     required String password,
   }) async {
-    return await _apiClient.dio.post(
+    return await _api.post(
       ApiEndpoints.register,
       data: {
         "username": username,
@@ -29,27 +28,21 @@ class AccountService {
     required String email,
     required String password,
   }) async {
-    return await _apiClient.dio.post(
+    return await _api.post(
       ApiEndpoints.login,
       data: {"email": email, "password": password},
     );
   }
 
-  // API changed: fetching current account no longer requires an ID parameter
   Future<Response> getAccount() async {
-    return await _apiClient.dio.get(
-      ApiEndpoints.accounts,
-    );
+    return await _api.get(ApiEndpoints.accounts);
   }
 
   Future<Response> updateAccount(String id, Map<String, dynamic> data) async {
-    return await _apiClient.dio.put(
-      ApiEndpoints.accounts,
-      data: data,
-    );
+    return await _api.put(ApiEndpoints.accounts, data: data);
   }
 
   Future<Response> deleteAccount(String id) async {
-    return await _apiClient.dio.delete(ApiEndpoints.accounts);
+    return await _api.delete(ApiEndpoints.accounts);
   }
 }

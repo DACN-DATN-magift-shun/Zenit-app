@@ -7,7 +7,6 @@ import 'package:zenit/core/services/auth_service.dart';
 
 class ProfileForm extends StatefulWidget {
   final void Function(
-    String name,
     String email,
     String username,
     String dateOfBirth,
@@ -25,7 +24,6 @@ class _ProfileFormState extends State<ProfileForm> {
   final _formKey = GlobalKey<FormState>();
   
   // 1. Khai báo Controller - Mấy thằng đệ quản lý ô nhập liệu
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _usernameController = TextEditingController();
   final _dateOfBirthController = TextEditingController();
@@ -46,7 +44,6 @@ class _ProfileFormState extends State<ProfileForm> {
   @override
   void dispose() {
     // dispose các controller khi widget bị hủy
-    _nameController.dispose();
     _emailController.dispose();
     _usernameController.dispose();
     _dateOfBirthController.dispose();
@@ -64,7 +61,6 @@ class _ProfileFormState extends State<ProfileForm> {
         final data = userInfo.data;
                
         setState(() {
-          _nameController.text = data['name'] ?? '--';
           _emailController.text = data['email'] ?? '--';
           _usernameController.text = data['username'] ?? '--';
           _dateOfBirthController.text = data['dateOfBirth'] ?? '--';
@@ -82,7 +78,6 @@ class _ProfileFormState extends State<ProfileForm> {
     if (_formKey.currentState!.validate()) {
       // Gửi giá trị từ controller đi
       widget.onSubmit(
-        _nameController.text.trim(),
         _emailController.text.trim(),
         _usernameController.text.trim(),
         _dateOfBirthController.text.trim(),
@@ -134,10 +129,6 @@ class _ProfileFormState extends State<ProfileForm> {
 
             // --- Form Fields Section ---
             // 3. Gắn Controller vào từng Widget
-            CustomTextFormField(
-              label: 'Name',
-              controller: _nameController, // QUAN TRỌNG: Phải có dòng này
-            ),
             CustomTextFormField(
               label: 'Email',
               controller: _emailController,

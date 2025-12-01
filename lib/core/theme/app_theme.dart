@@ -181,6 +181,9 @@ class AppColorExtension extends ThemeExtension<AppColorExtension> {
 
 /// ================= LIGHT THEME =================
 final ThemeData lightTheme = ThemeData(
+  iconTheme: const IconThemeData(
+    color: Colors.black, 
+  ),
   useMaterial3: true,
   brightness: Brightness.light,
   scaffoldBackgroundColor: AppColors.light.neutralBackground,
@@ -226,7 +229,7 @@ final ThemeData lightTheme = ThemeData(
       primaryActive: AppColors.light.primaryActive,
       primaryText: AppColors.light.primaryText,
       primarySubtext: AppColors.light.primarySubtext,
-      primaryShade: AppColors.light.primaryShade,
+      primaryShade: const Color.fromARGB(137, 116, 141, 157),
       secondaryMain: AppColors.light.secondaryMain,
       secondaryHover: AppColors.light.secondaryHover,
       secondaryActive: AppColors.light.secondaryActive,

@@ -5,7 +5,7 @@ import 'app_colors.dart';
 class AppTypography {
   AppTypography._();
 
-  static const String _fontFamily = 'Inter';
+  static final String _fontFamily = 'GoogleSansFlex';
 
   static TextTheme textThemeLight = TextTheme(
     displayLarge: TextStyle(

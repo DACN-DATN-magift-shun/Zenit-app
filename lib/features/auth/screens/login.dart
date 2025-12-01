@@ -51,10 +51,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
       print('Response status: ${response.statusCode}');
       print('Response data: ${response.data}');
+      print('Response data type: ${response.data.runtimeType}');
 
       final responseData = response.data;
-      final accessToken = responseData['accessToken'];
-      final refreshToken = responseData['refreshToken'];
+      
+      // Safely extract tokens
+      String? accessToken;
+      String? refreshToken;
+      String? errorMessage;
+      
+      if (responseData is Map) {
+        accessToken = responseData['accessToken']?.toString();
+        refreshToken = responseData['refreshToken']?.toString();
+        errorMessage = responseData['message']?.toString();
+      }
 
       if (accessToken != null && refreshToken != null) {
         await AuthService().saveLoginData(
@@ -72,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(response.data['message'] ?? 'Dữ liệu trả về lỗi'),
+              content: Text(errorMessage ?? 'Dữ liệu trả về lỗi'),
             ),
           );
         }
@@ -81,10 +91,18 @@ class _LoginScreenState extends State<LoginScreen> {
       print('DioException: ${e.message}');
       print('Response: ${e.response?.data}');
       if (mounted) {
-        final serverMsg = e.response?.data?['message'] ?? e.message;
+        String serverMsg = 'Lỗi đăng nhập';
+        final responseData = e.response?.data;
+        if (responseData is Map<String, dynamic>) {
+          serverMsg = responseData['message']?.toString() ?? e.message ?? 'Lỗi đăng nhập';
+        } else if (responseData is String && responseData.isNotEmpty) {
+          serverMsg = responseData;
+        } else if (e.message != null && e.message!.isNotEmpty) {
+          serverMsg = e.message!;
+        }
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(serverMsg ?? 'Lỗi đăng nhập')));
+        ).showSnackBar(SnackBar(content: Text(serverMsg)));
       }
     } catch (e) {
       print('General error: $e');

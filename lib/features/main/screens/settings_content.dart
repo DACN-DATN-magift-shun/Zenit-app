@@ -5,9 +5,9 @@ import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/main_layout.dart';
-import 'package:zenit/core/widgets/button.dart';
 import 'package:zenit/core/services/auth_service.dart';
 import 'package:zenit/core/services/navigation_service.dart';
+import 'package:zenit/features/main/widgets/setting/setting_items.dart';
 
 class SettingsContent extends StatefulWidget {
   const SettingsContent({super.key});
@@ -71,24 +71,24 @@ class _SettingsContentState extends State<SettingsContent> {
         showSecondaryText: false,
       ),
       child: _isAuthenticated && _userInfoResponse != null
-          ? Padding(
-              padding: const EdgeInsets.all(5.0),
+          ? SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: AppSizes.s, horizontal: AppSizes.l),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // User profile card (avatar, name, username, chevron)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSizes.l, vertical: AppSizes.l),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).extension<AppColorExtension>()!.neutralSurface,
+                      color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
                       borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
-                      // boxShadow: [
-                      //   BoxShadow(
-                      //     color: Colors.black.withOpacity(0.04),
-                      //     blurRadius: 8,
-                      //     offset: const Offset(0, 4),
-                      //   ),
-                      // ],
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).extension<AppColorExtension>()!.primaryShade,
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: Row(
                       children: [
@@ -132,7 +132,7 @@ class _SettingsContentState extends State<SettingsContent> {
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
+                            color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
                             shape: BoxShape.circle,
                           ),
                           child: IconButton(
@@ -140,7 +140,7 @@ class _SettingsContentState extends State<SettingsContent> {
                             icon: Icon(
                               Symbols.expand_circle_right,
                               size: 36, // reduced size
-                              color: Theme.of(context).extension<AppColorExtension>()!.neutralTextSecondary,
+                              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
                             ),
                             onPressed: () {
                               // Navigate to account details within settings
@@ -153,31 +153,18 @@ class _SettingsContentState extends State<SettingsContent> {
                   ),
 
                   const SizedBox(height: 20),
-                  Text(
-                    'Setting Items 1',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  Text(
-                    'Setting Items 2',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  AppButton(
-                    text: 'logout',
-                    onPressed: () {
-                      NavigationService.instance.navigateTo('/login');
-                      AuthService().logout();
-                    },
-                  ),
-                  // Additional info rows (email, phone, address)
-                  // _buildInfoRow('Email', _userInfoResponse!.data['email'] ?? 'N/A'),
-                  // const SizedBox(height: 12),
-                  // _buildInfoRow('Phone', _userInfoResponse!.data['phone'] ?? 'N/A'),
-                  // const SizedBox(height: 12),
-                  // _buildInfoRow('Address', _userInfoResponse!.data['address'] ?? 'N/A'),
+                  SettingItem(icon: Symbols.settings_rounded, title: 'General settings'),
+                  SettingItem(icon: Symbols.style_rounded, title: 'Category management', onTap: () {
+                    NavigationService.instance.navigateTo('/settings/category_manage');
+                  },),
+                  SettingItem(icon: Symbols.notifications_rounded, title: 'Notifications'),
+                  SettingItem(icon: Symbols.shield_toggle, title: 'Security'),
+                  SettingItem(icon: Symbols.support_agent_rounded, title: 'Support center'),
+                  SettingItem(icon: Symbols.privacy_tip_rounded, title: 'Privacy policy and terms'),
+                  SettingItem(icon: Symbols.logout_rounded, title: 'Logout', onTap:(){
+                    AuthService().logout();
+                    NavigationService.instance.navigateTo('/login');
+                  } ,),
                 ],
               ),
             )

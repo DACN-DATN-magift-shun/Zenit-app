@@ -1,15 +1,24 @@
 class ApiEndpoints {
-  // static const String baseUrl = "http://localhost:5241/";
-  // url for emulator
-  static const String baseUrl = "http://10.0.2.2:5241/";
+  // Base URLs for different services
+  static const String authBaseUrl = "http://10.0.2.2:5241/";
+  static const String categoryBaseUrl = "http://10.0.2.2:5212/";
+  
+  // Default base URL (for ApiClient compatibility)
+  static const String baseUrl = authBaseUrl;
 
-  // url for real device testing in local network
-  // static const String baseUrl = "http://192.168.151.211:5241/";
   static const int connectionTimeout = 30000;
   static const int receiveTimeout = 30000;
 
-  static const String accounts = "${baseUrl}Accounts/me";
-  static const String register = "${baseUrl}Accounts/register";
-  static const String login = "${baseUrl}Accounts/login";
-  // static String accountInfor() => "${baseUrl}Accounts/me";
+  // Auth Endpoints (using authBaseUrl)
+  static const String accounts = "${authBaseUrl}Accounts/me";
+  static const String register = "${authBaseUrl}Accounts/register";
+  static const String login = "${authBaseUrl}Accounts/login";
+
+  // Category Endpoints (using categoryBaseUrl)
+  static const String categories = "${categoryBaseUrl}Categories";
+  static String categoryById(String id) => "${categoryBaseUrl}Categories/$id";
+  static String updateCategoryUrl(String id) => categoryById(id);
+  static String deleteCategoryUrl(String id) => categoryById(id);
+  static const String createCategory = "${categoryBaseUrl}Categories";
+  static const String deleteCategories = "${categoryBaseUrl}Categories";
 }

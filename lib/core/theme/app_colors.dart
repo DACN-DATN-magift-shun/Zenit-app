@@ -32,7 +32,7 @@ class LightPalette {
 
   // Neutral
   final Color neutralBackground = const Color(0xFFFFFFFF);
-  final Color neutralSurface = const Color(0xFFF7F9FB);
+  final Color neutralSurface = const Color(0xFFE9E9E9);
   final Color neutralBorder = const Color(0xFFE6E9EE);
   final Color neutralTextDisable = const Color(0xFFBDBDBD);
   final Color neutralTextSecondary = const Color(0xFF757575);

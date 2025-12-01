@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/base_layout.dart';
-import 'package:zenit/core/forms/profile_form.dart';
+import 'package:zenit/features/setting_childs/profile_details/widgets/profile_form.dart';
 
 class AccountDetails extends StatefulWidget {
   const AccountDetails({super.key});
@@ -11,7 +11,6 @@ class AccountDetails extends StatefulWidget {
 }
 
 Future<void> _handleSubmit(
-  String name,
   String email,
   String username,
   String dateOfBirth,

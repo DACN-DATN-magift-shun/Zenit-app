@@ -25,8 +25,9 @@ class AppSizes {
   static const double sectionSpacing = 24.0;
 
   // border radius
-  static const double borderRadiusLarge = 48.0;
-  static const double borderRadiusMedium = 36.0;
+  static const double borderRadiusXLarge = 48.0;
+  static const double borderRadiusLarge = 36.0;
+  static const double borderRadiusMedium = 30.0;
   static const double borderRadiusSmall = 20.0;
   static const double borderRadiusXSmall = 12.0;
 

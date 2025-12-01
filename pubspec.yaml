@@ -11,9 +11,10 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_secure_storage: ^9.2.4
+  google_fonts: ^6.3.2
   google_nav_bar: ^5.0.7
-  # Thằng này là trùm cuối, nó lo hết font rồi
   material_symbols_icons: ^4.0.0
+  provider: ^6.1.5+1
 
 dev_dependencies:
   flutter_test:
@@ -24,3 +25,11 @@ flutter:
   uses-material-design: true
   assets:
       - assets/
+
+  fonts:
+    - family: GoogleSansFlex 
+      fonts:
+        - asset: assets/fonts/GoogleSansFlex.ttf
+    - family: MaterialSymbolsMain
+      fonts:
+        - asset: assets/icons/MaterialSymbolsRounded.ttf

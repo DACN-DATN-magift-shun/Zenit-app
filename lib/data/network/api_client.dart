@@ -3,27 +3,73 @@ import 'package:zenit/core/api/api_endpoints.dart';
 import 'package:zenit/data/local/storage_service.dart';
 
 class ApiClient {
-  // hiện thực singleton cho ApiClient, đảm bảo chỉ có một instance duy nhất của ApiClient trong ứng dụng
+  // Singleton pattern
   static final ApiClient _instance = ApiClient._internal();
   factory ApiClient() => _instance;
 
-  late Dio _dio; //Khai báo, nhưng trì hoãn việc khởi tạo đến khi constructor chạy, vì chưa cần thiết lập ngay, sau này sẽ dùng trong constructor _internal
+  late Dio _dio;
   final StorageService _storageService = StorageService();
   // bool _isRefreshing = false;
 
-// Khởi tạo Dio với các thiết lập cơ bản
+  // Khởi tạo Dio KHÔNG có baseUrl cố định - để hỗ trợ nhiều service với base URL khác nhau
   ApiClient._internal() {
     _dio = Dio(BaseOptions(
-      baseUrl: ApiEndpoints.baseUrl,
       connectTimeout: const Duration(milliseconds: ApiEndpoints.connectionTimeout),
       receiveTimeout: const Duration(milliseconds: ApiEndpoints.receiveTimeout),
       headers: {'Content-Type': 'application/json'},
-    )); 
+    ));
 
     _setupInterceptors();
   }
 
   Dio get dio => _dio;
+
+  // ============ CONVENIENCE METHODS ============
+  // Dùng các method này để gọi API với full URL từ ApiEndpoints
+
+  Future<Response<T>> get<T>(
+    String url, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
+    return _dio.get<T>(url, queryParameters: queryParameters, options: options);
+  }
+
+  Future<Response<T>> post<T>(
+    String url, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
+    return _dio.post<T>(url, data: data, queryParameters: queryParameters, options: options);
+  }
+
+  Future<Response<T>> put<T>(
+    String url, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
+    return _dio.put<T>(url, data: data, queryParameters: queryParameters, options: options);
+  }
+
+  Future<Response<T>> delete<T>(
+    String url, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
+    return _dio.delete<T>(url, data: data, queryParameters: queryParameters, options: options);
+  }
+
+  Future<Response<T>> patch<T>(
+    String url, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
+    return _dio.patch<T>(url, data: data, queryParameters: queryParameters, options: options);
+  }
 
   void _setupInterceptors() {
     _dio.interceptors.add(InterceptorsWrapper(

@@ -1,0 +1,236 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
+import 'package:zenit/core/api/api_endpoints.dart';
+import 'package:zenit/data/network/api_client.dart';
+import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
+
+/// Service để gọi API liên quan đến Category
+class CategoryService {
+  final _api = ApiClient();
+
+  /// Helper để convert response data sang Map<String, dynamic> an toàn
+  Map<String, dynamic> _convertToMap(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      return data;
+    } else if (data is Map) {
+      return Map<String, dynamic>.from(data);
+    } else if (data is String) {
+      return jsonDecode(data) as Map<String, dynamic>;
+    }
+    return {};
+  }
+
+  /// Lấy danh sách categories theo groupType
+  /// GET /Categories?groupType={groupType}
+  Future<CategoryGroup> getCategoriesByGroupType(int groupType) async {
+    try {
+      print('=== Calling API ===');
+      print('URL: ${ApiEndpoints.categories}');
+      print('Query params: {groupType: $groupType}');
+      
+      final response = await _api.get(
+        ApiEndpoints.categories,
+        queryParameters: {'groupType': groupType},
+      );
+
+      print('=== API Response for groupType $groupType ===');
+      print('Status code: ${response.statusCode}');
+      print('Response data: ${response.data}');
+      print('Response data type: ${response.data.runtimeType}');
+
+      if (response.statusCode == 200) {
+        final rawData = response.data;
+        
+        // Handle case when API returns a List
+        if (rawData is List) {
+          return CategoryGroup(
+            name: GroupType.fromValue(groupType).displayName,
+            type: groupType,
+            categories: rawData
+                .map((e) => CategoryModel.fromJson(_convertToMap(e)))
+                .toList(),
+          );
+        }
+        
+        // Handle case when API returns an Object
+        final data = _convertToMap(rawData);
+        return CategoryGroup.fromJson(data);
+      } else {
+        // Return empty group for non-200 responses
+        return CategoryGroup(
+          name: GroupType.fromValue(groupType).displayName,
+          type: groupType,
+          categories: [],
+        );
+      }
+    } on DioException catch (e) {
+      // Handle 404 - return empty group instead of throwing
+      if (e.response?.statusCode == 404) {
+        return CategoryGroup(
+          name: GroupType.fromValue(groupType).displayName,
+          type: groupType,
+          categories: [],
+        );
+      }
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Lấy tất cả categories của tất cả groupType (0-4)
+  /// Gọi song song 5 API để lấy nhanh hơn
+  Future<Map<int, CategoryGroup>> getAllCategoriesByAllGroups() async {
+    try {
+      final futures = <Future<CategoryGroup>>[];
+      
+      // Tạo 5 request song song cho groupType 0-4
+      for (int i = 0; i <= 4; i++) {
+        futures.add(getCategoriesByGroupType(i));
+      }
+
+      final results = await Future.wait(futures);
+      
+      // Convert thành Map<groupType, CategoryGroup>
+      final Map<int, CategoryGroup> groupMap = {};
+      for (var group in results) {
+        groupMap[group.type] = group;
+      }
+      
+      return groupMap;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Lấy một category theo ID
+  /// GET /Categories/{id}
+  Future<CategoryModel> getCategoryById(String id) async {
+    try {
+      final response = await _api.get(ApiEndpoints.categoryById(id));
+
+      if (response.statusCode == 200) {
+        // API trả về category object trực tiếp
+        return CategoryModel.fromJson(_convertToMap(response.data));
+      } else {
+        throw Exception('Failed to load category: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Tạo category mới
+  /// POST /Categories
+  Future<CategoryModel> createCategory({
+    required String name,
+    required String icon,
+    required int groupType,
+    double expenseLimit = 0,
+    double expenseAlertThreshold = 0,
+  }) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.createCategory,
+        data: {
+          'name': name,
+          'icon': icon,
+          'expenseLimit': expenseLimit,
+          'expenseAlertThreshold': expenseAlertThreshold,
+          'groupType': groupType,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return CategoryModel.fromJson(_convertToMap(response.data));
+      } else {
+        throw Exception('Failed to create category: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Cập nhật category
+  /// PATCH /Categories/{id}
+  Future<CategoryModel> updateCategory({
+    required String id,
+    required String name,
+    required String icon,
+    required int groupType,
+    double expenseLimit = 0,
+    double expenseAlertThreshold = 0,
+  }) async {
+    try {
+      final response = await _api.patch(
+        ApiEndpoints.updateCategoryUrl(id),
+        data: {
+          'id': id,
+          'name': name,
+          'icon': icon,
+          'expenseLimit': expenseLimit,
+          'expenseAlertThreshold': expenseAlertThreshold,
+          'groupType': groupType,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return CategoryModel.fromJson(_convertToMap(response.data));
+      } else {
+        throw Exception('Failed to update category: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Xóa một category theo ID
+  /// DELETE /Categories/{id}
+  Future<bool> deleteCategory(String id) async {
+    try {
+      final response = await _api.delete(ApiEndpoints.deleteCategoryUrl(id));
+
+      return response.statusCode == 200 || response.statusCode == 204;
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Xóa nhiều categories (bulk delete)
+  /// DELETE /Categories với body { "ids": [...] }
+  Future<bool> deleteCategories(List<String> ids) async {
+    try {
+      final response = await _api.delete(
+        ApiEndpoints.deleteCategories,
+        data: {'ids': ids},
+      );
+
+      return response.statusCode == 200 || response.statusCode == 204;
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Xử lý lỗi Dio
+  Exception _handleDioError(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+        return Exception('Connection timeout. Please check your internet connection.');
+      case DioExceptionType.receiveTimeout:
+        return Exception('Server is taking too long to respond.');
+      case DioExceptionType.badResponse:
+        final statusCode = e.response?.statusCode;
+        String message = 'Unknown error';
+        final responseData = e.response?.data;
+        if (responseData is Map<String, dynamic>) {
+          message = responseData['message']?.toString() ?? 'Unknown error';
+        } else if (responseData is String && responseData.isNotEmpty) {
+          message = responseData;
+        }
+        return Exception('Server error ($statusCode): $message');
+      case DioExceptionType.cancel:
+        return Exception('Request was cancelled.');
+      default:
+        return Exception('Network error: ${e.message}');
+    }
+  }
+}
