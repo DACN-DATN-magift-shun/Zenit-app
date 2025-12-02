@@ -129,16 +129,26 @@ class CategoryService {
     double expenseAlertThreshold = 0,
   }) async {
     try {
+      final requestData = {
+        'name': name,
+        'icon': icon,
+        'expenseLimit': expenseLimit.toInt(),
+        'expenseAlertThreshold': expenseAlertThreshold.toInt(),
+        'groupType': groupType,
+      };
+      
+      print('=== Create Category Request ===');
+      print('URL: ${ApiEndpoints.createCategory}');
+      print('Request data: $requestData');
+      
       final response = await _api.post(
         ApiEndpoints.createCategory,
-        data: {
-          'name': name,
-          'icon': icon,
-          'expenseLimit': expenseLimit,
-          'expenseAlertThreshold': expenseAlertThreshold,
-          'groupType': groupType,
-        },
+        data: requestData,
       );
+
+      print('=== Create Category Response ===');
+      print('Status code: ${response.statusCode}');
+      print('Response data: ${response.data}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return CategoryModel.fromJson(_convertToMap(response.data));
@@ -146,6 +156,9 @@ class CategoryService {
         throw Exception('Failed to create category: ${response.statusCode}');
       }
     } on DioException catch (e) {
+      print('=== Create Category Error ===');
+      print('Error response: ${e.response?.data}');
+      print('Error status: ${e.response?.statusCode}');
       throw _handleDioError(e);
     }
   }

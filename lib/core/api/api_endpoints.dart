@@ -1,7 +1,12 @@
 class ApiEndpoints {
+  static const emulatorURL = "http://10.0.2.2";
+  static const realdeviceURL = "http://10.0.2.2";
+
+ static const nowDemoDeviceURL = emulatorURL;
+
   // Base URLs for different services
-  static const String authBaseUrl = "http://10.0.2.2:5241/";
-  static const String categoryBaseUrl = "http://10.0.2.2:5212/";
+  static const String authBaseUrl = "$nowDemoDeviceURL:5241/";
+  static const String categoryBaseUrl = "$nowDemoDeviceURL:5212/";
   
   // Default base URL (for ApiClient compatibility)
   static const String baseUrl = authBaseUrl;
