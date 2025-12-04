@@ -8,16 +8,23 @@ class SingleCategory extends StatelessWidget {
     super.key,
     this.icon = Symbols.category,
     required this.name,
+    this.iconColor,
+    this.backgroundColor,
   });
 
   final IconData icon;
   final String name;
+  final Color? iconColor;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppColorExtension>()!;
+    final bgColor = backgroundColor ?? colors.neutralSurface;
+    final icColor = iconColor ?? Theme.of(context).primaryColor;
 
     return Material(
-      color: Theme.of(context).extension<AppColorExtension>()!.neutralSurface,
+      color: bgColor,
       borderRadius: BorderRadius.circular(AppSizes.borderRadiusXSmall), 
       child: Container(
         padding: const EdgeInsets.all(AppSizes.s),
@@ -30,24 +37,24 @@ class SingleCategory extends StatelessWidget {
               fill: 1.0,   
               weight: 400, 
               grade: 0.25, // Độ tinh chỉnh nét
-              color: Theme.of(context).primaryColor, 
+              color: icColor, 
               size: AppSizes.textXXXL, 
             ),
             // ---------------------------
             
-            const SizedBox(height: 6),
-            Flexible(
-              child: Text(
-                name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: Theme.of(context).extension<AppColorExtension>()!.neutralTextPrimary,
-                ),
-              ),
-            ),
+            // const SizedBox(height: 6),
+            // Flexible(
+            //   child: Text(
+            //     name,
+            //     maxLines: 2,
+            //     overflow: TextOverflow.ellipsis,
+            //     textAlign: TextAlign.center,
+            //     style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            //       fontWeight: FontWeight.w800,
+            //       color: colors.neutralTextPrimary,
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),

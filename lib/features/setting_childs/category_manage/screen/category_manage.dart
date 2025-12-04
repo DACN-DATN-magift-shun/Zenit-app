@@ -177,6 +177,8 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                         child: SingleCategory(
                           icon: _parseIcon(category.icon),
                           name: category.name,
+                          iconColor: _parseColor(category.color),
+                          backgroundColor: _parseColor(category.backgroundColor),
                         ),
                       );
                     }).toList(),
@@ -252,9 +254,31 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
       'attach_money': Symbols.attach_money,
       'savings': Symbols.savings,
       'trending_up': Symbols.trending_up,
+      // New icons
+      'shopping_cart_rounded': Symbols.shopping_cart_rounded,
+      'restaurant_rounded': Symbols.restaurant_rounded,
+      'account_balance_rounded': Symbols.account_balance_rounded,
+      'trending_up_rounded': Symbols.trending_up_rounded,
+      'school_rounded': Symbols.school_rounded,
+      'menu_book_rounded': Symbols.menu_book_rounded,
+      'movie_rounded': Symbols.movie_rounded,
+      'fitness_center_rounded': Symbols.fitness_center_rounded,
     };
 
     return iconMap[iconName] ?? Symbols.category;
+  }
+
+  Color? _parseColor(String? colorHex) {
+    if (colorHex == null || colorHex.isEmpty) return null;
+    try {
+      String hex = colorHex.replaceAll('#', '');
+      if (hex.length == 6) {
+        hex = 'FF$hex';
+      }
+      return Color(int.parse(hex, radix: 16));
+    } catch (e) {
+      return null;
+    }
   }
 
   void _showAddCategoryDrawer(
@@ -264,8 +288,9 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
   ) {
     AppDrawer.showAsBottomSheet(
       context: context,
-      title: 'Add a category',
+      title: 'Add a category', 
       showDragHandle: true,
+      height: MediaQuery.of(context).size.height * 0.85,
       body: AddCategoryForm(
         groupType: groupType,
         groupName: groupName,
@@ -275,6 +300,8 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
           final success = await categoryProvider.addCategory(
             name: data.name,
             icon: data.icon,
+            color: data.color,
+            backgroundColor: data.backgroundColor,
             groupType: data.groupType,
             expenseLimit: data.expenseLimit ?? 0,
             expenseAlertThreshold: 0,
@@ -300,5 +327,3 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
     );
   }
 }
-
-

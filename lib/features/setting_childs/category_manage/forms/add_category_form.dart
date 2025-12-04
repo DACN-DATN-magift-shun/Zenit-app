@@ -10,12 +10,16 @@ class AddCategoryData {
   final String name;
   final double? expenseLimit;
   final String icon;
+  final String color;
+  final String backgroundColor;
   final int groupType;
 
   AddCategoryData({
     required this.name,
     this.expenseLimit,
     required this.icon,
+    required this.color,
+    required this.backgroundColor,
     required this.groupType,
   });
 }
@@ -47,19 +51,16 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
   final _expenseLimitController = TextEditingController();
 
   String? _selectedIcon;
+  Color _selectedIconColor = Colors.white;
+  Color _selectedBackgroundColor = Colors.blue;
+  
   static const List<IconItem> _availableIcons = [
     // Neccessary
-    IconItem(
-      icon: Symbols.shopping_cart_rounded,
-      name: 'shopping_cart_rounded',
-    ),
+    IconItem(icon: Symbols.shopping_cart_rounded, name: 'shopping_cart_rounded'),
     IconItem(icon: Symbols.restaurant_rounded, name: 'restaurant_rounded'),
 
     // Savings
-    IconItem(
-      icon: Symbols.account_balance_rounded,
-      name: 'account_balance_rounded',
-    ),
+    IconItem(icon: Symbols.account_balance_rounded, name: 'account_balance_rounded'),
     IconItem(icon: Symbols.trending_up_rounded, name: 'trending_up_rounded'),
 
     // SelfDevelopment
@@ -68,10 +69,19 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
 
     // Entertainment
     IconItem(icon: Symbols.movie_rounded, name: 'movie_rounded'),
-    IconItem(
-      icon: Symbols.fitness_center_rounded,
-      name: 'fitness_center_rounded',
-    ),
+    IconItem(icon: Symbols.fitness_center_rounded, name: 'fitness_center_rounded'),
+  ];
+
+  // Available colors for picker (8 colors - 2 rows x 4 columns)
+  static const List<Color> _availableColors = [
+    Colors.white,
+    Colors.black,
+    Colors.red,
+    Colors.orange,
+    Colors.blue,
+    Colors.green,
+    Colors.purple,
+    Colors.teal,
   ];
 
   @override
@@ -94,11 +104,17 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
         name: _nameController.text.trim(),
         expenseLimit: double.tryParse(_expenseLimitController.text.trim()),
         icon: _selectedIcon!,
+        color: _colorToHex(_selectedIconColor),
+        backgroundColor: _colorToHex(_selectedBackgroundColor),
         groupType: widget.groupType,
       );
 
       widget.onSubmit?.call(data);
     }
+  }
+
+  String _colorToHex(Color color) {
+    return '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
   }
 
   @override
@@ -151,6 +167,41 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
             const SizedBox(height: AppSizes.m),
             _buildIconGrid(colors),
 
+            const SizedBox(height: AppSizes.l),
+
+            // Color pickers row
+            Row(
+              children: [
+                Expanded(
+                  child: _buildColorPicker(
+                    context: context,
+                    label: 'Icon Color',
+                    selectedColor: _selectedIconColor,
+                    onColorSelected: (color) {
+                      setState(() {
+                        _selectedIconColor = color;
+                      });
+                    },
+                    colors: colors,
+                  ),
+                ),
+                const SizedBox(width: AppSizes.l),
+                Expanded(
+                  child: _buildColorPicker(
+                    context: context,
+                    label: 'Background Color',
+                    selectedColor: _selectedBackgroundColor,
+                    onColorSelected: (color) {
+                      setState(() {
+                        _selectedBackgroundColor = color;
+                      });
+                    },
+                    colors: colors,
+                  ),
+                ),
+              ],
+            ),
+
             const SizedBox(height: AppSizes.xl),
 
             // Done button
@@ -163,7 +214,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
               ),
             ),
 
-            const SizedBox(height: AppSizes.l),
+            const SizedBox(height: 60),
           ],
         ),
       ),
@@ -241,6 +292,65 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
           );
         }).toList(),
       ),
+    );
+  }
+
+  Widget _buildColorPicker({
+    required BuildContext context,
+    required String label,
+    required Color selectedColor,
+    required Function(Color) onColorSelected,
+    required AppColorExtension colors,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: AppSizes.s),
+        Container(
+          padding: const EdgeInsets.all(AppSizes.s),
+          decoration: BoxDecoration(
+            color: colors.neutralBackground,
+            borderRadius: BorderRadius.circular(AppSizes.borderRadiusXSmall),
+          ),
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+            ),
+            itemCount: _availableColors.length,
+            itemBuilder: (context, index) {
+              final color = _availableColors[index];
+              final isSelected = selectedColor.value == color.value;
+              return GestureDetector(
+                onTap: () => onColorSelected(color),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected ? colors.primaryMain : colors.neutralBorder,
+                      width: isSelected ? 3 : 1,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: colors.primaryMain.withValues(alpha: 0.4),
+                              blurRadius: 4,
+                              spreadRadius: 1,
+                            ),
+                          ]
+                        : null,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

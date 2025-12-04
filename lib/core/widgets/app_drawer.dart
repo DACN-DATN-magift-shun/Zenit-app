@@ -94,7 +94,7 @@ class AppDrawer extends StatelessWidget {
       isScrollControlled: isScrollControlled,
       isDismissible: isDismissible,
       enableDrag: enableDrag,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
       builder: (context) => AppDrawer(
         title: title,
         body: body,
@@ -108,7 +108,7 @@ class AppDrawer extends StatelessWidget {
         bodyPadding: bodyPadding,
         backgroundColor: backgroundColor,
         borderRadius: borderRadius ?? const BorderRadius.vertical(
-          top: Radius.circular(AppSizes.borderRadiusMedium),
+          top: Radius.circular(AppSizes.borderRadiusXLarge),
         ),
         showDragHandle: showDragHandle,
       ),
@@ -154,7 +154,7 @@ class AppDrawer extends StatelessWidget {
             bodyPadding: bodyPadding,
             backgroundColor: backgroundColor,
             borderRadius: borderRadius ?? const BorderRadius.horizontal(
-              left: Radius.circular(AppSizes.borderRadiusMedium),
+              left: Radius.circular(AppSizes.borderRadiusXLarge),
             ),
           ),
         );
@@ -177,8 +177,8 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColorExtension>()!;
-    final effectiveBackgroundColor = backgroundColor ?? colors.neutralSurface;
-    final effectiveBorderRadius = borderRadius ?? BorderRadius.circular(AppSizes.borderRadiusMedium);
+    final effectiveBackgroundColor = backgroundColor ?? Colors.white;
+    final effectiveBorderRadius = borderRadius ?? BorderRadius.circular(AppSizes.borderRadiusLarge);
     final effectivePadding = padding ?? const EdgeInsets.all(AppSizes.l);
     final effectiveHeaderPadding = headerPadding ?? const EdgeInsets.only(bottom: AppSizes.l);
     final effectiveBodyPadding = bodyPadding ?? EdgeInsets.zero;
@@ -286,15 +286,16 @@ class AppDrawer extends StatelessWidget {
     return GestureDetector(
       onTap: onClose ?? () => Navigator.of(context).pop(),
       child: Container(
-        padding: const EdgeInsets.all(AppSizes.m),
+        padding: const EdgeInsets.all(0),
         decoration: BoxDecoration(
           color: colors.neutralBackground,
-          borderRadius: BorderRadius.circular(AppSizes.borderRadiusXSmall),
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
         ),
         child: Icon(
-          Symbols.close_rounded,
-          size: AppSizes.iconM,
-          color: colors.neutralTextPrimary,
+          Symbols.cancel_rounded,
+          size: AppSizes.iconL,
+          weight: 900,
+          color: colors.primaryActive,
         ),
       ),
     );

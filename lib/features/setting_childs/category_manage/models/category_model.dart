@@ -13,6 +13,8 @@ class CategoryModel {
   final String id;
   final String name;
   final String icon;
+  final String color;
+  final String backgroundColor;
   final double expenseLimit;
   final double expenseAlertThreshold;
   final String groupType;
@@ -29,6 +31,8 @@ class CategoryModel {
     required this.id,
     required this.name,
     required this.icon,
+    this.color = '#FFFFFF',
+    this.backgroundColor = '#000000',
     this.expenseLimit = 0,
     this.expenseAlertThreshold = 0,
     required this.groupType,
@@ -49,6 +53,8 @@ class CategoryModel {
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       icon: json['icon']?.toString() ?? '',
+      color: json['color']?.toString() ?? '#FFFFFF',
+      backgroundColor: json['backgroundColor']?.toString() ?? '#000000',
       expenseLimit: _parseDouble(json['expenseLimit']),
       expenseAlertThreshold: _parseDouble(json['expenseAlertThreshold']),
       groupType: json['groupType']?.toString() ?? '0',
@@ -89,6 +95,8 @@ class CategoryModel {
     return {
       'name': name,
       'icon': icon,
+      'color': color,
+      'backgroundColor': backgroundColor,
       'expenseLimit': expenseLimit,
       'expenseAlertThreshold': expenseAlertThreshold,
       'groupType': groupType,
@@ -101,6 +109,8 @@ class CategoryModel {
       'id': id,
       'name': name,
       'icon': icon,
+      'color': color,
+      'backgroundColor': backgroundColor,
       'expenseLimit': expenseLimit,
       'expenseAlertThreshold': expenseAlertThreshold,
       'groupType': groupType,
@@ -112,6 +122,8 @@ class CategoryModel {
     String? id,
     String? name,
     String? icon,
+    String? color,
+    String? backgroundColor,
     double? expenseLimit,
     double? expenseAlertThreshold,
     String? groupType,
@@ -128,6 +140,8 @@ class CategoryModel {
       id: id ?? this.id,
       name: name ?? this.name,
       icon: icon ?? this.icon,
+      color: color ?? this.color,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
       expenseLimit: expenseLimit ?? this.expenseLimit,
       expenseAlertThreshold: expenseAlertThreshold ?? this.expenseAlertThreshold,
       groupType: groupType ?? this.groupType,
@@ -144,7 +158,7 @@ class CategoryModel {
 
   @override
   String toString() {
-    return 'CategoryModel(id: $id, name: $name, icon: $icon, groupType: $groupType)';
+    return 'CategoryModel(id: $id, name: $name, icon: $icon, color: $color, backgroundColor: $backgroundColor, groupType: $groupType)';
   }
 }
 
