@@ -4,7 +4,10 @@ import 'package:zenit/core/layout/main_layout.dart';
 import 'package:zenit/core/services/auth_service.dart';
 import 'package:zenit/core/theme/app_colors.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
+import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
+import 'package:zenit/features/home_childs/transaction/forms/add_transaction_form.dart';
+import 'package:zenit/features/home_childs/transaction/services/transaction_service.dart';
 import 'package:zenit/features/main/models/action_item.dart';
 import 'package:zenit/features/main/models/home_action_item.dart';
 import 'package:zenit/features/main/widgets/home/home_action_grid.dart';
@@ -18,6 +21,7 @@ class HomeContent extends StatefulWidget {
 
 class _HomeContentState extends State<HomeContent> {
   final AuthService _authService = AuthService();
+  final TransactionService _transactionService = TransactionService();
   
   String _userName = '';
   bool _isAuthenticated = false;
@@ -27,19 +31,11 @@ class _HomeContentState extends State<HomeContent> {
   final List<HomeActionItem> _actionItems = [
     // Expense - Light blue with white icon containing arrows
     HomeActionItem(
-      title: 'Expense',
+      title: 'Transaction',
       icon: Icons.swap_horiz_rounded,
       backgroundColor: AppColors.light.secondaryMain,
       iconColor: AppColors.light.primaryMain,
-      type: ActionType.expense,
-    ),
-    // Income - Light blue with upward arrow
-    HomeActionItem(
-      title: 'Income',
-      icon: Icons.arrow_circle_up_rounded,
-      backgroundColor: AppColors.light.secondaryMain,
-      iconColor: AppColors.light.primaryMain,
-      type: ActionType.income,
+      type: ActionType.transaction,
     ),
     // Quick import - Primary blue with white icon
     HomeActionItem(
@@ -61,14 +57,6 @@ class _HomeContentState extends State<HomeContent> {
       backgroundColor: AppColors.light.secondaryMain,
       iconColor: AppColors.light.primaryMain,
       type: ActionType.goals,
-    ),
-    // Loan - Light blue with hourglass/savings icon
-    HomeActionItem(
-      title: 'Loans',
-      icon: Icons.savings_rounded,
-      backgroundColor: AppColors.light.secondaryMain,
-      iconColor: AppColors.light.primaryMain,
-      type: ActionType.loans,
     ),
     // More action - Primary blue with grid icon
     HomeActionItem(
@@ -122,20 +110,14 @@ class _HomeContentState extends State<HomeContent> {
   /// Handle action item tap using switch-case
   void _handleActionTap(HomeActionItem item) {
     switch (item.type) {
-      case ActionType.expense:
-        _navigateToExpense();
-        break;
-      case ActionType.income:
-        _navigateToIncome();
+      case ActionType.transaction:
+        _navigateToTransaction();
         break;
       case ActionType.quickImport:
         _navigateToQuickImport();
         break;
       case ActionType.goals:
         _navigateToGoals();
-        break;
-      case ActionType.loans:
-        _navigateToLoans();
         break;
       case ActionType.moreActions:
         _showMoreActions();
@@ -144,23 +126,72 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   // Navigation methods - implement actual navigation logic here
-  void _navigateToExpense() {
+  void _navigateToTransaction() {
+    TransactionFormData? Function()? getFormData;
+    
     AppDrawer.showAsBottomSheet(
-      context:context,
-      title: "Thêm chi tiêu",
-      showCloseButton: true,
+      context: context,
+      title: "Add transaction",
+      showCloseButton: false,
       showDragHandle: true,
-      body: Center(
-        child: Text("Expense Screen"), 
-      )
-
+      headerActions: [
+        IconButton(
+          onPressed: () => _handleCreateTransaction(getFormData),
+          icon: Icon(
+            Icons.check_circle_outline_rounded,
+            color: Theme.of(context).primaryColor,
+            size: 28,
+          ),
+        ),
+      ],
+      body: AddTransactionForm(
+        onFormReady: (getData) {
+          getFormData = getData;
+        },
+      ),
     );
   }
 
-  void _navigateToIncome() {
-    // TODO: Navigate to Income screen
-    _showSnackBar('Navigate to Income');
+  /// Business logic: Tạo transaction mới
+  Future<void> _handleCreateTransaction(
+    TransactionFormData? Function()? getFormData,
+  ) async {
+    if (getFormData == null) return;
+
+    final formData = getFormData();
+    if (formData == null) return; // Validation failed
+
+    try {
+      await _transactionService.createTransaction(
+        title: formData.title,
+        note: formData.note,
+        amount: formData.amount,
+        transactionDate: formData.transactionDate,
+        categoryId: formData.categoryId,
+      );
+
+      if (mounted) {
+        Navigator.of(context).pop(); // Close drawer
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Transaction added successfully!'),
+            backgroundColor: Theme.of(context).extension<AppColorExtension>()!.successIcon,
+          ),
+        );
+        // TODO: Refresh transaction list nếu cần
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Theme.of(context).extension<AppColorExtension>()!.errorIcon,
+          ),
+        );
+      }
+    }
   }
+
 
   void _navigateToQuickImport() {
     // TODO: Navigate to Quick Import screen
@@ -171,12 +202,6 @@ class _HomeContentState extends State<HomeContent> {
     // TODO: Navigate to Goals screen
     _showSnackBar('Navigate to Goals');
   }
-
-  void _navigateToLoans() {
-    // TODO: Navigate to Loans screen
-    _showSnackBar('Navigate to Loans');
-  }
-
   void _showMoreActions() {
     // TODO: Show more actions bottom sheet or screen
     _showSnackBar('Show More Actions');

@@ -44,11 +44,11 @@ class HomeActionGrid extends StatelessWidget {
     super.key,
     required this.items,
     required this.onItemTap,
-    this.crossAxisCount = 3,
-    this.crossAxisSpacing = 16.0,
-    this.mainAxisSpacing = 16.0,
-    this.iconContainerSize = 70.0,
-    this.iconSize = 40.0,
+    this.crossAxisCount = 4,
+    this.crossAxisSpacing = 8.0,
+    this.mainAxisSpacing = 8.0,
+    this.iconContainerSize = 56.0,
+    this.iconSize = 28.0,
   });
 
   @override
@@ -60,7 +60,7 @@ class HomeActionGrid extends StatelessWidget {
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: crossAxisSpacing,
         mainAxisSpacing: mainAxisSpacing,
-        childAspectRatio: 0.85,
+        childAspectRatio: 0.75,
       ),
       itemCount: items.length,
       itemBuilder: (context, index) {
