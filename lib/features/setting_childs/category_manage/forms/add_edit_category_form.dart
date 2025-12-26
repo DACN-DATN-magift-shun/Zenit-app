@@ -5,21 +5,24 @@ import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/widgets/button.dart';
 
+import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
+import 'package:zenit/features/setting_childs/category_manage/utils/category_color_palette.dart';
+
 /// Data class để trả về khi submit form
 class AddCategoryData {
   final String name;
   final double? expenseLimit;
   final String icon;
-  final String color;
-  final String backgroundColor;
+  final String? color;
+  final String? backgroundColor;
   final int groupType;
 
   AddCategoryData({
     required this.name,
     this.expenseLimit,
     required this.icon,
-    required this.color,
-    required this.backgroundColor,
+    this.color,
+    this.backgroundColor,
     required this.groupType,
   });
 }
@@ -30,6 +33,10 @@ class AddCategoryForm extends StatefulWidget {
     required this.groupType,
     required this.groupName,
     this.onSubmit,
+    this.initialName,
+    this.initialExpenseLimit,
+    this.initialIcon,
+    this.isEditMode = false,
   });
 
   /// Loại group (0-5)
@@ -41,6 +48,14 @@ class AddCategoryForm extends StatefulWidget {
   /// Callback khi submit form thành công
   final void Function(AddCategoryData data)? onSubmit;
 
+  // Initial values for editing
+  final String? initialName;
+  final double? initialExpenseLimit;
+  final String? initialIcon;
+  
+  /// Có phải đang ở chế độ edit không (true = edit, false = add new)
+  final bool isEditMode;
+
   @override
   State<AddCategoryForm> createState() => _AddCategoryFormState();
 }
@@ -51,9 +66,23 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
   final _expenseLimitController = TextEditingController();
 
   String? _selectedIcon;
-  Color _selectedIconColor = Colors.white;
-  Color _selectedBackgroundColor = Colors.blue;
+  int? _selectedGroupType;
   
+  @override
+  void initState() {
+    super.initState();
+    _selectedGroupType = widget.groupType;
+    if (widget.initialName != null) {
+      _nameController.text = widget.initialName!;
+    }
+    if (widget.initialExpenseLimit != null) {
+      _expenseLimitController.text = widget.initialExpenseLimit.toString();
+    }
+    if (widget.initialIcon != null) {
+      _selectedIcon = widget.initialIcon;
+    }
+  }
+
   static const List<IconItem> _availableIcons = [
     // Neccessary
     IconItem(icon: Symbols.shopping_cart_rounded, name: 'shopping_cart_rounded'),
@@ -73,16 +102,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
   ];
 
   // Available colors for picker (8 colors - 2 rows x 4 columns)
-  static const List<Color> _availableColors = [
-    Colors.white,
-    Colors.black,
-    Colors.red,
-    Colors.orange,
-    Colors.blue,
-    Colors.green,
-    Colors.purple,
-    Colors.teal,
-  ];
+  // REMOVED - Không còn cho phép người dùng chọn màu
 
   @override
   void dispose() {
@@ -92,6 +112,9 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
   }
 
   void _handleSubmit() {
+    // Đóng keyboard trước khi submit để tránh conflict với navigation
+    FocusScope.of(context).unfocus();
+    
     if (_formKey.currentState?.validate() ?? false) {
       if (_selectedIcon == null) {
         ScaffoldMessenger.of(
@@ -100,21 +123,34 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
         return;
       }
 
+      // Nếu là mode thêm mới, random một cặp màu
+      String? colorHex;
+      String? bgColorHex;
+      
+      if (!widget.isEditMode) {
+        final randomColorPair = CategoryColorPalette.getRandomColorPair();
+        colorHex = randomColorPair.iconColorHex;
+        bgColorHex = randomColorPair.backgroundColorHex;
+        
+        print('=== Random Color Pair Selected ===');
+        print('Icon Color: $colorHex');
+        print('Background Color: $bgColorHex');
+      } else {
+        // Chế độ edit - không gửi màu (API edit không trả về màu)
+        print('=== Edit Mode - No Color Data Sent ===');
+      }
+
       final data = AddCategoryData(
         name: _nameController.text.trim(),
         expenseLimit: double.tryParse(_expenseLimitController.text.trim()),
         icon: _selectedIcon!,
-        color: _colorToHex(_selectedIconColor),
-        backgroundColor: _colorToHex(_selectedBackgroundColor),
-        groupType: widget.groupType,
+        color: colorHex,
+        backgroundColor: bgColorHex,
+        groupType: _selectedGroupType ?? widget.groupType,
       );
 
       widget.onSubmit?.call(data);
     }
-  }
-
-  String _colorToHex(Color color) {
-    return '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
   }
 
   @override
@@ -142,12 +178,50 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
 
             const SizedBox(height: AppSizes.l),
 
-            // Belong to group (read-only)
-            _buildReadOnlyField(
-              context: context,
-              label: 'Belong to group',
-              value: '${widget.groupType} - ${widget.groupName}',
-              colors: colors,
+            // Belong to group (selectable)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Belong to group',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colors.neutralTextSecondary,
+                      ),
+                ),
+                const SizedBox(height: AppSizes.s),
+                Container(
+                  decoration: BoxDecoration(
+                    color: colors.neutralSurface,
+                    borderRadius: BorderRadius.circular(AppSizes.borderRadiusMedium),
+                    border: Border.all(color: colors.neutralBorder),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: _selectedGroupType ?? widget.groupType,
+                      isExpanded: true,
+                      padding: const EdgeInsets.symmetric(horizontal: AppSizes.m),
+                      borderRadius: BorderRadius.circular(AppSizes.borderRadiusMedium),
+                      dropdownColor: colors.neutralSurface,
+                      items: GroupType.values.map((type) {
+                        return DropdownMenuItem<int>(
+                          value: type.value,
+                          child: Text(
+                            type.displayName,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedGroupType = value;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: AppSizes.l),
@@ -166,41 +240,6 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
             Text('Select icon', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: AppSizes.m),
             _buildIconGrid(colors),
-
-            const SizedBox(height: AppSizes.l),
-
-            // Color pickers row
-            Row(
-              children: [
-                Expanded(
-                  child: _buildColorPicker(
-                    context: context,
-                    label: 'Icon Color',
-                    selectedColor: _selectedIconColor,
-                    onColorSelected: (color) {
-                      setState(() {
-                        _selectedIconColor = color;
-                      });
-                    },
-                    colors: colors,
-                  ),
-                ),
-                const SizedBox(width: AppSizes.l),
-                Expanded(
-                  child: _buildColorPicker(
-                    context: context,
-                    label: 'Background Color',
-                    selectedColor: _selectedBackgroundColor,
-                    onColorSelected: (color) {
-                      setState(() {
-                        _selectedBackgroundColor = color;
-                      });
-                    },
-                    colors: colors,
-                  ),
-                ),
-              ],
-            ),
 
             const SizedBox(height: AppSizes.xl),
 
@@ -221,35 +260,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
     );
   }
 
-  Widget _buildReadOnlyField({
-    required BuildContext context,
-    required String label,
-    required String value,
-    required AppColorExtension colors,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-          decoration: BoxDecoration(
-            color: colors.primaryMain,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            value,
-            style: TextStyle(
-              color: colors.primaryText,
-              fontSize: AppSizes.textM,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+
 
   Widget _buildIconGrid(AppColorExtension colors) {
     return Container(
@@ -292,65 +303,6 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
           );
         }).toList(),
       ),
-    );
-  }
-
-  Widget _buildColorPicker({
-    required BuildContext context,
-    required String label,
-    required Color selectedColor,
-    required Function(Color) onColorSelected,
-    required AppColorExtension colors,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: AppSizes.s),
-        Container(
-          padding: const EdgeInsets.all(AppSizes.s),
-          decoration: BoxDecoration(
-            color: colors.neutralBackground,
-            borderRadius: BorderRadius.circular(AppSizes.borderRadiusXSmall),
-          ),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              crossAxisSpacing: 6,
-              mainAxisSpacing: 6,
-            ),
-            itemCount: _availableColors.length,
-            itemBuilder: (context, index) {
-              final color = _availableColors[index];
-              final isSelected = selectedColor.value == color.value;
-              return GestureDetector(
-                onTap: () => onColorSelected(color),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSelected ? colors.primaryMain : colors.neutralBorder,
-                      width: isSelected ? 3 : 1,
-                    ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: colors.primaryMain.withValues(alpha: 0.4),
-                              blurRadius: 4,
-                              spreadRadius: 1,
-                            ),
-                          ]
-                        : null,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
     );
   }
 }

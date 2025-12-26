@@ -5,9 +5,10 @@ class ApiEndpoints {
  static const nowDemoDeviceURL = emulatorURL;
 
   // Base URLs for different services
-  static const String authBaseUrl = "$nowDemoDeviceURL:5241/";
+  static const String authBaseUrl = "$nowDemoDeviceURL:5212/";
   static const String categoryBaseUrl = "$nowDemoDeviceURL:5212/";
   static const String transactionBaseUrl = "$nowDemoDeviceURL:5212/";
+  static const String statisticsBaseUrl = "$nowDemoDeviceURL:5212/";
   
   // Default base URL (for ApiClient compatibility)
   static const String baseUrl = authBaseUrl;
@@ -33,4 +34,7 @@ class ApiEndpoints {
   static String transactionById(String id) => "${transactionBaseUrl}Transactions/$id";
   static String deleteTransactionUrl(String id) => transactionById(id);
   static const String createTransaction = "${transactionBaseUrl}Transactions";
+
+  // Statistics Endpoints (using statisticsBaseUrl)
+  static const String statistics = "${statisticsBaseUrl}Statistics";
 }

@@ -152,6 +152,9 @@ class CategoryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      debugPrint('=== Provider Update Category ===');
+      debugPrint('Updating category: $name');
+      
       final updatedCategory = await _categoryService.updateCategory(
         id: id,
         name: name,
@@ -162,6 +165,8 @@ class CategoryProvider extends ChangeNotifier {
         expenseLimit: expenseLimit,
         expenseAlertThreshold: expenseAlertThreshold,
       );
+
+      debugPrint('=== Category Updated Successfully ===');
 
       // Cập nhật local state
       _updateCategoryInLocalState(updatedCategory, groupType, oldGroupType);

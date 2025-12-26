@@ -180,19 +180,29 @@ class CategoryService {
     double expenseAlertThreshold = 0,
   }) async {
     try {
+      final requestData = {
+        'id': id,
+        'name': name,
+        'icon': icon,
+        'color': color,
+        'backgroundColor': backgroundColor,
+        'expenseLimit': expenseLimit.toInt(),
+        'expenseAlertThreshold': expenseAlertThreshold.toInt(),
+        'groupType': groupType,
+      };
+      
+      print('=== Update Category Request ===');
+      print('URL: ${ApiEndpoints.updateCategoryUrl(id)}');
+      print('Request data: $requestData');
+      
       final response = await _api.patch(
         ApiEndpoints.updateCategoryUrl(id),
-        data: {
-          'id': id,
-          'name': name,
-          'icon': icon,
-          'color': color,
-          'backgroundColor': backgroundColor,
-          'expenseLimit': expenseLimit,
-          'expenseAlertThreshold': expenseAlertThreshold,
-          'groupType': groupType,
-        },
+        data: requestData,
       );
+
+      print('=== Update Category Response ===');
+      print('Status code: ${response.statusCode}');
+      print('Response data: ${response.data}');
 
       if (response.statusCode == 200) {
         return CategoryModel.fromJson(_convertToMap(response.data));

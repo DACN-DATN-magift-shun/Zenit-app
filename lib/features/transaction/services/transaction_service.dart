@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:zenit/core/api/api_endpoints.dart';
 import 'package:zenit/data/network/api_client.dart';
-import 'package:zenit/features/home_childs/transaction/models/transaction_model.dart';
+import 'package:zenit/features/transaction/models/transaction_model.dart';
 
 /// Service để gọi API liên quan đến Transaction
 class TransactionService {
@@ -19,6 +19,62 @@ class TransactionService {
       return jsonDecode(data) as Map<String, dynamic>;
     }
     return {};
+  }
+
+  /// Lấy danh sách transactions với phân trang
+  /// GET /Transactions
+  Future<TransactionListResponse> getAllTransactions({
+    DateTime? fromDate,
+    DateTime? toDate,
+    String? categoryId,
+    String? search,
+    String? beforeId,
+    required int pageSize,
+    bool useCountTotal = true,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'PageSize': pageSize,
+        'UseCountTotal': useCountTotal,
+      };
+
+      if (fromDate != null) {
+        queryParams['FromDate'] = fromDate.toUtc().toIso8601String();
+      }
+      if (toDate != null) {
+        queryParams['ToDate'] = toDate.toUtc().toIso8601String();
+      }
+      if (categoryId != null && categoryId.isNotEmpty) {
+        queryParams['CategoryId'] = categoryId;
+      }
+      if (search != null && search.isNotEmpty) {
+        queryParams['Search'] = search;
+      }
+      if (beforeId != null && beforeId.isNotEmpty) {
+        queryParams['BeforeId'] = beforeId;
+      }
+
+      print('=== Get All Transactions ===');
+      print('URL: ${ApiEndpoints.transactions}');
+      print('Query params: $queryParams');
+
+      final response = await _api.get(
+        ApiEndpoints.transactions,
+        queryParameters: queryParams,
+      );
+
+      print('=== Get All Transactions Response ===');
+      print('Status code: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        return TransactionListResponse.fromJson(_convertToMap(response.data));
+      } else {
+        throw Exception('Failed to get transactions: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
   }
 
   /// Tạo transaction mới

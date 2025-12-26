@@ -5,7 +5,7 @@ import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/utils/validators/transactions_form_validator.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
-import 'package:zenit/features/home_childs/transaction/widgets/category_selector_drawer.dart';
+import 'package:zenit/features/transaction/widgets/category_selector_drawer.dart';
 import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
 import 'package:zenit/features/setting_childs/category_manage/providers/category_provider.dart';
 
