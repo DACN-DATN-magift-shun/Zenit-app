@@ -35,9 +35,6 @@ class _StatisticsPieChartState extends State<StatisticsPieChart> {
       return _buildEmptyState();
     }
 
-    // Kiểm tra xem có categories không
-    final hasCategories = widget.groups.any((g) => g.categories.isNotEmpty);
-
     return AspectRatio(
       aspectRatio: 1.3,
       child: PieChart(
@@ -58,49 +55,13 @@ class _StatisticsPieChartState extends State<StatisticsPieChart> {
           borderData: FlBorderData(show: false),
           sectionsSpace: 2,
           centerSpaceRadius: 60,
-          sections: hasCategories ? _buildCategorySections() : _buildGroupSections(),
+          sections: _buildGroupSections(),
         ),
       ),
     );
   }
 
-  /// Build sections theo categories (khi có categories)
-  List<PieChartSectionData> _buildCategorySections() {
-    final allCategories = _getAllCategories();
-    final List<PieChartSectionData> sections = [];
-    
-    for (int i = 0; i < allCategories.length; i++) {
-      final categoryData = allCategories[i];
-      final isTouched = i == touchedIndex;
-      final radius = isTouched ? 65.0 : 55.0;
-      final fontSize = isTouched ? AppSizes.textM : AppSizes.textS;
-
-      final color = categoryData.groupType < _groupColors.length
-          ? _groupColors[categoryData.groupType]
-          : _groupColors.last;
-
-      sections.add(
-        PieChartSectionData(
-          color: color,
-          value: categoryData.percentage,
-          title: '${categoryData.percentage.toStringAsFixed(1)}%',
-          radius: radius,
-          titleStyle: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            shadows: const [
-              Shadow(color: Colors.black26, blurRadius: 2),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return sections;
-  }
-
-  /// Build sections theo groups (khi không có categories)
+  /// Build sections theo groups
   List<PieChartSectionData> _buildGroupSections() {
     final List<PieChartSectionData> sections = [];
     
@@ -135,34 +96,6 @@ class _StatisticsPieChartState extends State<StatisticsPieChart> {
     return sections;
   }
 
-  /// Lấy tất cả categories từ tất cả groups và nhóm theo category
-  List<_CategoryData> _getAllCategories() {
-    final Map<String, _CategoryData> categoryMap = {};
-    
-    for (final group in widget.groups) {
-      for (final category in group.categories) {
-        final key = '${category.id}_${category.name}';
-        if (categoryMap.containsKey(key)) {
-          categoryMap[key] = _CategoryData(
-            category: category,
-            groupType: group.groupType,
-            totalAmount: categoryMap[key]!.totalAmount + category.totalAmount,
-            percentage: categoryMap[key]!.percentage + category.percentage,
-          );
-        } else {
-          categoryMap[key] = _CategoryData(
-            category: category,
-            groupType: group.groupType,
-            totalAmount: category.totalAmount,
-            percentage: category.percentage,
-          );
-        }
-      }
-    }
-    
-    return categoryMap.values.toList();
-  }
-
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -185,19 +118,4 @@ class _StatisticsPieChartState extends State<StatisticsPieChart> {
       ),
     );
   }
-}
-
-/// Helper class để lưu thông tin category với groupType
-class _CategoryData {
-  final StatisticsCategoryModel category;
-  final int groupType;
-  final int totalAmount;
-  final double percentage;
-
-  _CategoryData({
-    required this.category,
-    required this.groupType,
-    required this.totalAmount,
-    required this.percentage,
-  });
 }
