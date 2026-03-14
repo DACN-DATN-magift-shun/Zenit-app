@@ -4,6 +4,7 @@ import 'package:zenit/core/api/api_endpoints.dart';
 import 'package:zenit/core/layout/auth_layout.dart';
 import 'package:zenit/core/services/navigation_service.dart';
 import 'package:zenit/core/forms/sign_up_form.dart';
+import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/data/local/storage_service.dart';
 import 'package:zenit/features/auth/services/account_service.dart';
 import 'package:zenit/core/services/auth_service.dart';
@@ -46,9 +47,7 @@ class _SignupScreenState extends State<SignupScreen>{
         }
       } else {
         if(mounted){
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(respone.data['message'] ?? 'Dữ liệu trả về lỗi'))
-          );
+          AppFlash.error(context, respone.data['message'] ?? 'Dữ liệu trả về lỗi');
         }
       }
       
@@ -56,16 +55,12 @@ class _SignupScreenState extends State<SignupScreen>{
     } on DioException catch(e){
       if (mounted) {
         final serverMsg = e.response?.data?['message'] ?? e.message;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(serverMsg ?? 'Lỗi đăng ký'))
-        );
+        AppFlash.error(context, serverMsg ?? 'Lỗi đăng ký');
       }
     }
      catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Có lỗi xảy ra. Vui lòng thử lại.'))
-        );
+        AppFlash.error(context, 'Có lỗi xảy ra. Vui lòng thử lại.');
       }
       
     }

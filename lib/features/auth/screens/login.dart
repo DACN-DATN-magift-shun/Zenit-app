@@ -5,6 +5,7 @@ import 'package:zenit/core/api/api_endpoints.dart';
 import 'package:zenit/core/layout/auth_layout.dart';
 import 'package:zenit/core/services/navigation_service.dart';
 import 'package:zenit/core/forms/login_form.dart';
+import 'package:zenit/core/widgets/app_flash.dart';
 
 import 'package:zenit/core/services/auth_service.dart';
 import 'package:zenit/features/auth/services/account_service.dart';
@@ -28,9 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
         final snackMessage = args?['snackMessage'] as String?;
         if (snackMessage != null && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(snackMessage)),
-          );
+          AppFlash.success(context, snackMessage);
           _hasShownMessage = true;
         }
       });
@@ -80,11 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage ?? 'Dữ liệu trả về lỗi'),
-            ),
-          );
+          AppFlash.error(context, errorMessage ?? 'Dữ liệu trả về lỗi');
         }
       }
     } on DioException catch (e) {
@@ -100,16 +95,12 @@ class _LoginScreenState extends State<LoginScreen> {
         } else if (e.message != null && e.message!.isNotEmpty) {
           serverMsg = e.message!;
         }
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(serverMsg)));
+        AppFlash.error(context, serverMsg);
       }
     } catch (e) {
       print('General error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Có lỗi xảy ra: $e')));
+        AppFlash.error(context, 'Có lỗi xảy ra: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

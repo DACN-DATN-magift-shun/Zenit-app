@@ -5,6 +5,7 @@ import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/base_layout.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
 
 import 'package:zenit/core/widgets/custom_long_press_menu.dart'; 
@@ -199,15 +200,9 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
       if (!mounted) return;
       
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã xóa category')),
-        );
+        AppFlash.success(context, 'Đã xóa category');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(categoryProvider.errorMessage ?? 'Xóa thất bại'),
-          ),
-        );
+        AppFlash.error(context, categoryProvider.errorMessage ?? 'Xóa thất bại');
       }
     }
   }
@@ -311,15 +306,9 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
           if (context.mounted) {
             Navigator.pop(context);
             if (success) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Đã cập nhật category: ${data.name}')),
-              );
+              AppFlash.success(context, 'Đã cập nhật category: ${data.name}');
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(categoryProvider.errorMessage ?? 'Cập nhật category thất bại'),
-                ),
-              );
+              AppFlash.error(context, categoryProvider.errorMessage ?? 'Cập nhật category thất bại');
             }
           }
         },
@@ -357,15 +346,9 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
           if (context.mounted) {
             Navigator.pop(context);
             if (success) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Đã thêm category: ${data.name}')),
-              );
+              AppFlash.success(context, 'Đã thêm category: ${data.name}');
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(categoryProvider.errorMessage ?? 'Thêm category thất bại'),
-                ),
-              );
+              AppFlash.error(context, categoryProvider.errorMessage ?? 'Thêm category thất bại');
             }
           }
         },

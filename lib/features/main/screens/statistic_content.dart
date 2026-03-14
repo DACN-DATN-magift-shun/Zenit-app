@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/theme/app_colors.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
+import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/button.dart';
 import 'package:zenit/features/statistics/models/statistics_model.dart';
 import 'package:zenit/features/statistics/services/statistics_service.dart';
@@ -124,32 +125,14 @@ class _StatisticContentState extends State<StatisticContent> {
 
       if (mounted) {
         Navigator.pop(context); // Close loading
-        _showSuccessSnackBar('Xuất báo cáo thành công!');
+        AppFlash.success(context, 'Xuất báo cáo thành công!');
       }
     } catch (e) {
       if (mounted) {
         Navigator.pop(context); // Close loading
-        _showErrorSnackBar('Xuất báo cáo thất bại: $e');
+        AppFlash.error(context, 'Xuất báo cáo thất bại: $e');
       }
     }
-  }
-
-  void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.light.successIcon,
-      ),
-    );
-  }
-
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.light.errorIcon,
-      ),
-    );
   }
 
   @override

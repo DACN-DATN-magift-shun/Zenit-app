@@ -4,7 +4,7 @@ import 'package:zenit/core/layout/main_layout.dart';
 import 'package:zenit/core/services/auth_service.dart';
 import 'package:zenit/core/theme/app_colors.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
-import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/features/transaction/forms/add_transaction_form.dart';
 import 'package:zenit/features/transaction/services/transaction_service.dart';
@@ -172,22 +172,12 @@ class _HomeContentState extends State<HomeContent> {
 
       if (mounted) {
         Navigator.of(context).pop(); // Close drawer
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Transaction added successfully!'),
-            backgroundColor: Theme.of(context).extension<AppColorExtension>()!.successIcon,
-          ),
-        );
+        AppFlash.success(context, 'Transaction added successfully!');
         // TODO: Refresh transaction list nếu cần
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Theme.of(context).extension<AppColorExtension>()!.errorIcon,
-          ),
-        );
+        AppFlash.error(context, 'Error: ${e.toString()}');
       }
     }
   }
@@ -195,25 +185,16 @@ class _HomeContentState extends State<HomeContent> {
 
   void _navigateToQuickImport() {
     // TODO: Navigate to Quick Import screen
-    _showSnackBar('Navigate to Quick Import');
+    AppFlash.info(context, 'Navigate to Quick Import');
   }
 
   void _navigateToGoals() {
     // TODO: Navigate to Goals screen
-    _showSnackBar('Navigate to Goals');
+    AppFlash.info(context, 'Navigate to Goals');
   }
   void _showMoreActions() {
     // TODO: Show more actions bottom sheet or screen
-    _showSnackBar('Show More Actions');
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+    AppFlash.info(context, 'Show More Actions');
   }
 
   @override

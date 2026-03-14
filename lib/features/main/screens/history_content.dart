@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/features/history/form/view_edit_tran_form.dart';
 import 'package:zenit/features/transaction/models/transaction_model.dart';
@@ -126,16 +127,12 @@ class _HistoryContentState extends State<HistoryContent> {
         });
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Đã xóa giao dịch "${transaction.title}"')),
-          );
+          AppFlash.success(context, 'Đã xóa giao dịch "${transaction.title}"');
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Lỗi: ${e.toString()}')));
+        AppFlash.error(context, 'Lỗi: ${e.toString()}');
       }
     }
   }
@@ -144,9 +141,7 @@ class _HistoryContentState extends State<HistoryContent> {
     final transactionId = transaction.id;
     if (transactionId == null || transactionId.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Không tìm thấy ID giao dịch')),
-        );
+        AppFlash.error(context, 'Không tìm thấy ID giao dịch');
       }
       return;
     }

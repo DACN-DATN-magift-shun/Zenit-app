@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/utils/validators/transactions_form_validator.dart';
+import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
 import 'package:zenit/features/setting_childs/category_manage/providers/category_provider.dart';
@@ -210,11 +211,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
 
     if (transactionId.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Không tìm thấy ID giao dịch để cập nhật'),
-          ),
-        );
+        AppFlash.error(context, 'Không tìm thấy ID giao dịch để cập nhật');
       }
       return;
     }
@@ -226,23 +223,13 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
     final category =
         _selectedCategory ?? _findCategoryById(transaction.categoryId);
     if (category == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a category'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      AppFlash.warning(context, 'Please select a category');
       return;
     }
 
     final amount = _parseAmount(_amountController.text);
     if (amount == null || amount == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid amount'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      AppFlash.warning(context, 'Please enter a valid amount');
       return;
     }
 
@@ -270,9 +257,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
       });
       _setEditing(false);
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Đã cập nhật giao dịch')));
+      AppFlash.success(context, 'Đã cập nhật giao dịch');
 
       await widget.onTransactionUpdated?.call();
     } catch (e) {
@@ -280,9 +265,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
         return;
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Lỗi: ${e.toString()}')));
+      AppFlash.error(context, 'Lỗi: ${e.toString()}');
     } finally {
       _setSaving(false);
     }

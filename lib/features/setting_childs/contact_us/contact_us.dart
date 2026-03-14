@@ -5,6 +5,7 @@ import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/base_layout.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/core/widgets/app_flash.dart';
 
 class ContactUsScreen extends StatelessWidget {
   const ContactUsScreen({super.key});
@@ -35,19 +36,7 @@ class ContactUsScreen extends StatelessWidget {
     );
 
     if (!didLaunch && context.mounted) {
-      final colors = Theme.of(context).extension<AppColorExtension>()!;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: colors.errorBackground,
-          content: Text(
-            'Unable to open this app right now.',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: colors.errorText),
-          ),
-        ),
-      );
+      AppFlash.error(context, 'Unable to open this app right now.');
     }
   }
 

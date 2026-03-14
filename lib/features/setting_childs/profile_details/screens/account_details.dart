@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/base_layout.dart';
+import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/features/auth/services/account_service.dart';
 import 'package:zenit/features/setting_childs/profile_details/widgets/profile_form.dart';
 
@@ -24,19 +25,13 @@ class _AccountDetailsState extends State<AccountDetails> {
       if (!mounted) return;
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully')),
-        );
+        AppFlash.success(context, 'Profile updated successfully');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unable to update profile')),
-        );
+        AppFlash.error(context, 'Unable to update profile');
       }
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to update profile')),
-      );
+      AppFlash.error(context, 'Unable to update profile');
     }
   }
 

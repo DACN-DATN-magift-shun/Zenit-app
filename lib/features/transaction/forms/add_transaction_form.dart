@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/utils/validators/transactions_form_validator.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/features/transaction/widgets/category_selector_drawer.dart';
@@ -157,12 +158,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     }
 
     if (_selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a category'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      AppFlash.warning(context, 'Please select a category');
       return null;
     }
 

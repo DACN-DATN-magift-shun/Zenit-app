@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:zenit/core/layout/auth_layout.dart';
 import 'package:zenit/core/services/navigation_service.dart';
+import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/button.dart';
 import 'package:zenit/core/forms/form_fields/custom_text_form_field.dart';
 import 'package:zenit/core/forms/form_fields/password_form_field.dart';
@@ -65,9 +66,11 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
         final message = responseData['message']?.toString() ?? 'Mã OTP đã được gửi đến email của bạn';
         
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message)),
-          );
+          if (success) {
+            AppFlash.success(context, message);
+          } else {
+            AppFlash.error(context, message);
+          }
           
           if (success) {
             setState(() {
@@ -92,16 +95,12 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
         } else if (e.message != null && e.message!.isNotEmpty) {
           serverMsg = e.message!;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(serverMsg)),
-        );
+        AppFlash.error(context, serverMsg);
       }
     } catch (e) {
       print('General error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Có lỗi xảy ra: $e')),
-        );
+        AppFlash.error(context, 'Có lỗi xảy ra: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -130,9 +129,7 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
         final message = verifyData['message']?.toString();
         
         if (!otpValid && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message ?? 'OTP không hợp lệ')),
-          );
+          AppFlash.error(context, message ?? 'OTP không hợp lệ');
           if (mounted) setState(() => _isLoading = false);
           return;
         }
@@ -162,9 +159,7 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
                 },
               );
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
+              AppFlash.error(context, message);
             }
           }
         }
@@ -184,16 +179,12 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
         } else if (e.message != null && e.message!.isNotEmpty) {
           serverMsg = e.message!;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(serverMsg)),
-        );
+        AppFlash.error(context, serverMsg);
       }
     } catch (e) {
       print('General error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Có lỗi xảy ra: $e')),
-        );
+        AppFlash.error(context, 'Có lỗi xảy ra: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

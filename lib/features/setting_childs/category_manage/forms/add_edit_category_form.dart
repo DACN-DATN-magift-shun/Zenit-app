@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:zenit/core/forms/form_fields/custom_text_form_field.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/button.dart';
 
 import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
@@ -117,9 +118,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
     
     if (_formKey.currentState?.validate() ?? false) {
       if (_selectedIcon == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Vui lòng chọn icon')));
+        AppFlash.warning(context, 'Vui lòng chọn icon');
         return;
       }
 
