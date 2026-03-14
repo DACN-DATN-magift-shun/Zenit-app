@@ -30,6 +30,13 @@ class CategoryProvider extends ChangeNotifier {
     return _categoryGroups[groupType]?.categories ?? [];
   }
 
+  /// Lấy tất cả categories từ mọi groupType dưới dạng một danh sách phẳng
+  List<CategoryModel> get categories {
+    return _categoryGroups.values
+        .expand((group) => group.categories)
+        .toList(growable: false);
+  }
+
   /// Lấy tên của group theo groupType
   String getGroupName(int groupType) {
     return _categoryGroups[groupType]?.name ?? GroupType.fromValue(groupType).displayName;

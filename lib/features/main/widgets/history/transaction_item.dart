@@ -8,10 +8,12 @@ class TransactionItem extends StatelessWidget {
   const TransactionItem({
     super.key,
     required this.transaction,
+    this.onTap,
     this.onDelete,
   });
 
   final TransactionModel transaction;
+  final VoidCallback? onTap;
   final VoidCallback? onDelete;
 
   @override
@@ -35,6 +37,8 @@ class TransactionItem extends StatelessWidget {
     // final amountPrefix = isExpense ? '-' : '+';
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
       onLongPressStart: (details) {
         _showContextMenu(context, details.globalPosition);
       },
@@ -156,6 +160,8 @@ class TransactionItem extends StatelessWidget {
         ),
       ],
     );
+
+    if (!context.mounted) return;
 
     if (selected == 'delete' && onDelete != null) {
       // Show confirmation dialog

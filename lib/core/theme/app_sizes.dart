@@ -17,12 +17,17 @@ class AppSizes {
   // icon sizes
   static const double iconS = 16.0;
   static const double iconM = 24.0;
+  static const double iconNav = 24.0;
   static const double iconL = 32.0;
   static const double iconXL = 48.0;
 
   // default spacing between elements
   static const double elementSpacing = 12.0;
   static const double sectionSpacing = 24.0;
+
+  // navigation bar specific
+  static const double navBarPadding = 10.0;
+  static const double navBarTabPadding = 20.0;
 
   // border radius
   static const double borderRadiusXLarge = 48.0;

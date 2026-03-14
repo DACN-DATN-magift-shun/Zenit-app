@@ -18,7 +18,7 @@ class SettingsContent extends StatefulWidget {
 
 class _SettingsContentState extends State<SettingsContent> {
   final AuthService _authService = AuthService();
-  
+
   bool _isAuthenticated = false;
   bool _isLoading = true;
   Response? _userInfoResponse;
@@ -31,12 +31,12 @@ class _SettingsContentState extends State<SettingsContent> {
 
   Future<void> _loadUserInfo() async {
     setState(() => _isLoading = true);
-    
+
     final isAuth = await _authService.isAuthenticated();
-    
+
     if (isAuth) {
       final response = await _authService.getUserInfo();
-      
+
       if (response != null && response.statusCode == 200) {
         setState(() {
           _isAuthenticated = true;
@@ -60,31 +60,38 @@ class _SettingsContentState extends State<SettingsContent> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return MainLayout(
-      appBar: CommonAppBar(
-        title:' Settings',
-        showSecondaryText: false,
-      ),
+      appBar: CommonAppBar(title: ' Settings', showSecondaryText: false),
       child: _isAuthenticated && _userInfoResponse != null
           ? SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: AppSizes.s, horizontal: AppSizes.l),
+              padding: const EdgeInsets.symmetric(
+                vertical: AppSizes.s,
+                horizontal: AppSizes.l,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // User profile card (avatar, name, username, chevron)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSizes.l, vertical: AppSizes.l),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.l,
+                      vertical: AppSizes.l,
+                    ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
-                      borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
+                      color: Theme.of(
+                        context,
+                      ).extension<AppColorExtension>()!.neutralBackground,
+                      borderRadius: BorderRadius.circular(
+                        AppSizes.borderRadiusSmall,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).extension<AppColorExtension>()!.primaryShade,
+                          color: Theme.of(
+                            context,
+                          ).extension<AppColorExtension>()!.primaryShade,
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -96,16 +103,16 @@ class _SettingsContentState extends State<SettingsContent> {
                         Container(
                           width: 64,
                           height: 64,
-                            decoration: BoxDecoration(
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: Theme.of(context).extension<AppColorExtension>()!.primaryMain,
+                              color: Theme.of(
+                                context,
+                              ).extension<AppColorExtension>()!.primaryMain,
                               width: 2.5, // tăng độ dày của border
                             ),
-                            ),
-                          child: ClipOval(
-                            child: _buildAvatar(),
                           ),
+                          child: ClipOval(child: _buildAvatar()),
                         ),
                         const SizedBox(width: 12),
 
@@ -116,13 +123,15 @@ class _SettingsContentState extends State<SettingsContent> {
                             children: [
                               Text(
                                 // vi hienj tai chi co usser name, nen se dung user name thay the cho name nhe
-                                (_userInfoResponse!.data['username'] as String?) ?? 'Not login',
+                                (_userInfoResponse!.data['username']
+                                        as String?) ??
+                                    'Not login',
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Username: ${(_userInfoResponse!.data['username'] as String?) ?? 'N/A'}',
-                                style:Theme.of(context).textTheme.bodySmall,
+                                style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
                           ),
@@ -132,7 +141,9 @@ class _SettingsContentState extends State<SettingsContent> {
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
+                            color: Theme.of(
+                              context,
+                            ).extension<AppColorExtension>()!.neutralBackground,
                             shape: BoxShape.circle,
                           ),
                           child: IconButton(
@@ -140,11 +151,15 @@ class _SettingsContentState extends State<SettingsContent> {
                             icon: Icon(
                               Symbols.expand_circle_right,
                               size: 36, // reduced size
-                              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
+                              color: Theme.of(
+                                context,
+                              ).extension<AppColorExtension>()!.primaryActive,
                             ),
                             onPressed: () {
                               // Navigate to account details within settings
-                              NavigationService.instance.navigateTo('/settings/account_details');
+                              NavigationService.instance.navigateTo(
+                                '/settings/account_details',
+                              );
                             },
                           ),
                         ),
@@ -153,18 +168,60 @@ class _SettingsContentState extends State<SettingsContent> {
                   ),
 
                   const SizedBox(height: 20),
-                  SettingItem(icon: Symbols.settings_rounded, title: 'General settings'),
-                  SettingItem(icon: Symbols.style_rounded, title: 'Category management', onTap: () {
-                    NavigationService.instance.navigateTo('/settings/category_manage');
-                  },),
-                  SettingItem(icon: Symbols.notifications_rounded, title: 'Notifications'),
+                  SettingItem(
+                    icon: Symbols.settings_rounded,
+                    title: 'General settings',
+                    onTap: () {
+                      NavigationService.instance.navigateTo(
+                        '/settings/general',
+                      );
+                    },
+                  ),
+                  SettingItem(
+                    icon: Symbols.style_rounded,
+                    title: 'Category management',
+                    onTap: () {
+                      NavigationService.instance.navigateTo(
+                        '/settings/category_manage',
+                      );
+                    },
+                  ),
+                  SettingItem(
+                    icon: Symbols.notifications_rounded,
+                    title: 'Notifications',
+                    onTap: () {
+                      NavigationService.instance.navigateTo(
+                        '/settings/notifications',
+                      );
+                    },
+                  ),
                   SettingItem(icon: Symbols.shield_toggle, title: 'Security'),
-                  SettingItem(icon: Symbols.support_agent_rounded, title: 'Support center'),
-                  SettingItem(icon: Symbols.privacy_tip_rounded, title: 'Privacy policy and terms'),
-                  SettingItem(icon: Symbols.logout_rounded, title: 'Logout', onTap:(){
-                    AuthService().logout();
-                    NavigationService.instance.navigateTo('/login');
-                  } ,),
+                  SettingItem(
+                    icon: Symbols.support_agent_rounded,
+                    title: 'Support center',
+                    onTap: () {
+                      NavigationService.instance.navigateTo(
+                        '/settings/contact-us',
+                      );
+                    },
+                  ),
+                  SettingItem(
+                    icon: Symbols.privacy_tip_rounded,
+                    title: 'Privacy policy and terms',
+                    onTap: () {
+                      NavigationService.instance.navigateTo(
+                        '/settings/terms-and-privacy',
+                      );
+                    },
+                  ),
+                  SettingItem(
+                    icon: Symbols.logout_rounded,
+                    title: 'Logout',
+                    onTap: () {
+                      AuthService().logout();
+                      NavigationService.instance.navigateTo('/login');
+                    },
+                  ),
                 ],
               ),
             )
@@ -172,26 +229,16 @@ class _SettingsContentState extends State<SettingsContent> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.person_off,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
+                  const Icon(Icons.person_off, size: 64, color: Colors.grey),
                   const SizedBox(height: 16),
                   Text(
                     'Bạn chưa đăng nhập',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Vui lòng đăng nhập để xem thông tin',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                   ),
                 ],
               ),
@@ -233,7 +280,8 @@ class _SettingsContentState extends State<SettingsContent> {
 
   Widget _buildAvatar() {
     final data = _userInfoResponse?.data;
-    final avatarUrl = (data != null && (data['avatar'] ?? data['avatarUrl']) != null)
+    final avatarUrl =
+        (data != null && (data['avatar'] ?? data['avatarUrl']) != null)
         ? (data['avatar'] ?? data['avatarUrl']) as String
         : null;
 
@@ -252,7 +300,9 @@ class _SettingsContentState extends State<SettingsContent> {
 
   Widget _avatarFallback() {
     final username = _userInfoResponse?.data['username'] as String?;
-    final String initial = (username != null && username.isNotEmpty) ? username[0].toUpperCase() : '?';
+    final String initial = (username != null && username.isNotEmpty)
+        ? username[0].toUpperCase()
+        : '?';
 
     return Container(
       color: Colors.grey.shade100,

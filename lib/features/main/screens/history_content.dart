@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/core/widgets/app_drawer.dart';
+import 'package:zenit/features/history/form/view_edit_tran_form.dart';
 import 'package:zenit/features/transaction/models/transaction_model.dart';
 import 'package:zenit/features/transaction/services/transaction_service.dart';
 import 'package:zenit/features/main/widgets/history/transaction_item.dart';
@@ -113,7 +116,9 @@ class _HistoryContentState extends State<HistoryContent> {
     if (transaction.id == null) return;
 
     try {
-      final success = await _transactionService.deleteTransaction(transaction.id!);
+      final success = await _transactionService.deleteTransaction(
+        transaction.id!,
+      );
       if (success) {
         setState(() {
           _transactions.removeWhere((t) => t.id == transaction.id);
@@ -128,10 +133,118 @@ class _HistoryContentState extends State<HistoryContent> {
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi: ${e.toString()}')));
+      }
+    }
+  }
+
+  Future<void> _openTransactionDetail(TransactionModel transaction) async {
+    final transactionId = transaction.id;
+    if (transactionId == null || transactionId.isEmpty) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi: ${e.toString()}')),
+          const SnackBar(content: Text('Không tìm thấy ID giao dịch')),
         );
       }
+      return;
+    }
+
+    final formController = ViewEditTranFormController();
+
+    try {
+      await AppDrawer.showAsBottomSheet(
+        context: context,
+        title: 'Transaction detail',
+        showCloseButton: false,
+        showDragHandle: true,
+        headerActions: [
+          AnimatedBuilder(
+            animation: Listenable.merge([
+              formController.isEditing,
+              formController.isSaving,
+            ]),
+            builder: (context, _) {
+              final colors = Theme.of(context).extension<AppColorExtension>()!;
+              final isEditing = formController.isEditing.value;
+              final isSaving = formController.isSaving.value;
+
+              Widget buildActionButton({
+                required VoidCallback? onTap,
+                required Color iconColor,
+                required IconData icon,
+                Color? backgroundColor,
+                Widget? child,
+              }) {
+                return GestureDetector(
+                  onTap: onTap,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: const EdgeInsets.all(AppSizes.s),
+                    decoration: BoxDecoration(
+                      color: backgroundColor ?? colors.neutralBackground,
+                      borderRadius: BorderRadius.circular(
+                        AppSizes.borderRadiusLarge,
+                      ),
+                    ),
+                    child:
+                        child ??
+                        Icon(icon, size: AppSizes.iconL, color: iconColor),
+                  ),
+                );
+              }
+
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isEditing) ...[
+                    buildActionButton(
+                      onTap: isSaving ? null : formController.cancelEditing,
+                      icon: Symbols.close_rounded,
+                      iconColor: colors.errorIcon,
+                      backgroundColor: colors.errorBackground,
+                    ),
+                    const SizedBox(width: AppSizes.s),
+                  ],
+                  buildActionButton(
+                    onTap: isSaving
+                        ? null
+                        : () async {
+                            if (isEditing) {
+                              await formController.saveChanges();
+                            } else {
+                              await formController.startEditing();
+                            }
+                          },
+                    icon: isEditing
+                        ? Symbols.check_rounded
+                        : Symbols.edit_rounded,
+                    iconColor: colors.primaryActive,
+                    child: isSaving
+                        ? SizedBox(
+                            width: AppSizes.iconM,
+                            height: AppSizes.iconM,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colors.primaryActive,
+                            ),
+                          )
+                        : null,
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+        body: ViewEditTranForm(
+          transactionId: transactionId,
+          controller: formController,
+          onTransactionUpdated: _refreshTransactions,
+        ),
+      );
+    } finally {
+      formController.dispose();
     }
   }
 
@@ -140,10 +253,7 @@ class _HistoryContentState extends State<HistoryContent> {
     final colors = Theme.of(context).extension<AppColorExtension>()!;
 
     return Scaffold(
-      appBar: CommonAppBar(
-        title: 'History',
-        showSecondaryText: false,
-      ),
+      appBar: CommonAppBar(title: 'History', showSecondaryText: false),
       body: _buildBody(colors),
     );
   }
@@ -178,6 +288,7 @@ class _HistoryContentState extends State<HistoryContent> {
         final transaction = _transactions[index];
         return TransactionItem(
           transaction: transaction,
+          onTap: () => _openTransactionDetail(transaction),
           onDelete: () => _deleteTransaction(transaction),
         );
       },
@@ -195,11 +306,7 @@ class _HistoryContentState extends State<HistoryContent> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: colors.errorIcon,
-                ),
+                Icon(Icons.error_outline, size: 64, color: colors.errorIcon),
                 const SizedBox(height: AppSizes.m),
                 Text(
                   'Đã xảy ra lỗi',
@@ -210,8 +317,8 @@ class _HistoryContentState extends State<HistoryContent> {
                   _errorMessage ?? '',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colors.neutralTextSecondary,
-                      ),
+                    color: colors.neutralTextSecondary,
+                  ),
                 ),
                 const SizedBox(height: AppSizes.l),
                 ElevatedButton(
@@ -244,15 +351,15 @@ class _HistoryContentState extends State<HistoryContent> {
               Text(
                 'Chưa có giao dịch nào',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: colors.neutralTextSecondary,
-                    ),
+                  color: colors.neutralTextSecondary,
+                ),
               ),
               const SizedBox(height: AppSizes.s),
               Text(
                 'Kéo xuống để làm mới',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.neutralTextSecondary,
-                    ),
+                  color: colors.neutralTextSecondary,
+                ),
               ),
             ],
           ),
@@ -264,9 +371,7 @@ class _HistoryContentState extends State<HistoryContent> {
   Widget _buildLoadingIndicator() {
     return const Padding(
       padding: EdgeInsets.all(AppSizes.l),
-      child: Center(
-        child: CircularProgressIndicator(),
-      ),
+      child: Center(child: CircularProgressIndicator()),
     );
   }
 }

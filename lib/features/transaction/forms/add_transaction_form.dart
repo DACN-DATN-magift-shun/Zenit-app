@@ -136,6 +136,21 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     }
   }
 
+  double _calculateNoteMaxHeight(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final proposed = screenHeight * 0.30;
+
+    if (proposed < 180) {
+      return 180;
+    }
+
+    if (proposed > 280) {
+      return 280;
+    }
+
+    return proposed;
+  }
+
   TransactionFormData? _getFormData() {
     if (!_formKey.currentState!.validate()) {
       return null;
@@ -163,6 +178,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColorExtension>()!;
+    final noteMaxHeight = _calculateNoteMaxHeight(context);
 
     return Container(
       decoration: const BoxDecoration(
@@ -186,6 +202,8 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                     color: colors.neutralTextSecondary, 
                   ),
                   decoration: InputDecoration(
+                    filled: false,
+                    fillColor: Colors.transparent,
                     hintText: 'Transaction name',
                     hintStyle: TextStyle(
                       color: colors.neutralTextDisable.withOpacity(0.5),
@@ -210,6 +228,8 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.end,
                     decoration: InputDecoration(
+                      filled: false,
+                      fillColor: Colors.transparent,
                       hintText: '0',
                       hintStyle: TextStyle(color: colors.neutralTextDisable),
                       suffixText: ' VND',
@@ -321,18 +341,27 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                   ),
                   const SizedBox(height: AppSizes.s),
                   Container(
-                    height: 120, // Chiều cao cố định hoặc để auto
+                    width: double.infinity,
+                    constraints: BoxConstraints(
+                      minHeight: 88,
+                      maxHeight: noteMaxHeight,
+                    ),
                     decoration: BoxDecoration(
-                      color: colors.neutralBackground, // Màu xám nền
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(AppSizes.borderRadiusMedium),
                     ),
                     child: TextFormField(
                       controller: _noteController,
-                      maxLines: null, // Cho phép xuống dòng
-                      decoration: InputDecoration(
+                      minLines: 1,
+                      maxLines: null,
+                      keyboardType: TextInputType.multiline,
+                      textAlignVertical: TextAlignVertical.top,
+                      decoration: const InputDecoration(
+                        filled: false,
+                        fillColor: Colors.transparent,
                         hintText: '',
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.all(AppSizes.m),
+                        contentPadding: EdgeInsets.all(AppSizes.m),
                       ),
                     ),
                   ),

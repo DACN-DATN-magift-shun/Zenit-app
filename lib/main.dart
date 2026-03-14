@@ -7,7 +7,13 @@ import 'package:zenit/core/services/navigation_service.dart';
 import 'package:zenit/core/layout/main_shell.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/features/auth/screens/login.dart';
+import 'package:zenit/features/setting_childs/general_settings/screens/general_settings.dart';
+import 'package:zenit/features/setting_childs/notifications_setting/screens/notification_manage.dart';
+import 'package:zenit/features/setting_childs/contact_us/contact_us.dart';
+import 'package:zenit/features/setting_childs/terms_and_privacy/terms_and_privacy.dart';
 import 'package:zenit/features/auth/screens/signup.dart';
+import 'package:zenit/features/auth/screens/reset_passwords.dart';
+import 'package:zenit/features/main/screens/notification.dart';
 
 void main() {
   runApp(const MainApp());
@@ -35,12 +41,16 @@ class MainApp extends StatelessWidget {
           '/login': (c) => const LoginScreen(),
           '/home': (c) => const MainShell(),
           '/signup': (c) => const SignupScreen(),
+          '/reset-password': (c) => const ResetPasswordsScreen(),
           '/settings/account_details': (c) => const AccountDetails(),
           '/settings/category_manage': (c) => const CategoryManageScreen(),
-
-        }
+          '/settings/general': (c) => const GeneralSettings(),
+          '/settings/notifications': (c) => const NotificationManage(),
+          '/settings/contact-us': (c) => const ContactUsScreen(),
+          '/settings/terms-and-privacy': (c) => const TermsAndPolicyScreen(),
+          '/notifications': (c) => const NotificationScreen(),
+        },
       ),
     );
   }
 }
-

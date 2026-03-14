@@ -1,5 +1,6 @@
 {
     "java.project.sourcePaths": [
         "lib/features/main/widgets/home"
-    ]
+    ],
+    "cmake.sourceDirectory": "D:/Hoc Tap/HK251/DACN/zenit/linux"
 }

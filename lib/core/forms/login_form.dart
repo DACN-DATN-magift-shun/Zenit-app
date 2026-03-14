@@ -61,12 +61,15 @@ class _LoginFormState extends State<LoginForm> {
             validator: AuthFormsValidator.password,
           ),
           const SizedBox(height: 12),
-          Text(
-            'Quên mật khẩu?',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
-          ),
-            textAlign: TextAlign.right,
+          InkWell(
+            onTap: () => NavigationService.instance.navigateTo('/reset-password'),
+            child: Text(
+              'Quên mật khẩu?',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
+            ),
+              textAlign: TextAlign.right,
+            ),
           ),
           const SizedBox(height: 24),
           AppButton(

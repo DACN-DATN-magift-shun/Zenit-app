@@ -1,25 +1,30 @@
 class ApiEndpoints {
-  static const emulatorURL = "http://10.0.2.2";
-  static const realdeviceURL = "http://10.0.2.2";
+  static const String localBaseUrl = "http://10.0.2.2:5212/";
+  static const String productionBaseUrl = "https://zenit-api-tuir.onrender.com/";
 
- static const nowDemoDeviceURL = emulatorURL;
+  // Toggle this when switching between local backend and deployed backend.
+  static const bool useProduction = false;
+  static const String nowDemoDeviceURL = useProduction ? productionBaseUrl : localBaseUrl;
 
   // Base URLs for different services
-  static const String authBaseUrl = "$nowDemoDeviceURL:5212/";
-  static const String categoryBaseUrl = "$nowDemoDeviceURL:5212/";
-  static const String transactionBaseUrl = "$nowDemoDeviceURL:5212/";
-  static const String statisticsBaseUrl = "$nowDemoDeviceURL:5212/";
+  static const String authBaseUrl = nowDemoDeviceURL;
+  static const String categoryBaseUrl = nowDemoDeviceURL;
+  static const String transactionBaseUrl = nowDemoDeviceURL;
+  static const String statisticsBaseUrl = nowDemoDeviceURL;
   
   // Default base URL (for ApiClient compatibility)
   static const String baseUrl = authBaseUrl;
 
-  static const int connectionTimeout = 30000;
-  static const int receiveTimeout = 30000;
+  static const int connectionTimeout = 60000;
+  static const int receiveTimeout = 60000;
 
   // Auth Endpoints (using authBaseUrl)
   static const String accounts = "${authBaseUrl}Accounts/me";
   static const String register = "${authBaseUrl}Accounts/register";
   static const String login = "${authBaseUrl}Accounts/login";
+  static const String sendOtp = "${authBaseUrl}Account/send-otp";
+  static const String verifyOtp = "${authBaseUrl}Account/verify-otp";
+  static const String resetPassword = "${authBaseUrl}Account/reset-password";
 
   // Category Endpoints (using categoryBaseUrl)
   static const String categories = "${categoryBaseUrl}Categories";

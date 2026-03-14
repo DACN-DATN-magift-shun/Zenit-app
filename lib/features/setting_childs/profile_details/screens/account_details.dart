@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/base_layout.dart';
+import 'package:zenit/features/auth/services/account_service.dart';
 import 'package:zenit/features/setting_childs/profile_details/widgets/profile_form.dart';
 
 class AccountDetails extends StatefulWidget {
@@ -10,17 +11,35 @@ class AccountDetails extends StatefulWidget {
   State<AccountDetails> createState() => _AccountDetailsState();
 }
 
-Future<void> _handleSubmit(
-  String email,
-  String username,
-  String dateOfBirth,
-  String phone,
-  String address,
-) async {
-  // Xử lý lưu thông tin tài khoản ở đây
-}
-
 class _AccountDetailsState extends State<AccountDetails> {
+  final AccountService _accountService = AccountService();
+
+  Future<void> _handleSubmit(String phone, String address) async {
+    try {
+      final response = await _accountService.updateMyAccount(
+        phone: phone,
+        address: address,
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to update profile')),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to update profile')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BaseLayout(

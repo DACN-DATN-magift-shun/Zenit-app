@@ -7,9 +7,6 @@ import 'package:zenit/core/services/auth_service.dart';
 
 class ProfileForm extends StatefulWidget {
   final void Function(
-    String email,
-    String username,
-    String dateOfBirth,
     String phone,
     String address,
   ) onSubmit;
@@ -64,8 +61,8 @@ class _ProfileFormState extends State<ProfileForm> {
           _emailController.text = data['email'] ?? '--';
           _usernameController.text = data['username'] ?? '--';
           _dateOfBirthController.text = data['dateOfBirth'] ?? '--';
-          _phoneController.text = data['phone'] ?? '--';
-          _addressController.text = data['address'] ?? '--';
+          _phoneController.text = data['phone'] ?? '';
+          _addressController.text = data['address'] ?? '';
           _isLoading = false; 
         });
       }
@@ -78,9 +75,6 @@ class _ProfileFormState extends State<ProfileForm> {
     if (_formKey.currentState!.validate()) {
       // Gửi giá trị từ controller đi
       widget.onSubmit(
-        _emailController.text.trim(),
-        _usernameController.text.trim(),
-        _dateOfBirthController.text.trim(),
         _phoneController.text.trim(),
         _addressController.text.trim(),
       );
@@ -132,15 +126,19 @@ class _ProfileFormState extends State<ProfileForm> {
             CustomTextFormField(
               label: 'Email',
               controller: _emailController,
+              filled: false,
+              enabled: false,
             ),
             CustomTextFormField(
               label: 'Username',
               controller: _usernameController,
+              filled: false,
+              enabled: false,
             ),
-            CustomTextFormField(
-              label: 'Date of Birth',
-              controller: _dateOfBirthController,
-            ),
+            // CustomTextFormField(
+            //   label: 'Date of Birth',
+            //   controller: _dateOfBirthController,
+            // ),
             CustomTextFormField(
               label: 'Phone',
               controller: _phoneController,

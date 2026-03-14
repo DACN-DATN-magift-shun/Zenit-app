@@ -118,6 +118,39 @@ class TransactionService {
     }
   }
 
+  /// Cập nhật một hoặc nhiều transaction
+  /// PATCH /Transactions
+  Future<bool> updateTransactions(List<TransactionModel> transactions) async {
+    try {
+      final requestData = {
+        'transactions': transactions
+            .map((transaction) => transaction.toJsonWithId())
+            .toList(),
+      };
+
+      print('=== Update Transactions Request ===');
+      print('URL: ${ApiEndpoints.transactions}');
+      print('Request data: $requestData');
+
+      final response = await _api.patch(
+        ApiEndpoints.transactions,
+        data: requestData,
+      );
+
+      print('=== Update Transactions Response ===');
+      print('Status code: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        return true;
+      }
+
+      throw Exception('Failed to update transactions: ${response.statusCode}');
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
   /// Lấy một transaction theo ID
   /// GET /Transactions/{id}
   Future<TransactionModel> getTransactionById(String id) async {
@@ -184,7 +217,9 @@ class TransactionService {
       case DioExceptionType.cancel:
         return Exception('Request đã bị hủy.');
       case DioExceptionType.connectionError:
-        return Exception('Không thể kết nối đến server. Vui lòng kiểm tra mạng.');
+        return Exception(
+          'Không thể kết nối đến server. Vui lòng kiểm tra mạng.',
+        );
       default:
         return Exception('Có lỗi xảy ra. Vui lòng thử lại.');
     }

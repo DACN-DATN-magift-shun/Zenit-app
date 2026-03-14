@@ -1,7 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:zenit/core/theme/app_colors.dart';
+import 'package:zenit/core/theme/app_sizes.dart';
 
 class AppNavigationBar extends StatelessWidget {
   final int selectedIndex;
@@ -15,90 +16,64 @@ class AppNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Lấy kích thước màn hình để chỉnh padding cho hợp lý
-    final double width = MediaQuery.of(context).size.width;
-    final bool compact = width < 380;
-    
-    final EdgeInsets gnavPadding = compact
-        ? const EdgeInsets.symmetric(horizontal: 8, vertical: 10)
-        : const EdgeInsets.symmetric(horizontal: 12, vertical: 12);
-        
-    final double gap = compact ? 4 : 8;
-    
-    final EdgeInsets outerPadding = compact
-        ? const EdgeInsets.symmetric(horizontal: 6.0, vertical: 14.0)
-        : const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0);
-
-    return SafeArea(
-      bottom: true,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Stack(
-            children: [
-              // Lớp nền Gradient mờ ảo
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        const Color.fromRGBO(255, 255, 255, 0.20),
-                        const Color.fromRGBO(255, 255, 255, 0.02),
-                      ],
-                      stops: const [0.0, 1.0],
-                      transform: const GradientRotation(-0.8),
-                    ),
-                  ),
-                ),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.light.neutralBackground,
+        // color: const Color.fromARGB(255, 80, 45, 45),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(AppSizes.borderRadiusMedium),
+          topRight: Radius.circular(AppSizes.borderRadiusMedium),
+          bottomLeft: Radius.circular(1),
+          bottomRight: Radius.circular(0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSizes.navBarPadding,
+            vertical: AppSizes.navBarPadding,
+          ),
+          child: GNav(
+            selectedIndex: selectedIndex,
+            onTabChange: onTabChange,
+            gap: AppSizes.m,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.navBarTabPadding,
+              vertical: AppSizes.elementSpacing,
+            ),
+            duration: const Duration(milliseconds: 400),
+            backgroundColor: Colors.transparent,
+            color: AppColors.light.primaryShade,
+            activeColor: AppColors.light.primaryShade,
+            tabBackgroundColor: AppColors.light.secondaryMain,
+            tabs: const [
+              GButton(
+                icon: Symbols.home,
+                text: 'Home',
+                iconSize: AppSizes.iconNav,
               ),
-              // Lớp Blur và nội dung chính
-              BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color.fromRGBO(255, 255, 255, 0.08),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: const Color.fromRGBO(255, 255, 255, 0.18),
-                      width: 1.4,
-                    ),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color.fromRGBO(255, 255, 255, 0.08),
-                        blurRadius: 20,
-                        offset: Offset(0, 5),
-                      ),
-                      BoxShadow(
-                        color: Color.fromRGBO(116, 137, 255, 0.12),
-                        blurRadius: 10,
-                        offset: Offset(0, 0),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: outerPadding,
-                    child: GNav(
-                      selectedIndex: selectedIndex,
-                      gap: gap,
-                      padding: gnavPadding,
-                      backgroundColor: Colors.transparent,
-                      color: Colors.blue.shade900, // Màu icon khi chưa chọn
-                      activeColor: Colors.blue.shade800, // Màu icon khi ĐANG chọn
-                      tabBackgroundColor: const Color.fromRGBO(255, 255, 255, 0.5),
-                      onTabChange: onTabChange,
-                      tabs: const [
-
-                        GButton(icon: Symbols.home, text: 'Home'),
-                        GButton(icon: Symbols.bar_chart, text: 'Statistic'), // Thay timelapse cho hợp
-                        GButton(icon: Symbols.history, text: 'History'),
-                        GButton(icon: Symbols.settings, text: 'Settings'), // Bỏ cái fill: 1.0 đi
-                      ],
-                    ),
-                  ),
-                ),
+              GButton(
+                icon: Symbols.timelapse,
+                text: 'Statistics',
+                iconSize: AppSizes.iconNav,
+              ),
+              GButton(
+                icon: Symbols.menu,
+                text: 'History',
+                iconSize: AppSizes.iconNav,
+              ),
+              GButton(
+                icon: Symbols.settings,
+                text: 'Settings',
+                iconSize: AppSizes.iconNav,
               ),
             ],
           ),

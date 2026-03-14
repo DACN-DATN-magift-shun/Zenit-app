@@ -30,30 +30,33 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final hasSecondary = showSecondaryText && (secondaryText?.isNotEmpty ?? false);
+
     return SafeArea(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         color: Theme.of(context).scaffoldBackgroundColor,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: hasSecondary ? CrossAxisAlignment.start : CrossAxisAlignment.center,
           children: [
             if (showReturnIcon)
               GestureDetector(
                 onTap: onBack ?? () => NavigationService.instance.goBack(),
-                child: const Padding(
-                  padding: EdgeInsets.only(right: 12.0, top: 4.0),
+                child: Padding(
+                  padding: EdgeInsets.only(right: 12.0, top: hasSecondary ? 4.0 : 0),
                   child: Icon(Symbols.arrow_back_ios_new_rounded, size: AppSizes.iconM),
                 ),
               ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: hasSecondary ? MainAxisAlignment.start : MainAxisAlignment.center,
                 children: [
                   Text(
                     title,
                     style: textTheme.titleLarge,
                   ),
-                  if (showSecondaryText && (secondaryText?.isNotEmpty ?? false))
+                  if (hasSecondary)
                     Padding(
                       padding: const EdgeInsets.only(top: 6.0),
                       child: Text(
@@ -65,7 +68,14 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             IconButton(
-              onPressed: () {NavigationService.instance.navigateTo('/');},
+              onPressed: onNotificationTap ?? () {
+                NavigationService.instance.navigateTo('/notifications');
+              },
+              constraints: const BoxConstraints.tightFor(
+                width: 40,
+                height: 40,
+              ),
+              padding: EdgeInsets.zero,
               icon: Icon(
                 Symbols.notifications_rounded,
                 size: AppSizes.iconM,

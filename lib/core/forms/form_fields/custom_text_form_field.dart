@@ -10,6 +10,7 @@ class CustomTextFormField extends StatelessWidget{
   final bool filled;
   final Color? fillColor;
   final AutovalidateMode autovalidateMode;
+  final bool enabled;
 
   const CustomTextFormField({
     super.key,
@@ -21,10 +22,16 @@ class CustomTextFormField extends StatelessWidget{
     this.filled = true,
     this.fillColor,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    final appColors = Theme.of(context).extension<AppColorExtension>()!;
+    final textColor = (!enabled && !filled)
+        ? Theme.of(context).colorScheme.onSurface
+        : appColors.primaryText;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -40,12 +47,13 @@ class CustomTextFormField extends StatelessWidget{
       validator: validator,
       keyboardType: keyboardType,
       autovalidateMode: autovalidateMode,
-      style: TextStyle(color: Theme.of(context).extension<AppColorExtension>()!.primaryText),
+      enabled: enabled,
+      style: TextStyle(color: textColor),
       decoration: InputDecoration(
         hintText: hintText,
         filled: filled,
-        hintStyle: TextStyle(color: Theme.of(context).extension<AppColorExtension>()!.primarySubtext),
-        fillColor: fillColor ?? Theme.of(context).extension<AppColorExtension>()!.primaryMain,
+        hintStyle: TextStyle(color: appColors.primarySubtext),
+        fillColor: fillColor ?? appColors.primaryMain,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
           borderSide: BorderSide.none,
