@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/forms/form_fields/custom_text_form_field.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
@@ -118,7 +119,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
     
     if (_formKey.currentState?.validate() ?? false) {
       if (_selectedIcon == null) {
-        AppFlash.warning(context, 'Vui lòng chọn icon');
+        AppFlash.warning(context, context.l10n.pleaseSelectIcon);
         return;
       }
 
@@ -154,6 +155,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final colors = Theme.of(context).extension<AppColorExtension>()!;
 
     return Form(
@@ -164,12 +166,12 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
           children: [
             // Category name
             CustomTextFormField(
-              label: 'Category name',
-              hintText: 'Enter category name',
+              label: l10n.categoryName,
+              hintText: l10n.enterCategoryName,
               controller: _nameController,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Please enter category name';
+                  return l10n.pleaseEnterCategoryName;
                 }
                 return null;
               },
@@ -182,7 +184,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Belong to group',
+                  l10n.belongToGroup,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colors.neutralTextSecondary,
                       ),
@@ -205,7 +207,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
                         return DropdownMenuItem<int>(
                           value: type.value,
                           child: Text(
-                            type.displayName,
+                            _groupDisplayName(context, type.value),
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         );
@@ -227,8 +229,8 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
 
             // Expense limit
             CustomTextFormField(
-              label: 'Expense limit',
-              hintText: 'Enter expense limit (optional)',
+              label: l10n.expenseLimit,
+              hintText: l10n.enterExpenseLimitOptional,
               controller: _expenseLimitController,
               keyboardType: TextInputType.number,
             ),
@@ -236,7 +238,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
             const SizedBox(height: AppSizes.l),
 
             // Select icon
-            Text('Select icon', style: Theme.of(context).textTheme.titleMedium),
+            Text(l10n.selectIcon, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: AppSizes.m),
             _buildIconGrid(colors),
 
@@ -245,7 +247,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
             // Done button
             Center(
               child: AppButton(
-                text: 'Done',
+                text: l10n.done,
                 icon: Symbols.check_circle_rounded,
                 onPressed: _handleSubmit,
                 width: 140,
@@ -257,6 +259,24 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
         ),
       ),
     );
+  }
+
+  String _groupDisplayName(BuildContext context, int groupType) {
+    final l10n = context.l10n;
+    switch (groupType) {
+      case 0:
+        return l10n.groupNecessary;
+      case 1:
+        return l10n.groupSavings;
+      case 2:
+        return l10n.groupSelfDevelopment;
+      case 3:
+        return l10n.groupEntertainment;
+      case 4:
+        return l10n.groupGiving;
+      default:
+        return l10n.groupNecessary;
+    }
   }
 
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:zenit/core/api/api_endpoints.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 
 import 'package:zenit/core/layout/auth_layout.dart';
 import 'package:zenit/core/services/navigation_service.dart';
@@ -37,6 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin(String email, String password) async {
+    final l10n = context.l10n;
     setState(() => _isLoading = true);
 
     try {
@@ -74,22 +76,22 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           NavigationService.instance.navigateTo(
             '/home',
-            arguments: {'snackMessage': 'Đăng nhập thành công!'},
+            arguments: {'snackMessage': l10n.loginSuccess},
           );
         }
       } else {
         if (mounted) {
-          AppFlash.error(context, errorMessage ?? 'Dữ liệu trả về lỗi');
+          AppFlash.error(context, errorMessage ?? l10n.invalidResponseData);
         }
       }
     } on DioException catch (e) {
       print('DioException: ${e.message}');
       print('Response: ${e.response?.data}');
       if (mounted) {
-        String serverMsg = 'Lỗi đăng nhập';
+        String serverMsg = l10n.loginError;
         final responseData = e.response?.data;
         if (responseData is Map<String, dynamic>) {
-          serverMsg = responseData['message']?.toString() ?? e.message ?? 'Lỗi đăng nhập';
+          serverMsg = responseData['message']?.toString() ?? e.message ?? l10n.loginError;
         } else if (responseData is String && responseData.isNotEmpty) {
           serverMsg = responseData;
         } else if (e.message != null && e.message!.isNotEmpty) {
@@ -100,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       print('General error: $e');
       if (mounted) {
-        AppFlash.error(context, 'Có lỗi xảy ra: $e');
+        AppFlash.error(context, l10n.unknownErrorWithReason(e.toString()));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -109,9 +111,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AuthLayout(
-      title: 'Welcome back!',
-      subtitle: 'Log in',
+      title: l10n.loginTitle,
+      subtitle: l10n.loginSubtitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

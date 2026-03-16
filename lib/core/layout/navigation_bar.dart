@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/theme/app_colors.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 
@@ -16,6 +17,8 @@ class AppNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.light.neutralBackground,
@@ -54,25 +57,25 @@ class AppNavigationBar extends StatelessWidget {
             color: AppColors.light.primaryShade,
             activeColor: AppColors.light.primaryShade,
             tabBackgroundColor: AppColors.light.secondaryMain,
-            tabs: const [
+            tabs: [
               GButton(
                 icon: Symbols.home,
-                text: 'Home',
+                text: l10n.home,
                 iconSize: AppSizes.iconNav,
               ),
               GButton(
                 icon: Symbols.timelapse,
-                text: 'Statistics',
+                text: l10n.statistics,
                 iconSize: AppSizes.iconNav,
               ),
               GButton(
                 icon: Symbols.menu,
-                text: 'History',
+                text: l10n.history,
                 iconSize: AppSizes.iconNav,
               ),
               GButton(
                 icon: Symbols.settings,
-                text: 'Settings',
+                text: l10n.settings,
                 iconSize: AppSizes.iconNav,
               ),
             ],

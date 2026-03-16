@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/base_layout.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 
@@ -7,144 +8,115 @@ class TermsAndPolicyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return BaseLayout(
       appBar: CommonAppBar(
-        title: 'Terms and Policy',
+        title: l10n.termsAndPolicy,
         showReturnIcon: true,
         onBack: () => Navigator.pop(context),
       ),
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         children: [
-          _buildSectionTitle('1. Welcome to Zenit'),
+          _buildSectionTitle(l10n.termsWelcomeTitle),
           _buildSectionContent(
-            'Welcome to Zenit! We are delighted that you have chosen to use our application. '
-            'To ensure you feel secure while using our services, Zenit has prepared these '
-            'comprehensive Terms of Service and Privacy Policy. This document clearly outlines '
-            'your rights and obligations, and explains how we manage your personal data.',
+            l10n.termsWelcomeBody1,
           ),
           _buildSectionContent(
-            'By continuing to use the Zenit application, you confirm that you have read, '
-            'understood, and agreed to all the terms outlined below.',
+            l10n.termsWelcomeBody2,
           ),
           const SizedBox(height: 10),
-          _buildSectionTitle('2. General Terms of Service'),
+          _buildSectionTitle(l10n.termsGeneralTitle),
 
           _buildSubSection(
-            '1. Eligibility:',
-            'You affirm that you are of legal age (typically 16 years old or older, depending on '
-                'applicable law) to enter into these binding legal agreements. If you are under this age, '
-                'please use the application under the supervision of a parent or guardian.',
+            l10n.termsEligibilityTitle,
+            l10n.termsEligibilityBody,
           ),
 
           _buildSubSection(
-            '2. Lawful Use:',
-            'You agree to use Zenit for lawful purposes only, without violating any current laws, '
-                'and without causing harm, annoyance, or disruption to the experience of other users.',
+            l10n.termsLawfulUseTitle,
+            l10n.termsLawfulUseBody,
           ),
 
           _buildSubSection(
-            '3. Intellectual Property:',
-            'All content (design, text, graphics, etc.) within Zenit is the property of us '
-                '(or our licensors). You are permitted to use this content through the application '
-                'but are not allowed to copy, distribute, or modify it without permission.',
+            l10n.termsIntellectualPropertyTitle,
+            l10n.termsIntellectualPropertyBody,
           ),
           const SizedBox(height: 10),
-          _buildSectionTitle('3. User Accounts'),
+          _buildSectionTitle(l10n.termsUserAccountsTitle),
 
           _buildSectionContent(
-            'To access certain features of Zenit, users may be required to create an account. '
-            'You are responsible for maintaining the confidentiality of your login credentials '
-            'and for all activities that occur under your account. Zenit will not be liable for '
-            'any loss or damage arising from your failure to comply with these obligations.',
+            l10n.termsUserAccountsBody1,
           ),
 
           _buildSectionContent(
-            'You agree to provide accurate, complete, and up-to-date information when creating '
-            'your account. If we suspect that the information you provided is false or misleading, '
-            'we reserve the right to suspend or terminate your account at any time.',
+            l10n.termsUserAccountsBody2,
           ),
 
           const SizedBox(height: 10),
-          _buildSectionTitle('4. Privacy and Data Collection'),
+          _buildSectionTitle(l10n.termsPrivacyTitle),
 
           _buildSectionContent(
-            'Zenit respects your privacy and is committed to protecting your personal data. '
-            'We may collect certain information such as your email address, usage data, and '
-            'device information in order to provide and improve our services.',
+            l10n.termsPrivacyBody1,
           ),
 
           _buildSectionContent(
-            'This information may be used for authentication, security monitoring, analytics, '
-            'and improving user experience. We do not sell your personal data to third parties.',
+            l10n.termsPrivacyBody2,
           ),
 
           const SizedBox(height: 10),
-          _buildSectionTitle('5. Data Security'),
+          _buildSectionTitle(l10n.termsDataSecurityTitle),
 
           _buildSectionContent(
-            'We implement reasonable security measures to protect your personal information '
-            'from unauthorized access, alteration, disclosure, or destruction. However, no '
-            'method of electronic storage or transmission over the internet is completely secure.',
+            l10n.termsDataSecurityBody1,
           ),
 
           _buildSectionContent(
-            'While we strive to use commercially acceptable means to protect your data, '
-            'we cannot guarantee its absolute security.',
+            l10n.termsDataSecurityBody2,
           ),
 
           const SizedBox(height: 10),
-          _buildSectionTitle('6. Third-Party Services'),
+          _buildSectionTitle(l10n.termsThirdPartyTitle),
 
           _buildSectionContent(
-            'Zenit may integrate or rely on third-party services such as analytics providers, '
-            'cloud storage, or authentication systems. These services may collect information '
-            'in accordance with their own privacy policies.',
+            l10n.termsThirdPartyBody1,
           ),
 
           _buildSectionContent(
-            'We encourage users to review the privacy policies of any third-party services '
-            'that may interact with the Zenit application.',
+            l10n.termsThirdPartyBody2,
           ),
 
           const SizedBox(height: 10),
-          _buildSectionTitle('7. Limitation of Liability'),
+          _buildSectionTitle(l10n.termsLiabilityTitle),
 
           _buildSectionContent(
-            'Zenit is provided on an "as-is" and "as-available" basis. We do not guarantee that '
-            'the application will be uninterrupted, secure, or error-free.',
+            l10n.termsLiabilityBody1,
           ),
 
           _buildSectionContent(
-            'Under no circumstances shall Zenit or its developers be liable for any indirect, '
-            'incidental, special, or consequential damages resulting from the use or inability '
-            'to use the application.',
+            l10n.termsLiabilityBody2,
           ),
 
           const SizedBox(height: 10),
-          _buildSectionTitle('8. Termination'),
+          _buildSectionTitle(l10n.termsTerminationTitle),
 
           _buildSectionContent(
-            'We reserve the right to suspend or terminate your access to the application at '
-            'any time without prior notice if you violate these terms or engage in behavior '
-            'that may harm the application or other users.',
+            l10n.termsTerminationBody,
           ),
 
           const SizedBox(height: 10),
-          _buildSectionTitle('9. Changes to These Policies'),
+          _buildSectionTitle(l10n.termsChangesTitle),
 
           _buildSectionContent(
-            'Zenit may update these Terms of Service and Privacy Policy from time to time. '
-            'Any updates will be reflected within the application, and continued use of the '
-            'application after such updates constitutes acceptance of the revised terms.',
+            l10n.termsChangesBody,
           ),
 
           const SizedBox(height: 10),
-          _buildSectionTitle('10. Contact Us'),
+          _buildSectionTitle(l10n.termsContactTitle),
 
           _buildSectionContent(
-            'If you have any questions regarding these Terms and Privacy Policy, please contact '
-            'our support team through the contact information provided within the application.',
+            l10n.termsContactBody,
           ),
           const SizedBox(height: 30), // Cho nó thoáng cái chân trang
         ],

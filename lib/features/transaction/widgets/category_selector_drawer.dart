@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/services/navigation_service.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
@@ -53,6 +54,7 @@ class _CategorySelectorDrawerState extends State<CategorySelectorDrawer> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColorExtension>()!;
+    final l10n = context.l10n;
 
     return Consumer<CategoryProvider>(
       builder: (context, categoryProvider, child) {
@@ -89,7 +91,7 @@ class _CategorySelectorDrawerState extends State<CategorySelectorDrawer> {
                           });
                         },
                         decoration: InputDecoration(
-                          hintText: 'Search for a tag',
+                          hintText: l10n.searchForTag,
                           hintStyle: TextStyle(color: colors.neutralTextDisable),
                           prefixIcon: Icon(
                             Symbols.search_rounded,
@@ -117,7 +119,7 @@ class _CategorySelectorDrawerState extends State<CategorySelectorDrawer> {
                       color: colors.primaryMain,
                     ),
                     label: Text(
-                      'Tag manage',
+                      l10n.tagManage,
                       style: TextStyle(
                         color: colors.primaryMain,
                         fontWeight: FontWeight.w500,

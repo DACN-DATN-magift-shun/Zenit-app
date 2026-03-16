@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zenit/core/layout/app_bar.dart';
+import 'package:zenit/core/l10n/l10n.dart';
+import 'package:zenit/core/services/auth_service.dart';
 import 'package:zenit/core/theme/app_colors.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
@@ -18,6 +20,7 @@ class StatisticContent extends StatefulWidget {
 }
 
 class _StatisticContentState extends State<StatisticContent> {
+  final AuthService _authService = AuthService();
   final StatisticsService _statisticsService = StatisticsService();
   
   // Date range state
@@ -26,6 +29,8 @@ class _StatisticContentState extends State<StatisticContent> {
   
   // Data state
   Future<StatisticsResponseModel>? _statisticsFuture;
+  bool _isAuthenticated = false;
+  bool _isCheckingAuth = true;
 
   @override
   void initState() {
@@ -33,11 +38,32 @@ class _StatisticContentState extends State<StatisticContent> {
     // Mặc định: từ đầu năm đến hiện tại
     _startDate = DateTime(DateTime.now().year, 1, 1);
     _endDate = DateTime.now();
-    _loadStatistics();
+    _initializeScreen();
+  }
+
+  Future<void> _initializeScreen() async {
+    final isAuth = await _authService.isAuthenticated();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isAuthenticated = isAuth;
+      _isCheckingAuth = false;
+    });
+
+    if (_isAuthenticated) {
+      _loadStatistics();
+    }
   }
 
   /// Load dữ liệu thống kê từ API
   void _loadStatistics() {
+    if (!_isAuthenticated) {
+      return;
+    }
+
     setState(() {
       _statisticsFuture = _statisticsService.getStatistics(
         from: _startDate,
@@ -108,6 +134,7 @@ class _StatisticContentState extends State<StatisticContent> {
 
   /// Export báo cáo
   Future<void> _exportReport() async {
+    final l10n = context.l10n;
     try {
       // Show loading
       showDialog(
@@ -125,68 +152,108 @@ class _StatisticContentState extends State<StatisticContent> {
 
       if (mounted) {
         Navigator.pop(context); // Close loading
-        AppFlash.success(context, 'Xuất báo cáo thành công!');
+        AppFlash.success(context, l10n.exportReportSuccess);
       }
     } catch (e) {
       if (mounted) {
         Navigator.pop(context); // Close loading
-        AppFlash.error(context, 'Xuất báo cáo thất bại: $e');
+        AppFlash.error(context, l10n.exportReportFailedWithReason(e.toString()));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
+    if (_isCheckingAuth) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.light.neutralBackground,
       appBar: CommonAppBar(
-        title: 'Thống kê',
+        title: l10n.statisticsTitle,
         showSecondaryText: false,
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          _loadStatistics();
-          await _statisticsFuture;
-        },
-        color: AppColors.light.primaryMain,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(AppSizes.l),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Chon ngay
-              DateRangeSelector(
-                startDate: _startDate,
-                endDate: _endDate,
-                onStartDateTap: _pickStartDate,
-                onEndDateTap: _pickEndDate,
+      body: !_isAuthenticated
+          ? _buildUnauthenticatedState()
+          : RefreshIndicator(
+              onRefresh: () async {
+                _loadStatistics();
+                await _statisticsFuture;
+              },
+              color: AppColors.light.primaryMain,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(AppSizes.l),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Chon ngay
+                    DateRangeSelector(
+                      startDate: _startDate,
+                      endDate: _endDate,
+                      onStartDateTap: _pickStartDate,
+                      onEndDateTap: _pickEndDate,
+                    ),
+
+                    const SizedBox(height: AppSizes.l),
+
+                    // Statistics chart
+                    FutureBuilder<StatisticsResponseModel>(
+                      future: _statisticsFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return _buildLoadingState();
+                        }
+
+                        if (snapshot.hasError) {
+                          return _buildErrorState(snapshot.error.toString());
+                        }
+
+                        if (!snapshot.hasData || snapshot.data!.items.isEmpty) {
+                          return _buildEmptyState();
+                        }
+
+                        final statistics = snapshot.data!;
+                        return _buildStatisticsContent(statistics);
+                      },
+                    ),
+                  ],
+                ),
               ),
-              
-              const SizedBox(height: AppSizes.l),
+            ),
+    );
+  }
 
-              // Statistics chart
-              FutureBuilder<StatisticsResponseModel>(
-                future: _statisticsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingState();
-                  }
+  Widget _buildUnauthenticatedState() {
+    final l10n = context.l10n;
 
-                  if (snapshot.hasError) {
-                    return _buildErrorState(snapshot.error.toString());
-                  }
-
-                  if (!snapshot.hasData || snapshot.data!.items.isEmpty) {
-                    return _buildEmptyState();
-                  }
-
-                  final statistics = snapshot.data!;
-                  return _buildStatisticsContent(statistics);
-                },
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSizes.l),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.lock_outline_rounded,
+              size: 80,
+              color: AppColors.light.neutralTextDisable,
+            ),
+            const SizedBox(height: AppSizes.m),
+            Text(
+              l10n.needLoginStatistics,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: AppSizes.textL,
+                fontWeight: FontWeight.w600,
+                color: AppColors.light.neutralTextPrimary,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -204,6 +271,8 @@ class _StatisticContentState extends State<StatisticContent> {
   }
 
   Widget _buildErrorState(String error) {
+    final l10n = context.l10n;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSizes.l),
@@ -217,7 +286,7 @@ class _StatisticContentState extends State<StatisticContent> {
             ),
             const SizedBox(height: AppSizes.m),
             Text(
-              'Không thể tải dữ liệu',
+              l10n.cannotLoadData,
               style: TextStyle(
                 fontSize: AppSizes.textL,
                 fontWeight: FontWeight.w600,
@@ -237,7 +306,7 @@ class _StatisticContentState extends State<StatisticContent> {
             ElevatedButton.icon(
               onPressed: _loadStatistics,
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Thử lại'),
+              label: Text(l10n.retry),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.light.primaryMain,
                 foregroundColor: Colors.white,
@@ -250,6 +319,8 @@ class _StatisticContentState extends State<StatisticContent> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = context.l10n;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSizes.l),
@@ -263,7 +334,7 @@ class _StatisticContentState extends State<StatisticContent> {
             ),
             const SizedBox(height: AppSizes.m),
             Text(
-              'Chưa có dữ liệu',
+              l10n.noData,
               style: TextStyle(
                 fontSize: AppSizes.textL,
                 fontWeight: FontWeight.w600,
@@ -272,7 +343,7 @@ class _StatisticContentState extends State<StatisticContent> {
             ),
             const SizedBox(height: AppSizes.s),
             Text(
-              'Không có giao dịch nào trong khoảng thời gian này',
+              l10n.noTransactionsInRange,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: AppSizes.textS,
@@ -319,7 +390,7 @@ class _StatisticContentState extends State<StatisticContent> {
         const SizedBox(height: AppSizes.l),
         // Export Button
         AppButton(
-          text: 'Xuất báo cáo',
+          text: context.l10n.exportReport,
           icon: Icons.download_rounded,
           onPressed: _exportReport,
           backgroundColor: AppColors.light.primaryMain,

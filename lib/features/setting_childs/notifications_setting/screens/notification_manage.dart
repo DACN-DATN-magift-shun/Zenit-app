@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/base_layout.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
@@ -16,9 +17,11 @@ class _NotificationManageState extends State<NotificationManage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return BaseLayout(
       appBar: CommonAppBar(
-        title: 'Notification',
+        title: l10n.notificationManageTitle,
         showReturnIcon: true,
         onBack: () {
           Navigator.pop(context);
@@ -29,7 +32,7 @@ class _NotificationManageState extends State<NotificationManage> {
         children: [
           const SizedBox(height: AppSizes.s),
           NotificationSettingItem(
-            title: 'Receive our update via email',
+            title: l10n.receiveEmailUpdates,
             value: _receiveEmailUpdates,
             onChanged: (value) {
               setState(() {

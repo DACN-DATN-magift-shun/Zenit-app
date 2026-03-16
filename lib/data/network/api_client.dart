@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:zenit/core/api/api_endpoints.dart';
+import 'package:zenit/core/services/navigation_service.dart';
 import 'package:zenit/data/local/storage_service.dart';
 
 class ApiClient {
@@ -9,7 +10,7 @@ class ApiClient {
 
   late Dio _dio;
   final StorageService _storageService = StorageService();
-  // bool _isRefreshing = false;
+  bool _isHandlingUnauthorized = false;
 
   // Khởi tạo Dio KHÔNG có baseUrl cố định - để hỗ trợ nhiều service với base URL khác nhau
   ApiClient._internal() {
@@ -82,55 +83,36 @@ class ApiClient {
         return handler.next(options);
       },
 
-      // 2. Response Interceptor: Xử lý lỗi 401 và Refresh Token 
-      // onError: (DioException error, handler) async {
-      //   if (error.response?.statusCode == 401) {
-      //     // Nếu server báo 401 Unauthorized
-      //     if (!_isRefreshing) {
-      //       _isRefreshing = true;
-      //       try {
-      //         final refreshToken = await _storageService.getRefreshToken(); //
-              
-      //         if (refreshToken != null) {
-      //           // Gọi API refresh token
-      //           final response = await _dio.post(ApiEndpoints.refresh, data: {
-      //             'refreshToken': refreshToken,
-      //           });
+      // 2. Response Interceptor: khi token hết hạn thì xóa session và về màn login.
+      onError: (DioException error, handler) async {
+        final statusCode = error.response?.statusCode;
+        final requestPath = error.requestOptions.path;
 
-      //           final newAccessToken = response.data['data']['accessToken']; 
-      //           final newRefreshToken = response.data['data']['refreshToken'];
+        if (statusCode == 401 && !_isAuthEndpoint(requestPath)) {
+          await _storageService.clearStorage();
 
-      //           // Lưu token mới
-      //           await _storageService.saveToken(newAccessToken, newRefreshToken);
-                
-      //           // Retry request cũ với token mới
-      //           _isRefreshing = false;
-      //           final opts = error.requestOptions;
-      //           opts.headers['Authorization'] = 'Bearer $newAccessToken';
-                
-      //           final clonedRequest = await _dio.request(
-      //             opts.path,
-      //             options: Options(
-      //               method: opts.method,
-      //               headers: opts.headers,
-      //             ),
-      //             data: opts.data,
-      //             queryParameters: opts.queryParameters,
-      //           );
-                
-      //           return handler.resolve(clonedRequest);
-      //         }
-      //       } catch (e) {
-      //         // Refresh thất bại -> Logout 
-      //         _isRefreshing = false;
-      //         await _storageService.clearStorage();
-      //         // TODO: Điều hướng về màn hình Login (dùng NavigationService)
-      //         print("Phiên đăng nhập hết hạn, vui lòng login lại");
-      //       }
-      //     }
-      //   }
-      //   return handler.next(error); // [cite: 11]
-      // },
+          if (!_isHandlingUnauthorized) {
+            _isHandlingUnauthorized = true;
+            NavigationService.instance.pushAndRemoveUntil(
+              '/login',
+              arguments: {
+                'snackMessage': 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+              },
+            );
+            _isHandlingUnauthorized = false;
+          }
+        }
+
+        return handler.next(error);
+      },
     ));
+  }
+
+  bool _isAuthEndpoint(String path) {
+    return path.contains('Accounts/login') ||
+        path.contains('Accounts/register') ||
+        path.contains('Account/send-otp') ||
+        path.contains('Account/verify-otp') ||
+        path.contains('Account/reset-password');
   }
 }

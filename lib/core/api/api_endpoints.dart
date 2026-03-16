@@ -3,7 +3,7 @@ class ApiEndpoints {
   static const String productionBaseUrl = "https://zenit-api-tuir.onrender.com/";
 
   // Toggle this when switching between local backend and deployed backend.
-  static const bool useProduction = false;
+  static const bool useProduction = true;
   static const String nowDemoDeviceURL = useProduction ? productionBaseUrl : localBaseUrl;
 
   // Base URLs for different services

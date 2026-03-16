@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/base_layout.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
@@ -32,9 +33,11 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return BaseLayout(
       appBar: CommonAppBar(
-        title: 'Category Manage',
+        title: l10n.categoryManage,
         showReturnIcon: true,
         onBack: () {
           Navigator.pop(context);
@@ -52,7 +55,7 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Đã xảy ra lỗi',
+                    l10n.errorOccurred,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
@@ -64,7 +67,7 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => categoryProvider.loadAllCategories(),
-                    child: const Text('Thử lại'),
+                    child: Text(l10n.retry),
                   ),
                 ],
               ),
@@ -74,7 +77,7 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
           if (!categoryProvider.hasData) {
             return Center(
               child: Text(
-                'Chưa có dữ liệu',
+                l10n.noData,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             );
@@ -115,7 +118,7 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Chỉnh sửa',
+                                  l10n.edit,
                                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                         color: Theme.of(context).extension<AppColorExtension>()!.neutralTextPrimary,
                                       ),
@@ -133,7 +136,7 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Xóa',
+                                  l10n.delete,
                                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                         color: Theme.of(context).extension<AppColorExtension>()!.errorText,
                                       ),
@@ -176,16 +179,16 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Xác nhận'),
-        content: const Text('Bạn có chắc muốn xóa category này?'),
+        title: Text(context.l10n.confirmAction),
+        content: Text(context.l10n.deleteCategoryConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Hủy'),
+            child: Text(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+            child: Text(context.l10n.delete, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -200,9 +203,9 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
       if (!mounted) return;
       
       if (success) {
-        AppFlash.success(context, 'Đã xóa category');
+        AppFlash.success(context, context.l10n.deleteCategorySuccess);
       } else {
-        AppFlash.error(context, categoryProvider.errorMessage ?? 'Xóa thất bại');
+        AppFlash.error(context, categoryProvider.errorMessage ?? context.l10n.deleteFailed);
       }
     }
   }
@@ -275,7 +278,7 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
   void _showEditCategoryDrawer(BuildContext context, int groupType, String groupName, CategoryModel category) {
     AppDrawer.showAsBottomSheet(
       context: context,
-      title: 'Edit category',
+      title: context.l10n.editCategory,
       showDragHandle: true,
       height: MediaQuery.of(context).size.height * 0.85,
       body: AddCategoryForm(
@@ -306,9 +309,9 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
           if (context.mounted) {
             Navigator.pop(context);
             if (success) {
-              AppFlash.success(context, 'Đã cập nhật category: ${data.name}');
+              AppFlash.success(context, context.l10n.categoryUpdatedSuccess(data.name));
             } else {
-              AppFlash.error(context, categoryProvider.errorMessage ?? 'Cập nhật category thất bại');
+              AppFlash.error(context, categoryProvider.errorMessage ?? context.l10n.categoryUpdateFailed);
             }
           }
         },
@@ -319,7 +322,7 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
   void _showAddCategoryDrawer(BuildContext context, int groupType, String groupName) {
     AppDrawer.showAsBottomSheet(
       context: context,
-      title: 'Add a category', 
+      title: context.l10n.addCategory,
       showDragHandle: true,
       height: MediaQuery.of(context).size.height * 0.85,
       body: AddCategoryForm(
@@ -346,9 +349,9 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
           if (context.mounted) {
             Navigator.pop(context);
             if (success) {
-              AppFlash.success(context, 'Đã thêm category: ${data.name}');
+              AppFlash.success(context, context.l10n.categoryAddedSuccess(data.name));
             } else {
-              AppFlash.error(context, categoryProvider.errorMessage ?? 'Thêm category thất bại');
+              AppFlash.error(context, categoryProvider.errorMessage ?? context.l10n.categoryAddFailed);
             }
           }
         },

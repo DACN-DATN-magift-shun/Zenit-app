@@ -1,0 +1,304 @@
+{
+  "@@locale": "en",
+  "appTitle": "Zenit",
+  "home": "Home",
+  "statistics": "Statistics",
+  "history": "History",
+  "settings": "Settings",
+  "generalSettings": "General Settings",
+  "languages": "Language",
+  "chooseLanguage": "Choose language",
+  "english": "English",
+  "vietnamese": "Vietnamese",
+  "appVersion": "App version",
+  "appVersionValue": "1.0 (beta)",
+  "generalSettingsItem": "General settings",
+  "categoryManagement": "Category management",
+  "notifications": "Notifications",
+  "security": "Security",
+  "supportCenter": "Support center",
+  "privacyPolicyAndTerms": "Privacy policy and terms",
+  "logout": "Logout",
+  "notificationsTitle": "Notifications",
+  "comingSoon": "Coming soon",
+
+  "loginTitle": "Welcome back!",
+  "loginSubtitle": "Log in",
+  "signupTitle": "Create account",
+  "signupSubtitle": "Sign up",
+  "forgotPasswordTitle": "Forgot password",
+  "resetPasswordSubtitle": "Reset password",
+
+  "email": "Email",
+  "emailHint": "your.email@example.com",
+  "password": "Password",
+  "enterPasswordHint": "Enter password",
+  "forgotPassword": "Forgot password?",
+  "loginButton": "Log in",
+  "noAccountSignup": "Don\u0027t have an account? Sign up now",
+  "alreadyHaveAccountLogin": "Already have an account? Log in",
+  "loginTermsText": "By logging in, you agree to our Terms of Service and Privacy Policy.",
+  "username": "Username",
+  "usernameHint": "username",
+  "confirmPassword": "Confirm password",
+  "reenterPasswordHint": "Re-enter password",
+  "phone": "Phone",
+  "address": "Address",
+  "enterAddressHint": "Enter your address",
+  "signupButton": "Sign up",
+  "enterEmail": "Please enter email",
+  "invalidEmail": "Invalid email",
+  "enterPassword": "Please enter password",
+  "weakPassword": "Password must be longer than 8 characters and contain at least one number and one special character",
+  "enterUsername": "Please enter username",
+  "usernameLengthInvalid": "Username must be between 3 and 20 characters",
+  "usernameFormatInvalid": "Username can only contain letters, numbers and underscore",
+  "confirmPasswordRequired": "Please confirm password",
+  "passwordNotMatch": "Passwords do not match",
+  "enterPhone": "Please enter phone number",
+  "invalidPhone": "Invalid phone number",
+  "phoneLengthInvalid": "Phone number must have 10 digits",
+  "enterAddress": "Please enter address",
+  "addressTooShort": "Address is too short",
+
+  "send": "Send",
+  "registeredEmailOrUsername": "Registered email or username",
+  "otp": "OTP",
+  "otpHint": "OTP",
+  "pleaseEnterOtp": "Please enter OTP",
+  "otpSentInstruction": "We will send you an OTP by email. Check spam if you do not see it.",
+  "resendAfterSeconds": "Haven\u0027t received the email yet? Try again after {seconds}s",
+  "@resendAfterSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "resendNow": "Haven\u0027t received the email yet? Try again",
+  "newPassword": "New password",
+  "confirmNewPassword": "Confirm new password",
+  "resetPasswordHint": "We will take you back to the login screen to sign in with the new password.",
+  "confirm": "Confirm",
+  "continueTermsText": "By continuing, you agree with our terms and privacy policy.",
+
+  "signupSuccessPleaseLogin": "Sign up successfully, please login",
+  "loginSuccess": "Login successful!",
+  "invalidResponseData": "Invalid response data",
+  "loginError": "Login failed",
+  "signupError": "Sign up failed",
+  "unknownErrorOccurred": "An unexpected error occurred. Please try again.",
+  "unknownErrorWithReason": "An error occurred: {reason}",
+  "@unknownErrorWithReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "sendOtpError": "Send OTP failed",
+  "invalidOtp": "Invalid OTP",
+  "resetPasswordError": "Reset password failed",
+  "resetPasswordSuccess": "Password reset successfully!",
+  "resetPasswordSuccessNavigate": "Password reset successfully! Please log in.",
+
+  "welcomeBackUser": "Welcome back, {username}",
+  "@welcomeBackUser": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "homeGuestTitle": "Home - Not logged in",
+  "haveNiceDay": "Have a nice day!",
+  "actionTransaction": "Transaction",
+  "actionQuickImport": "Quick import",
+  "actionGoals": "Goals",
+  "actionMoreActions": "More actions",
+  "addTransaction": "Add transaction",
+  "transactionAddedSuccess": "Transaction added successfully!",
+  "genericErrorWithReason": "Error: {reason}",
+  "@genericErrorWithReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "navigateQuickImport": "Navigate to Quick Import",
+  "navigateGoals": "Navigate to Goals",
+  "showMoreActions": "Show More Actions",
+
+  "transactionDetail": "Transaction detail",
+  "deleteTransactionSuccess": "Deleted transaction \"{title}\"",
+  "@deleteTransactionSuccess": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "transactionIdNotFound": "Transaction ID not found",
+  "errorOccurred": "An error occurred",
+  "retry": "Retry",
+  "noTransactions": "No transactions yet",
+  "pullToRefresh": "Pull down to refresh",
+  "needLoginHistory": "You need to log in to view transaction history",
+
+  "statisticsTitle": "Statistics",
+  "needLoginStatistics": "You need to log in to view statistics",
+  "cannotLoadData": "Unable to load data",
+  "noData": "No data yet",
+  "noTransactionsInRange": "There are no transactions in this period",
+  "exportReport": "Export report",
+  "exportReportSuccess": "Exported report successfully!",
+  "exportReportFailedWithReason": "Export failed: {reason}",
+  "@exportReportFailedWithReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "fromLabel": "From",
+  "toLabel": "To",
+
+  "searchForTag": "Search for a tag",
+  "tagManage": "Tag manage",
+  "chooseTagForTransaction": "Choose a tag for transaction",
+  "selectCategoryWarning": "Please select a category",
+  "amount": "Amount",
+  "time": "Time",
+  "today": "Today",
+  "category": "Category",
+  "singleCategory": "Single Category",
+  "select": "Select",
+  "note": "Note",
+  "transactionName": "Transaction name",
+  "noteEmpty": "No note",
+  "enterAmount": "Please enter amount",
+  "enterValidAmount": "Please enter a valid amount",
+  "transactionLoadError": "Error loading transaction details",
+  "transactionNotFound": "Transaction not found",
+  "updateTransactionSuccess": "Transaction updated",
+  "transactionIdMissingUpdate": "Cannot find transaction ID for update",
+  "unknown": "Unknown",
+  "delete": "Delete",
+  "cancel": "Cancel",
+  "confirmDelete": "Confirm delete",
+  "confirmDeleteTransactionMessage": "Are you sure you want to delete transaction \"{title}\"?",
+  "@confirmDeleteTransactionMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+
+  "supportCenterTitle": "Support center",
+  "contactViaEmail": "Contact us via Email",
+  "contactViaPhone": "Contact us via Phone",
+  "unableOpenApp": "Unable to open this app right now.",
+  "contactInfo": "Email: {email}\nPhone: {phone}",
+  "@contactInfo": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      },
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationManageTitle": "Notification",
+  "receiveEmailUpdates": "Receive our update via email",
+  "profile": "Profile",
+  "profileUpdatedSuccess": "Profile updated successfully",
+  "unableUpdateProfile": "Unable to update profile",
+  "saveChanges": "Save changes",
+  "termsAndPolicy": "Terms and Policy",
+  "termsWelcomeTitle": "1. Welcome to Zenit",
+  "termsWelcomeBody1": "Welcome to Zenit! We are delighted that you have chosen to use our application. To ensure you feel secure while using our services, Zenit has prepared these comprehensive Terms of Service and Privacy Policy. This document clearly outlines your rights and obligations, and explains how we manage your personal data.",
+  "termsWelcomeBody2": "By continuing to use the Zenit application, you confirm that you have read, understood, and agreed to all the terms outlined below.",
+  "termsGeneralTitle": "2. General Terms of Service",
+  "termsEligibilityTitle": "1. Eligibility:",
+  "termsEligibilityBody": "You affirm that you are of legal age (typically 16 years old or older, depending on applicable law) to enter into these binding legal agreements. If you are under this age, please use the application under the supervision of a parent or guardian.",
+  "termsLawfulUseTitle": "2. Lawful Use:",
+  "termsLawfulUseBody": "You agree to use Zenit for lawful purposes only, without violating any current laws, and without causing harm, annoyance, or disruption to the experience of other users.",
+  "termsIntellectualPropertyTitle": "3. Intellectual Property:",
+  "termsIntellectualPropertyBody": "All content (design, text, graphics, etc.) within Zenit is the property of us (or our licensors). You are permitted to use this content through the application but are not allowed to copy, distribute, or modify it without permission.",
+  "termsUserAccountsTitle": "3. User Accounts",
+  "termsUserAccountsBody1": "To access certain features of Zenit, users may be required to create an account. You are responsible for maintaining the confidentiality of your login credentials and for all activities that occur under your account. Zenit will not be liable for any loss or damage arising from your failure to comply with these obligations.",
+  "termsUserAccountsBody2": "You agree to provide accurate, complete, and up-to-date information when creating your account. If we suspect that the information you provided is false or misleading, we reserve the right to suspend or terminate your account at any time.",
+  "termsPrivacyTitle": "4. Privacy and Data Collection",
+  "termsPrivacyBody1": "Zenit respects your privacy and is committed to protecting your personal data. We may collect certain information such as your email address, usage data, and device information in order to provide and improve our services.",
+  "termsPrivacyBody2": "This information may be used for authentication, security monitoring, analytics, and improving user experience. We do not sell your personal data to third parties.",
+  "termsDataSecurityTitle": "5. Data Security",
+  "termsDataSecurityBody1": "We implement reasonable security measures to protect your personal information from unauthorized access, alteration, disclosure, or destruction. However, no method of electronic storage or transmission over the internet is completely secure.",
+  "termsDataSecurityBody2": "While we strive to use commercially acceptable means to protect your data, we cannot guarantee its absolute security.",
+  "termsThirdPartyTitle": "6. Third-Party Services",
+  "termsThirdPartyBody1": "Zenit may integrate or rely on third-party services such as analytics providers, cloud storage, or authentication systems. These services may collect information in accordance with their own privacy policies.",
+  "termsThirdPartyBody2": "We encourage users to review the privacy policies of any third-party services that may interact with the Zenit application.",
+  "termsLiabilityTitle": "7. Limitation of Liability",
+  "termsLiabilityBody1": "Zenit is provided on an \"as-is\" and \"as-available\" basis. We do not guarantee that the application will be uninterrupted, secure, or error-free.",
+  "termsLiabilityBody2": "Under no circumstances shall Zenit or its developers be liable for any indirect, incidental, special, or consequential damages resulting from the use or inability to use the application.",
+  "termsTerminationTitle": "8. Termination",
+  "termsTerminationBody": "We reserve the right to suspend or terminate your access to the application at any time without prior notice if you violate these terms or engage in behavior that may harm the application or other users.",
+  "termsChangesTitle": "9. Changes to These Policies",
+  "termsChangesBody": "Zenit may update these Terms of Service and Privacy Policy from time to time. Any updates will be reflected within the application, and continued use of the application after such updates constitutes acceptance of the revised terms.",
+  "termsContactTitle": "10. Contact Us",
+  "termsContactBody": "If you have any questions regarding these Terms and Privacy Policy, please contact our support team through the contact information provided within the application.",
+
+  "categoryManage": "Category Manage",
+  "edit": "Edit",
+  "confirmAction": "Confirm",
+  "deleteCategoryConfirm": "Are you sure you want to delete this category?",
+  "deleteCategorySuccess": "Category deleted",
+  "deleteFailed": "Delete failed",
+  "editCategory": "Edit category",
+  "addCategory": "Add a category",
+  "categoryUpdatedSuccess": "Category updated: {name}",
+  "@categoryUpdatedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryUpdateFailed": "Category update failed",
+  "categoryAddedSuccess": "Category added: {name}",
+  "@categoryAddedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryAddFailed": "Adding category failed",
+  "categoryName": "Category name",
+  "enterCategoryName": "Enter category name",
+  "belongToGroup": "Belong to group",
+  "expenseLimit": "Expense limit",
+  "enterExpenseLimitOptional": "Enter expense limit (optional)",
+  "selectIcon": "Select icon",
+  "done": "Done",
+  "pleaseSelectIcon": "Please select an icon",
+  "pleaseEnterCategoryName": "Please enter category name",
+  "groupNecessary": "Necessary",
+  "groupSavings": "Savings",
+  "groupSelfDevelopment": "Self Development",
+  "groupEntertainment": "Entertainment",
+  "groupGiving": "Giving",
+
+  "usernameLabel": "Username: {username}",
+  "@usernameLabel": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "notLoggedIn": "You are not logged in",
+  "pleaseLogin": "Please sign in to view information"
+}

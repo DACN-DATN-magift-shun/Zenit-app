@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/widgets/button.dart';
 import 'package:zenit/core/forms/form_fields/custom_text_form_field.dart';
 import 'package:zenit/core/services/auth_service.dart';
@@ -83,6 +84,8 @@ class _ProfileFormState extends State<ProfileForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     // Nếu chưa load xong thì hiện vòng xoay, khỏi hiện form lỗi
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -124,13 +127,13 @@ class _ProfileFormState extends State<ProfileForm> {
             // --- Form Fields Section ---
             // 3. Gắn Controller vào từng Widget
             CustomTextFormField(
-              label: 'Email',
+              label: l10n.email,
               controller: _emailController,
               filled: false,
               enabled: false,
             ),
             CustomTextFormField(
-              label: 'Username',
+              label: l10n.username,
               controller: _usernameController,
               filled: false,
               enabled: false,
@@ -140,11 +143,11 @@ class _ProfileFormState extends State<ProfileForm> {
             //   controller: _dateOfBirthController,
             // ),
             CustomTextFormField(
-              label: 'Phone',
+              label: l10n.phone,
               controller: _phoneController,
             ),
             CustomTextFormField(
-              label: 'Address',
+              label: l10n.address,
               controller: _addressController,
             ),
             
@@ -152,7 +155,7 @@ class _ProfileFormState extends State<ProfileForm> {
             
             // --- Submit Button ---
             AppButton(
-              text: 'Save Changes',
+              text: l10n.saveChanges,
               onPressed: _handleSubmit,
             ),
              const SizedBox(height: 20),

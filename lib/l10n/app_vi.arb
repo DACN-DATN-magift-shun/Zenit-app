@@ -1,0 +1,304 @@
+{
+  "@@locale": "vi",
+  "appTitle": "Zenit",
+  "home": "Trang chủ",
+  "statistics": "Thống kê",
+  "history": "Lịch sử",
+  "settings": "Cài đặt",
+  "generalSettings": "Cài đặt chung",
+  "languages": "Ngôn ngữ",
+  "chooseLanguage": "Chọn ngôn ngữ",
+  "english": "Tiếng Anh",
+  "vietnamese": "Tiếng Việt",
+  "appVersion": "Phiên bản ứng dụng",
+  "appVersionValue": "1.0 (beta)",
+  "generalSettingsItem": "Cài đặt chung",
+  "categoryManagement": "Quản lý danh mục",
+  "notifications": "Thông báo",
+  "security": "Bảo mật",
+  "supportCenter": "Trung tâm hỗ trợ",
+  "privacyPolicyAndTerms": "Điều khoản và chính sách",
+  "logout": "Đăng xuất",
+  "notificationsTitle": "Thông báo",
+  "comingSoon": "Sắp ra mắt",
+
+  "loginTitle": "Chào mừng trở lại!",
+  "loginSubtitle": "Đăng nhập",
+  "signupTitle": "Tạo tài khoản",
+  "signupSubtitle": "Đăng ký",
+  "forgotPasswordTitle": "Quên mật khẩu",
+  "resetPasswordSubtitle": "Đặt lại mật khẩu",
+
+  "email": "Email",
+  "emailHint": "your.email@example.com",
+  "password": "Mật khẩu",
+  "enterPasswordHint": "Nhập mật khẩu",
+  "forgotPassword": "Quên mật khẩu?",
+  "loginButton": "Đăng nhập",
+  "noAccountSignup": "Bạn chưa có tài khoản? Đăng ký ngay",
+  "alreadyHaveAccountLogin": "Bạn đã có tài khoản? Đăng nhập",
+  "loginTermsText": "Bằng việc đăng nhập, bạn đồng ý với Điều khoản dịch vụ và Chính sách quyền riêng tư của chúng tôi.",
+  "username": "Tên người dùng",
+  "usernameHint": "username",
+  "confirmPassword": "Xác nhận mật khẩu",
+  "reenterPasswordHint": "Nhập lại mật khẩu",
+  "phone": "Số điện thoại",
+  "address": "Địa chỉ",
+  "enterAddressHint": "Nhập địa chỉ của bạn",
+  "signupButton": "Đăng ký",
+  "enterEmail": "Vui lòng nhập email",
+  "invalidEmail": "Email không hợp lệ",
+  "enterPassword": "Vui lòng nhập mật khẩu",
+  "weakPassword": "Mật khẩu phải dài hơn 8 ký tự và chứa ít nhất một chữ số cùng một ký tự đặc biệt",
+  "enterUsername": "Vui lòng nhập tên đăng nhập",
+  "usernameLengthInvalid": "Tên đăng nhập phải từ 3 đến 20 ký tự",
+  "usernameFormatInvalid": "Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới",
+  "confirmPasswordRequired": "Vui lòng xác nhận mật khẩu",
+  "passwordNotMatch": "Mật khẩu không khớp",
+  "enterPhone": "Vui lòng nhập số điện thoại",
+  "invalidPhone": "Số điện thoại không hợp lệ",
+  "phoneLengthInvalid": "Số điện thoại phải có 10 chữ số",
+  "enterAddress": "Vui lòng nhập địa chỉ",
+  "addressTooShort": "Địa chỉ quá ngắn",
+
+  "send": "Gửi",
+  "registeredEmailOrUsername": "Email hoặc tên đăng nhập đã đăng ký",
+  "otp": "OTP",
+  "otpHint": "OTP",
+  "pleaseEnterOtp": "Vui lòng nhập OTP",
+  "otpSentInstruction": "Chúng tôi sẽ gửi OTP qua email, hãy kiểm tra cả thư rác nếu bạn chưa thấy.",
+  "resendAfterSeconds": "Chưa nhận được email? Thử lại sau {seconds}s",
+  "@resendAfterSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "resendNow": "Chưa nhận được email? Thử lại",
+  "newPassword": "Mật khẩu mới",
+  "confirmNewPassword": "Xác nhận mật khẩu mới",
+  "resetPasswordHint": "Chúng tôi sẽ đưa bạn về màn hình đăng nhập để dùng mật khẩu mới.",
+  "confirm": "Xác nhận",
+  "continueTermsText": "Bằng việc tiếp tục, bạn đồng ý với điều khoản và chính sách quyền riêng tư của chúng tôi.",
+
+  "signupSuccessPleaseLogin": "Đăng ký thành công, vui lòng đăng nhập",
+  "loginSuccess": "Đăng nhập thành công!",
+  "invalidResponseData": "Dữ liệu trả về không hợp lệ",
+  "loginError": "Lỗi đăng nhập",
+  "signupError": "Lỗi đăng ký",
+  "unknownErrorOccurred": "Có lỗi xảy ra. Vui lòng thử lại.",
+  "unknownErrorWithReason": "Có lỗi xảy ra: {reason}",
+  "@unknownErrorWithReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "sendOtpError": "Lỗi gửi OTP",
+  "invalidOtp": "OTP không hợp lệ",
+  "resetPasswordError": "Lỗi đặt lại mật khẩu",
+  "resetPasswordSuccess": "Đặt lại mật khẩu thành công!",
+  "resetPasswordSuccessNavigate": "Đặt lại mật khẩu thành công! Vui lòng đăng nhập.",
+
+  "welcomeBackUser": "Chào mừng trở lại, {username}",
+  "@welcomeBackUser": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "homeGuestTitle": "Trang chủ - Chưa đăng nhập",
+  "haveNiceDay": "Chúc bạn một ngày tốt lành!",
+  "actionTransaction": "Giao dịch",
+  "actionQuickImport": "Nhập nhanh",
+  "actionGoals": "Mục tiêu",
+  "actionMoreActions": "Tác vụ khác",
+  "addTransaction": "Thêm giao dịch",
+  "transactionAddedSuccess": "Thêm giao dịch thành công!",
+  "genericErrorWithReason": "Lỗi: {reason}",
+  "@genericErrorWithReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "navigateQuickImport": "Đi đến Nhập nhanh",
+  "navigateGoals": "Đi đến Mục tiêu",
+  "showMoreActions": "Hiển thị tác vụ khác",
+
+  "transactionDetail": "Chi tiết giao dịch",
+  "deleteTransactionSuccess": "Đã xóa giao dịch \"{title}\"",
+  "@deleteTransactionSuccess": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "transactionIdNotFound": "Không tìm thấy ID giao dịch",
+  "errorOccurred": "Đã xảy ra lỗi",
+  "retry": "Thử lại",
+  "noTransactions": "Chưa có giao dịch nào",
+  "pullToRefresh": "Kéo xuống để làm mới",
+  "needLoginHistory": "Bạn cần đăng nhập để xem lịch sử giao dịch",
+
+  "statisticsTitle": "Thống kê",
+  "needLoginStatistics": "Bạn cần đăng nhập để xem thống kê",
+  "cannotLoadData": "Không thể tải dữ liệu",
+  "noData": "Chưa có dữ liệu",
+  "noTransactionsInRange": "Không có giao dịch nào trong khoảng thời gian này",
+  "exportReport": "Xuất báo cáo",
+  "exportReportSuccess": "Xuất báo cáo thành công!",
+  "exportReportFailedWithReason": "Xuất báo cáo thất bại: {reason}",
+  "@exportReportFailedWithReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "fromLabel": "Từ",
+  "toLabel": "Đến",
+
+  "searchForTag": "Tìm nhãn",
+  "tagManage": "Quản lý nhãn",
+  "chooseTagForTransaction": "Chọn nhãn cho giao dịch",
+  "selectCategoryWarning": "Vui lòng chọn danh mục",
+  "amount": "Số tiền",
+  "time": "Thời gian",
+  "today": "Hôm nay",
+  "category": "Danh mục",
+  "singleCategory": "Danh mục con",
+  "select": "Chọn",
+  "note": "Ghi chú",
+  "transactionName": "Tên giao dịch",
+  "noteEmpty": "Không có ghi chú",
+  "enterAmount": "Vui lòng nhập số tiền",
+  "enterValidAmount": "Vui lòng nhập số tiền hợp lệ",
+  "transactionLoadError": "Lỗi khi tải chi tiết giao dịch",
+  "transactionNotFound": "Không tìm thấy giao dịch",
+  "updateTransactionSuccess": "Đã cập nhật giao dịch",
+  "transactionIdMissingUpdate": "Không tìm thấy ID giao dịch để cập nhật",
+  "unknown": "Không xác định",
+  "delete": "Xóa",
+  "cancel": "Hủy",
+  "confirmDelete": "Xác nhận xóa",
+  "confirmDeleteTransactionMessage": "Bạn có chắc muốn xóa giao dịch \"{title}\"?",
+  "@confirmDeleteTransactionMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+
+  "supportCenterTitle": "Trung tâm hỗ trợ",
+  "contactViaEmail": "Liên hệ qua Email",
+  "contactViaPhone": "Liên hệ qua Số điện thoại",
+  "unableOpenApp": "Không thể mở ứng dụng này lúc này.",
+  "contactInfo": "Email: {email}\nPhone: {phone}",
+  "@contactInfo": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      },
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationManageTitle": "Thông báo",
+  "receiveEmailUpdates": "Nhận cập nhật qua email",
+  "profile": "Hồ sơ",
+  "profileUpdatedSuccess": "Cập nhật hồ sơ thành công",
+  "unableUpdateProfile": "Không thể cập nhật hồ sơ",
+  "saveChanges": "Lưu thay đổi",
+  "termsAndPolicy": "Điều khoản và chính sách",
+  "termsWelcomeTitle": "1. Chào mừng đến với Zenit",
+  "termsWelcomeBody1": "Chào mừng bạn đến với Zenit! Chúng tôi rất vui khi bạn lựa chọn sử dụng ứng dụng của mình. Để giúp bạn yên tâm khi sử dụng dịch vụ, Zenit đã chuẩn bị bộ Điều khoản dịch vụ và Chính sách quyền riêng tư này. Tài liệu này nêu rõ quyền và nghĩa vụ của bạn, đồng thời giải thích cách chúng tôi quản lý dữ liệu cá nhân của bạn.",
+  "termsWelcomeBody2": "Bằng việc tiếp tục sử dụng ứng dụng Zenit, bạn xác nhận rằng mình đã đọc, hiểu và đồng ý với toàn bộ các điều khoản được nêu dưới đây.",
+  "termsGeneralTitle": "2. Điều khoản dịch vụ chung",
+  "termsEligibilityTitle": "1. Điều kiện sử dụng:",
+  "termsEligibilityBody": "Bạn xác nhận rằng mình đã đủ tuổi theo quy định pháp luật (thường từ 16 tuổi trở lên, tùy theo luật áp dụng) để tham gia các thỏa thuận mang tính ràng buộc này. Nếu chưa đủ tuổi, vui lòng sử dụng ứng dụng dưới sự giám sát của cha mẹ hoặc người giám hộ.",
+  "termsLawfulUseTitle": "2. Sử dụng hợp pháp:",
+  "termsLawfulUseBody": "Bạn đồng ý chỉ sử dụng Zenit cho các mục đích hợp pháp, không vi phạm pháp luật hiện hành, và không gây tổn hại, phiền toái hoặc gián đoạn trải nghiệm của những người dùng khác.",
+  "termsIntellectualPropertyTitle": "3. Sở hữu trí tuệ:",
+  "termsIntellectualPropertyBody": "Mọi nội dung (thiết kế, văn bản, đồ họa, v.v.) trong Zenit đều thuộc sở hữu của chúng tôi (hoặc bên cấp phép cho chúng tôi). Bạn được phép sử dụng các nội dung này thông qua ứng dụng nhưng không được sao chép, phân phối hoặc chỉnh sửa nếu chưa có sự cho phép.",
+  "termsUserAccountsTitle": "3. Tài khoản người dùng",
+  "termsUserAccountsBody1": "Để truy cập một số tính năng của Zenit, người dùng có thể cần tạo tài khoản. Bạn có trách nhiệm bảo mật thông tin đăng nhập của mình và chịu trách nhiệm với mọi hoạt động diễn ra dưới tài khoản đó. Zenit sẽ không chịu trách nhiệm cho bất kỳ tổn thất hay thiệt hại nào phát sinh do bạn không tuân thủ các nghĩa vụ này.",
+  "termsUserAccountsBody2": "Bạn đồng ý cung cấp thông tin chính xác, đầy đủ và cập nhật khi tạo tài khoản. Nếu chúng tôi nghi ngờ thông tin bạn cung cấp là sai hoặc gây hiểu lầm, chúng tôi có quyền tạm ngưng hoặc chấm dứt tài khoản của bạn vào bất kỳ lúc nào.",
+  "termsPrivacyTitle": "4. Quyền riêng tư và thu thập dữ liệu",
+  "termsPrivacyBody1": "Zenit tôn trọng quyền riêng tư của bạn và cam kết bảo vệ dữ liệu cá nhân của bạn. Chúng tôi có thể thu thập một số thông tin như địa chỉ email, dữ liệu sử dụng và thông tin thiết bị nhằm cung cấp và cải thiện dịch vụ.",
+  "termsPrivacyBody2": "Thông tin này có thể được sử dụng cho mục đích xác thực, giám sát bảo mật, phân tích và cải thiện trải nghiệm người dùng. Chúng tôi không bán dữ liệu cá nhân của bạn cho bên thứ ba.",
+  "termsDataSecurityTitle": "5. Bảo mật dữ liệu",
+  "termsDataSecurityBody1": "Chúng tôi áp dụng các biện pháp bảo mật hợp lý để bảo vệ thông tin cá nhân của bạn khỏi việc truy cập, thay đổi, tiết lộ hoặc phá hủy trái phép. Tuy nhiên, không có phương thức lưu trữ điện tử hoặc truyền tải qua internet nào là an toàn tuyệt đối.",
+  "termsDataSecurityBody2": "Mặc dù chúng tôi luôn cố gắng sử dụng các biện pháp được chấp nhận rộng rãi để bảo vệ dữ liệu của bạn, chúng tôi không thể đảm bảo an toàn tuyệt đối.",
+  "termsThirdPartyTitle": "6. Dịch vụ bên thứ ba",
+  "termsThirdPartyBody1": "Zenit có thể tích hợp hoặc phụ thuộc vào các dịch vụ bên thứ ba như nhà cung cấp phân tích, lưu trữ đám mây hoặc hệ thống xác thực. Các dịch vụ này có thể thu thập thông tin theo chính sách quyền riêng tư riêng của họ.",
+  "termsThirdPartyBody2": "Chúng tôi khuyến khích người dùng xem xét chính sách quyền riêng tư của bất kỳ dịch vụ bên thứ ba nào có thể tương tác với ứng dụng Zenit.",
+  "termsLiabilityTitle": "7. Giới hạn trách nhiệm",
+  "termsLiabilityBody1": "Zenit được cung cấp trên cơ sở \"nguyên trạng\" và \"sẵn có\". Chúng tôi không đảm bảo rằng ứng dụng sẽ luôn hoạt động liên tục, an toàn hoặc không có lỗi.",
+  "termsLiabilityBody2": "Trong mọi trường hợp, Zenit hoặc các nhà phát triển sẽ không chịu trách nhiệm cho bất kỳ thiệt hại gián tiếp, ngẫu nhiên, đặc biệt hoặc hệ quả nào phát sinh từ việc sử dụng hoặc không thể sử dụng ứng dụng.",
+  "termsTerminationTitle": "8. Chấm dứt",
+  "termsTerminationBody": "Chúng tôi có quyền tạm ngưng hoặc chấm dứt quyền truy cập của bạn vào ứng dụng bất kỳ lúc nào mà không cần thông báo trước nếu bạn vi phạm các điều khoản này hoặc có hành vi có thể gây hại cho ứng dụng hoặc người dùng khác.",
+  "termsChangesTitle": "9. Thay đổi chính sách",
+  "termsChangesBody": "Zenit có thể cập nhật Điều khoản dịch vụ và Chính sách quyền riêng tư này theo thời gian. Mọi cập nhật sẽ được phản ánh trong ứng dụng, và việc bạn tiếp tục sử dụng ứng dụng sau các cập nhật đó đồng nghĩa với việc chấp nhận các điều khoản đã được sửa đổi.",
+  "termsContactTitle": "10. Liên hệ với chúng tôi",
+  "termsContactBody": "Nếu bạn có bất kỳ câu hỏi nào liên quan đến Điều khoản và Chính sách quyền riêng tư này, vui lòng liên hệ với đội ngũ hỗ trợ của chúng tôi thông qua thông tin liên hệ được cung cấp trong ứng dụng.",
+
+  "categoryManage": "Quản lý danh mục",
+  "edit": "Chỉnh sửa",
+  "confirmAction": "Xác nhận",
+  "deleteCategoryConfirm": "Bạn có chắc muốn xóa danh mục này?",
+  "deleteCategorySuccess": "Đã xóa danh mục",
+  "deleteFailed": "Xóa thất bại",
+  "editCategory": "Sửa danh mục",
+  "addCategory": "Thêm danh mục",
+  "categoryUpdatedSuccess": "Đã cập nhật danh mục: {name}",
+  "@categoryUpdatedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryUpdateFailed": "Cập nhật danh mục thất bại",
+  "categoryAddedSuccess": "Đã thêm danh mục: {name}",
+  "@categoryAddedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryAddFailed": "Thêm danh mục thất bại",
+  "categoryName": "Tên danh mục",
+  "enterCategoryName": "Nhập tên danh mục",
+  "belongToGroup": "Thuộc nhóm",
+  "expenseLimit": "Hạn mức chi tiêu",
+  "enterExpenseLimitOptional": "Nhập hạn mức chi tiêu (tùy chọn)",
+  "selectIcon": "Chọn biểu tượng",
+  "done": "Xong",
+  "pleaseSelectIcon": "Vui lòng chọn biểu tượng",
+  "pleaseEnterCategoryName": "Vui lòng nhập tên danh mục",
+  "groupNecessary": "Thiết yếu",
+  "groupSavings": "Tiết kiệm",
+  "groupSelfDevelopment": "Phát triển bản thân",
+  "groupEntertainment": "Giải trí",
+  "groupGiving": "Cho đi",
+
+  "usernameLabel": "Tên người dùng: {username}",
+  "@usernameLabel": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "notLoggedIn": "Bạn chưa đăng nhập",
+  "pleaseLogin": "Vui lòng đăng nhập để xem thông tin"
+}

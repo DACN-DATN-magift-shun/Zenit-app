@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:zenit/core/api/api_endpoints.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/auth_layout.dart';
 import 'package:zenit/core/services/navigation_service.dart';
 import 'package:zenit/core/forms/sign_up_form.dart';
@@ -18,6 +19,7 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen>{
   bool _isLoading = false;
   Future<void> _handleSignup(String username, String email, String phone, String address, String password, String confirmPassword) async {
+    final l10n = context.l10n;
     setState(() => _isLoading = true);
     try {
       print('Sending request to: ${ApiEndpoints.register}');
@@ -42,12 +44,12 @@ class _SignupScreenState extends State<SignupScreen>{
           StorageService().saveUserId(userID.toString());
           NavigationService.instance.navigateTo(
             '/login',
-            arguments: {'snackMessage': 'Sign up successfully, please login'},
+            arguments: {'snackMessage': l10n.signupSuccessPleaseLogin},
           );
         }
       } else {
         if(mounted){
-          AppFlash.error(context, respone.data['message'] ?? 'Dữ liệu trả về lỗi');
+          AppFlash.error(context, respone.data['message'] ?? l10n.invalidResponseData);
         }
       }
       
@@ -55,12 +57,12 @@ class _SignupScreenState extends State<SignupScreen>{
     } on DioException catch(e){
       if (mounted) {
         final serverMsg = e.response?.data?['message'] ?? e.message;
-        AppFlash.error(context, serverMsg ?? 'Lỗi đăng ký');
+        AppFlash.error(context, serverMsg ?? l10n.signupError);
       }
     }
      catch (e) {
       if (mounted) {
-        AppFlash.error(context, 'Có lỗi xảy ra. Vui lòng thử lại.');
+        AppFlash.error(context, l10n.unknownErrorOccurred);
       }
       
     }
@@ -72,9 +74,11 @@ class _SignupScreenState extends State<SignupScreen>{
   }
     @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AuthLayout(
-      title: 'Welcome back !',
-      subtitle: 'Sign In',
+      title: l10n.signupTitle,
+      subtitle: l10n.signupSubtitle,
       // keep the drawer content as the child
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

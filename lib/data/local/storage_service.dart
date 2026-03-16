@@ -6,6 +6,7 @@ class StorageService {
   static const String accessTokenKey = 'ACCESS_TOKEN';
   static const String refreshTokenKey = 'REFRESH_TOKEN';
   static const String userIdKey = 'USER_ID';
+  static const String languageCodeKey = 'LANGUAGE_CODE';
 
   Future<void> saveToken (String access, String refresh) async{
       await _secureStorage.write(key: accessTokenKey, value: access);
@@ -23,6 +24,14 @@ class StorageService {
   }
   Future<String?> getRefreshToken() async {
     return await _secureStorage.read(key: refreshTokenKey);
+  }
+
+  Future<void> saveLanguageCode(String languageCode) async {
+    await _secureStorage.write(key: languageCodeKey, value: languageCode);
+  }
+
+  Future<String?> getLanguageCode() async {
+    return await _secureStorage.read(key: languageCodeKey);
   }
 
   Future<void> clearStorage() async{

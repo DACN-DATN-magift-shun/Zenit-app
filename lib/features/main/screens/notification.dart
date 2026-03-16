@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/base_layout.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
@@ -9,11 +10,12 @@ class NotificationScreen extends StatelessWidget {
 
 	@override
 	Widget build(BuildContext context) {
+		final l10n = context.l10n;
 		final colors = Theme.of(context).extension<AppColorExtension>()!;
 
 		return BaseLayout(
 			appBar: CommonAppBar(
-				title: 'Thông báo',
+				title: l10n.notificationsTitle,
 				showReturnIcon: true,
 				onBack: () {
 					Navigator.pop(context);
@@ -23,7 +25,7 @@ class NotificationScreen extends StatelessWidget {
 				child: Padding(
 					padding: const EdgeInsets.all(AppSizes.l),
 					child: Text(
-						'Coming soon',
+						l10n.comingSoon,
 						style: Theme.of(context).textTheme.bodyLarge?.copyWith(
 							color: colors.neutralTextPrimary,
 						),

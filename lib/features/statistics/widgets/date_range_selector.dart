@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/theme/app_colors.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
@@ -22,6 +23,8 @@ class DateRangeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.all(AppSizes.m),
       decoration: BoxDecoration(
@@ -33,7 +36,7 @@ class DateRangeSelector extends StatelessWidget {
           Expanded(
             child: _buildDateButton(
               context,
-              label: 'From',
+              label: l10n.fromLabel,
               date: startDate,
               onTap: onStartDateTap,
             ),
@@ -49,7 +52,7 @@ class DateRangeSelector extends StatelessWidget {
           Expanded(
             child: _buildDateButton(
               context,
-              label: 'To',
+              label: l10n.toLabel,
               date: endDate,
               onTap: onEndDateTap,
             ),

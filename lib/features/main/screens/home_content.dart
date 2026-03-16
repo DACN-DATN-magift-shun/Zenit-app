@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zenit/core/layout/app_bar.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/main_layout.dart';
 import 'package:zenit/core/services/auth_service.dart';
 import 'package:zenit/core/theme/app_colors.dart';
@@ -27,51 +28,50 @@ class _HomeContentState extends State<HomeContent> {
   bool _isAuthenticated = false;
   bool _isLoading = true;
 
-  /// List of action items for the HomeActionGrid
-  final List<HomeActionItem> _actionItems = [
-    // Expense - Light blue with white icon containing arrows
-    HomeActionItem(
-      title: 'Transaction',
-      icon: Icons.swap_horiz_rounded,
-      backgroundColor: AppColors.light.secondaryMain,
-      iconColor: AppColors.light.primaryMain,
-      type: ActionType.transaction,
-    ),
-    // Quick import - Primary blue with white icon
-    HomeActionItem(
-      title: 'Quick import',
-      icon: Icons.library_add_rounded,
-      backgroundColor: AppColors.light.primaryMain,
-      iconColor: Colors.white,
-      type: ActionType.quickImport,
-      useGradient: true,
-      gradientColors: [
-        AppColors.light.primaryMain,
-        AppColors.light.primaryActive,
-      ],
-    ),
-    // Goals - Light blue with flag icon
-    HomeActionItem(
-      title: 'Goals',
-      icon: Icons.flag_rounded,
-      backgroundColor: AppColors.light.secondaryMain,
-      iconColor: AppColors.light.primaryMain,
-      type: ActionType.goals,
-    ),
-    // More action - Primary blue with grid icon
-    HomeActionItem(
-      title: 'More actions',
-      icon: Icons.apps_rounded,
-      backgroundColor: AppColors.light.primaryMain,
-      iconColor: Colors.white,
-      type: ActionType.moreActions,
-      useGradient: true,
-      gradientColors: [
-        AppColors.light.primaryMain,
-        AppColors.light.primaryActive,
-      ],
-    ),
-  ];
+  List<HomeActionItem> _buildActionItems(BuildContext context) {
+    final l10n = context.l10n;
+
+    return [
+      HomeActionItem(
+        title: l10n.actionTransaction,
+        icon: Icons.swap_horiz_rounded,
+        backgroundColor: AppColors.light.secondaryMain,
+        iconColor: AppColors.light.primaryMain,
+        type: ActionType.transaction,
+      ),
+      HomeActionItem(
+        title: l10n.actionQuickImport,
+        icon: Icons.library_add_rounded,
+        backgroundColor: AppColors.light.primaryMain,
+        iconColor: Colors.white,
+        type: ActionType.quickImport,
+        useGradient: true,
+        gradientColors: [
+          AppColors.light.primaryMain,
+          AppColors.light.primaryActive,
+        ],
+      ),
+      HomeActionItem(
+        title: l10n.actionGoals,
+        icon: Icons.flag_rounded,
+        backgroundColor: AppColors.light.secondaryMain,
+        iconColor: AppColors.light.primaryMain,
+        type: ActionType.goals,
+      ),
+      HomeActionItem(
+        title: l10n.actionMoreActions,
+        icon: Icons.apps_rounded,
+        backgroundColor: AppColors.light.primaryMain,
+        iconColor: Colors.white,
+        type: ActionType.moreActions,
+        useGradient: true,
+        gradientColors: [
+          AppColors.light.primaryMain,
+          AppColors.light.primaryActive,
+        ],
+      ),
+    ];
+  }
 
   @override
   void initState() {
@@ -131,7 +131,7 @@ class _HomeContentState extends State<HomeContent> {
     
     AppDrawer.showAsBottomSheet(
       context: context,
-      title: "Add transaction",
+      title: context.l10n.addTransaction,
       showCloseButton: false,
       showDragHandle: true,
       headerActions: [
@@ -172,12 +172,12 @@ class _HomeContentState extends State<HomeContent> {
 
       if (mounted) {
         Navigator.of(context).pop(); // Close drawer
-        AppFlash.success(context, 'Transaction added successfully!');
+        AppFlash.success(context, context.l10n.transactionAddedSuccess);
         // TODO: Refresh transaction list nếu cần
       }
     } catch (e) {
       if (mounted) {
-        AppFlash.error(context, 'Error: ${e.toString()}');
+        AppFlash.error(context, context.l10n.genericErrorWithReason(e.toString()));
       }
     }
   }
@@ -185,20 +185,22 @@ class _HomeContentState extends State<HomeContent> {
 
   void _navigateToQuickImport() {
     // TODO: Navigate to Quick Import screen
-    AppFlash.info(context, 'Navigate to Quick Import');
+    AppFlash.info(context, context.l10n.navigateQuickImport);
   }
 
   void _navigateToGoals() {
     // TODO: Navigate to Goals screen
-    AppFlash.info(context, 'Navigate to Goals');
+    AppFlash.info(context, context.l10n.navigateGoals);
   }
   void _showMoreActions() {
     // TODO: Show more actions bottom sheet or screen
-    AppFlash.info(context, 'Show More Actions');
+    AppFlash.info(context, context.l10n.showMoreActions);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     if (_isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -208,10 +210,10 @@ class _HomeContentState extends State<HomeContent> {
     return MainLayout(
       appBar: CommonAppBar(
         title: _isAuthenticated 
-            ? 'Welcome back, $_userName' 
-            : 'Home - Bạn chưa đăng nhập',
+            ? l10n.welcomeBackUser(_userName)
+            : l10n.homeGuestTitle,
         showSecondaryText: _isAuthenticated,
-        secondaryText: _isAuthenticated ? "Have a nice day!" : null,
+        secondaryText: _isAuthenticated ? l10n.haveNiceDay : null,
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: AppSizes.l),
@@ -221,7 +223,7 @@ class _HomeContentState extends State<HomeContent> {
             const SizedBox(height: AppSizes.l),
             // Action Grid Section
             HomeActionGrid(
-              items: _actionItems,
+              items: _buildActionItems(context),
               onItemTap: _handleActionTap,
             ),
             const SizedBox(height: AppSizes.xl),

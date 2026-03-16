@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/base_layout.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
@@ -30,21 +31,24 @@ class ContactUsScreen extends StatelessWidget {
   }
 
   Future<void> _launchUri(BuildContext context, Uri uri) async {
+    final l10n = context.l10n;
     final didLaunch = await launchUrl(
       uri,
       mode: LaunchMode.externalApplication,
     );
 
     if (!didLaunch && context.mounted) {
-      AppFlash.error(context, 'Unable to open this app right now.');
+      AppFlash.error(context, l10n.unableOpenApp);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return BaseLayout(
       appBar: CommonAppBar(
-        title: 'Support center',
+        title: l10n.supportCenterTitle,
         showReturnIcon: true,
         onBack: () {
           Navigator.pop(context);
@@ -55,16 +59,16 @@ class ContactUsScreen extends StatelessWidget {
         children: [
           const SizedBox(height: AppSizes.s),
           _ContactActionTile(
-            title: 'Contact us via Email',
+            title: l10n.contactViaEmail,
             onTap: () => _openEmailApp(context),
           ),
           _ContactActionTile(
-            title: 'Contact us via Phone',
+            title: l10n.contactViaPhone,
             onTap: () => _openPhoneApp(context),
           ),
           const SizedBox(height: AppSizes.sectionSpacing),
           Text(
-            'Email: $_supportEmail\nPhone: $_supportPhoneDisplay',
+            l10n.contactInfo(_supportEmail, _supportPhoneDisplay),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(
                 context,

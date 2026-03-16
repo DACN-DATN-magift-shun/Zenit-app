@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:zenit/core/layout/app_bar.dart';
+import 'package:zenit/core/l10n/l10n.dart';
+import 'package:zenit/core/services/auth_service.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
@@ -19,11 +21,13 @@ class HistoryContent extends StatefulWidget {
 
 class _HistoryContentState extends State<HistoryContent> {
   final TransactionService _transactionService = TransactionService();
+  final AuthService _authService = AuthService();
   final ScrollController _scrollController = ScrollController();
 
   List<TransactionModel> _transactions = [];
   bool _isLoading = false;
   bool _hasMore = true;
+  bool _isAuthenticated = false;
   String? _errorMessage;
   int _totalItems = 0;
 
@@ -32,8 +36,30 @@ class _HistoryContentState extends State<HistoryContent> {
   @override
   void initState() {
     super.initState();
-    _loadTransactions();
+    _initializeScreen();
     _scrollController.addListener(_onScroll);
+  }
+
+  Future<void> _initializeScreen() async {
+    setState(() => _isLoading = true);
+
+    final isAuth = await _authService.isAuthenticated();
+
+    if (!mounted) {
+      return;
+    }
+
+    _isAuthenticated = isAuth;
+
+    if (!isAuth) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = null;
+      });
+      return;
+    }
+
+    await _loadTransactions();
   }
 
   @override
@@ -43,6 +69,10 @@ class _HistoryContentState extends State<HistoryContent> {
   }
 
   void _onScroll() {
+    if (!_isAuthenticated) {
+      return;
+    }
+
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       _loadMoreTransactions();
@@ -106,6 +136,10 @@ class _HistoryContentState extends State<HistoryContent> {
   }
 
   Future<void> _refreshTransactions() async {
+    if (!_isAuthenticated) {
+      return;
+    }
+
     setState(() {
       _transactions = [];
       _hasMore = true;
@@ -127,12 +161,15 @@ class _HistoryContentState extends State<HistoryContent> {
         });
 
         if (mounted) {
-          AppFlash.success(context, 'Đã xóa giao dịch "${transaction.title}"');
+          AppFlash.success(
+            context,
+            context.l10n.deleteTransactionSuccess(transaction.title),
+          );
         }
       }
     } catch (e) {
       if (mounted) {
-        AppFlash.error(context, 'Lỗi: ${e.toString()}');
+        AppFlash.error(context, context.l10n.genericErrorWithReason(e.toString()));
       }
     }
   }
@@ -141,7 +178,7 @@ class _HistoryContentState extends State<HistoryContent> {
     final transactionId = transaction.id;
     if (transactionId == null || transactionId.isEmpty) {
       if (mounted) {
-        AppFlash.error(context, 'Không tìm thấy ID giao dịch');
+        AppFlash.error(context, context.l10n.transactionIdNotFound);
       }
       return;
     }
@@ -151,7 +188,7 @@ class _HistoryContentState extends State<HistoryContent> {
     try {
       await AppDrawer.showAsBottomSheet(
         context: context,
-        title: 'Transaction detail',
+        title: context.l10n.transactionDetail,
         showCloseButton: false,
         showDragHandle: true,
         headerActions: [
@@ -246,9 +283,10 @@ class _HistoryContentState extends State<HistoryContent> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColorExtension>()!;
+    final l10n = context.l10n;
 
     return Scaffold(
-      appBar: CommonAppBar(title: 'History', showSecondaryText: false),
+      appBar: CommonAppBar(title: l10n.history, showSecondaryText: false),
       body: _buildBody(colors),
     );
   }
@@ -262,6 +300,10 @@ class _HistoryContentState extends State<HistoryContent> {
   }
 
   Widget _buildContent(AppColorExtension colors) {
+    if (!_isAuthenticated) {
+      return _buildUnauthenticatedView(colors);
+    }
+
     if (_errorMessage != null && _transactions.isEmpty) {
       return _buildErrorView(colors);
     }
@@ -291,6 +333,8 @@ class _HistoryContentState extends State<HistoryContent> {
   }
 
   Widget _buildErrorView(AppColorExtension colors) {
+    final l10n = context.l10n;
+
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       child: SizedBox(
@@ -304,7 +348,7 @@ class _HistoryContentState extends State<HistoryContent> {
                 Icon(Icons.error_outline, size: 64, color: colors.errorIcon),
                 const SizedBox(height: AppSizes.m),
                 Text(
-                  'Đã xảy ra lỗi',
+                  l10n.errorOccurred,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: AppSizes.s),
@@ -318,7 +362,7 @@ class _HistoryContentState extends State<HistoryContent> {
                 const SizedBox(height: AppSizes.l),
                 ElevatedButton(
                   onPressed: _loadTransactions,
-                  child: const Text('Thử lại'),
+                  child: Text(l10n.retry),
                 ),
               ],
             ),
@@ -329,6 +373,8 @@ class _HistoryContentState extends State<HistoryContent> {
   }
 
   Widget _buildEmptyView(AppColorExtension colors) {
+    final l10n = context.l10n;
+
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       child: SizedBox(
@@ -344,14 +390,14 @@ class _HistoryContentState extends State<HistoryContent> {
               ),
               const SizedBox(height: AppSizes.m),
               Text(
-                'Chưa có giao dịch nào',
+                l10n.noTransactions,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: colors.neutralTextSecondary,
                 ),
               ),
               const SizedBox(height: AppSizes.s),
               Text(
-                'Kéo xuống để làm mới',
+                l10n.pullToRefresh,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colors.neutralTextSecondary,
                 ),
@@ -367,6 +413,33 @@ class _HistoryContentState extends State<HistoryContent> {
     return const Padding(
       padding: EdgeInsets.all(AppSizes.l),
       child: Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  Widget _buildUnauthenticatedView(AppColorExtension colors) {
+    final l10n = context.l10n;
+
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.7,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock_outline, size: 64, color: colors.neutralTextSecondary),
+              const SizedBox(height: AppSizes.m),
+              Text(
+                l10n.needLoginHistory,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: colors.neutralTextSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

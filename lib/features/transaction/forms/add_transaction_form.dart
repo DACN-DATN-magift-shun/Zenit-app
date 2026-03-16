@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
-import 'package:zenit/core/utils/validators/transactions_form_validator.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/features/transaction/widgets/category_selector_drawer.dart';
 import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
@@ -102,7 +102,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   void _showCategorySelector() {
     AppDrawer.showAsBottomSheet(
       context: context,
-      title: 'Choose a tag for transaction',
+      title: context.l10n.chooseTagForTransaction,
       showCloseButton: false,
       showDragHandle: true,
       height: MediaQuery.of(context).size.height * 0.85,
@@ -158,7 +158,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     }
 
     if (_selectedCategory == null) {
-      AppFlash.warning(context, 'Please select a category');
+      AppFlash.warning(context, context.l10n.selectCategoryWarning);
       return null;
     }
 
@@ -171,8 +171,29 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     );
   }
 
+  String? _validateTitle(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return context.l10n.transactionName;
+    }
+    return null;
+  }
+
+  String? _validateAmount(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return context.l10n.enterAmount;
+    }
+
+    final amount = int.tryParse(value.replaceAll(',', ''));
+    if (amount == null || amount <= 0) {
+      return context.l10n.enterValidAmount;
+    }
+
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final colors = Theme.of(context).extension<AppColorExtension>()!;
     final noteMaxHeight = _calculateNoteMaxHeight(context);
 
@@ -200,7 +221,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                   decoration: InputDecoration(
                     filled: false,
                     fillColor: Colors.transparent,
-                    hintText: 'Transaction name',
+                    hintText: l10n.transactionName,
                     hintStyle: TextStyle(
                       color: colors.neutralTextDisable.withOpacity(0.5),
                       fontWeight: FontWeight.w700,
@@ -208,8 +229,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                     border: InputBorder.none, 
                     contentPadding: EdgeInsets.zero,
                   ),
-                  // Gọi Validator ở đây
-                  validator: TransactionValidator.validateTitle,
+                  validator: _validateTitle,
                 ),
               ),
               const SizedBox(height: AppSizes.xl),
@@ -217,7 +237,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               // --- Amount Field ---
               _buildFieldRow(
                 context,
-                label: 'Amount',
+                label: l10n.amount,
                 child: Expanded(
                   child: TextFormField(
                     controller: _amountController,
@@ -237,7 +257,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                       contentPadding: EdgeInsets.zero,
                     ),
                     style: Theme.of(context).textTheme.bodyLarge,
-                    validator: TransactionValidator.validateAmount,
+                    validator: _validateAmount,
                   ),
                 ),
               ),
@@ -245,7 +265,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               // --- Time Field ---
               _buildFieldRow(
                 context,
-                label: 'Time',
+                label: l10n.time,
                 child: Expanded(
                   child: InkWell(
                     onTap: _selectDate,
@@ -256,7 +276,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                           _selectedDate.day == DateTime.now().day &&
                                   _selectedDate.month == DateTime.now().month &&
                                   _selectedDate.year == DateTime.now().year
-                              ? 'Today'
+                              ? l10n.today
                               : _formatDate(_selectedDate), // Logic hiển thị 'Today' nếu muốn
                           style: TextStyle(color: colors.neutralTextDisable),
                         ),
@@ -275,7 +295,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               // --- Category Field ---
               _buildFieldRow(
                 context,
-                label: '(Single) Category',
+                label: l10n.singleCategory,
                 child: InkWell(
                   onTap: _showCategorySelector,
                   borderRadius: BorderRadius.circular(AppSizes.borderRadiusXSmall),
@@ -312,7 +332,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'Select',
+                              l10n.select,
                               style: TextStyle(color: colors.neutralTextDisable),
                             ),
                              Icon(Icons.chevron_right, color: colors.neutralTextDisable),
@@ -328,7 +348,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Note',
+                    l10n.note,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w400,

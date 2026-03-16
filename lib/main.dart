@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:zenit/core/providers/locale_provider.dart';
 import 'package:zenit/features/setting_childs/category_manage/providers/category_provider.dart';
 import 'package:zenit/features/setting_childs/category_manage/screen/category_manage.dart';
 import 'package:zenit/features/setting_childs/profile_details/screens/account_details.dart';
@@ -14,6 +16,7 @@ import 'package:zenit/features/setting_childs/terms_and_privacy/terms_and_privac
 import 'package:zenit/features/auth/screens/signup.dart';
 import 'package:zenit/features/auth/screens/reset_passwords.dart';
 import 'package:zenit/features/main/screens/notification.dart';
+import 'package:zenit/l10n/app_localizations.dart';
 
 void main() {
   runApp(const MainApp());
@@ -27,28 +30,41 @@ class MainApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
-        // Thêm các provider khác ở đây nếu cần
+        ChangeNotifierProvider(create: (_) => LocaleProvider()..loadSavedLocale()),
       ],
-      child: MaterialApp(
-        title: 'Zenit',
-        theme: lightTheme,
-        darkTheme: darkTheme,
-        themeMode: ThemeMode.system,
-        navigatorKey: NavigationService.instance.navigatorKey,
-        initialRoute: '/login',
-        routes: {
-          '/': (c) => const MainShell(),
-          '/login': (c) => const LoginScreen(),
-          '/home': (c) => const MainShell(),
-          '/signup': (c) => const SignupScreen(),
-          '/reset-password': (c) => const ResetPasswordsScreen(),
-          '/settings/account_details': (c) => const AccountDetails(),
-          '/settings/category_manage': (c) => const CategoryManageScreen(),
-          '/settings/general': (c) => const GeneralSettings(),
-          '/settings/notifications': (c) => const NotificationManage(),
-          '/settings/contact-us': (c) => const ContactUsScreen(),
-          '/settings/terms-and-privacy': (c) => const TermsAndPolicyScreen(),
-          '/notifications': (c) => const NotificationScreen(),
+      child: Consumer<LocaleProvider>(
+        builder: (context, localeProvider, child) {
+          return MaterialApp(
+            title: 'Zenit',
+            onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+            locale: localeProvider.locale,
+            supportedLocales: LocaleProvider.supportedLocales,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            theme: lightTheme,
+            darkTheme: darkTheme,
+            themeMode: ThemeMode.system,
+            navigatorKey: NavigationService.instance.navigatorKey,
+            initialRoute: '/login',
+            routes: {
+              '/': (c) => const MainShell(),
+              '/login': (c) => const LoginScreen(),
+              '/home': (c) => const MainShell(),
+              '/signup': (c) => const SignupScreen(),
+              '/reset-password': (c) => const ResetPasswordsScreen(),
+              '/settings/account_details': (c) => const AccountDetails(),
+              '/settings/category_manage': (c) => const CategoryManageScreen(),
+              '/settings/general': (c) => const GeneralSettings(),
+              '/settings/notifications': (c) => const NotificationManage(),
+              '/settings/contact-us': (c) => const ContactUsScreen(),
+              '/settings/terms-and-privacy': (c) => const TermsAndPolicyScreen(),
+              '/notifications': (c) => const NotificationScreen(),
+            },
+          );
         },
       ),
     );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/widgets/button.dart';
 import 'package:zenit/core/forms/form_fields/custom_text_form_field.dart';
 import 'package:zenit/core/forms/form_fields/password_form_field.dart';
-import 'package:zenit/core/utils/validators/auth_forms_validator.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/services/navigation_service.dart';
@@ -39,32 +39,69 @@ class _LoginFormState extends State<LoginForm> {
     }
   }
 
+  String? _validateEmail(String? value) {
+    final l10n = context.l10n;
+
+    if (value == null || value.isEmpty) {
+      return l10n.enterEmail;
+    }
+
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(value)) {
+      return l10n.invalidEmail;
+    }
+
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    final l10n = context.l10n;
+
+    if (value == null || value.isEmpty) {
+      return l10n.enterPassword;
+    }
+
+    if (value.length <= 8) {
+      return l10n.weakPassword;
+    }
+
+    final hasNumber = RegExp(r'\d').hasMatch(value);
+    final hasSpecial = RegExp(r'[!@#\$%\^&\*\(\)\+\=\{\}\[\]:;"\\<>,\.\?\/\\|~`_ -]').hasMatch(value);
+    if (!hasNumber || !hasSpecial) {
+      return l10n.weakPassword;
+    }
+
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Form(
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CustomTextFormField(
-            label: 'Email',
-            hintText: 'your.email@example.com',
+            label: l10n.email,
+            hintText: l10n.emailHint,
             controller: _emailController,
-            validator: AuthFormsValidator.email,
+            validator: _validateEmail,
             keyboardType: TextInputType.emailAddress,
           ),
           const SizedBox(height: 16),
           PasswordFormField(
-            label: 'Mật khẩu',
-            hintText: 'Nhập mật khẩu',
+            label: l10n.password,
+            hintText: l10n.enterPasswordHint,
             controller: _passwordController,
-            validator: AuthFormsValidator.password,
+            validator: _validatePassword,
           ),
           const SizedBox(height: 12),
           InkWell(
             onTap: () => NavigationService.instance.navigateTo('/reset-password'),
             child: Text(
-              'Quên mật khẩu?',
+              l10n.forgotPassword,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
             ),
@@ -73,7 +110,7 @@ class _LoginFormState extends State<LoginForm> {
           ),
           const SizedBox(height: 24),
           AppButton(
-            text: 'Đăng nhập',
+            text: l10n.loginButton,
             onPressed: _handleSubmit,
             icon: Symbols.arrow_forward_rounded,
             gap: 20.0,
@@ -83,7 +120,7 @@ class _LoginFormState extends State<LoginForm> {
           InkWell(
             onTap: () => NavigationService.instance.navigateTo('/signup'),
             child: Text(
-              'Bạn chưa có tài khoản? Đăng ký ngay',
+              l10n.noAccountSignup,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
             ),
@@ -92,7 +129,7 @@ class _LoginFormState extends State<LoginForm> {
           ),
           const SizedBox(height: 24),
           Text(
-            'By logging in, you agree to our Terms of Service and Privacy Policy.',
+            l10n.loginTermsText,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).extension<AppColorExtension>()!.neutralTextDisable,
           ),

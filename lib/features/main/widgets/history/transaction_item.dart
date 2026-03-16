@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/features/transaction/models/transaction_model.dart';
@@ -18,6 +19,7 @@ class TransactionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final colors = Theme.of(context).extension<AppColorExtension>()!;
     final category = transaction.category;
 
@@ -94,7 +96,7 @@ class TransactionItem extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        category?.name ?? 'Unknown',
+                        category?.name ?? l10n.unknown,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: colors.neutralTextSecondary,
                             ),
@@ -136,6 +138,7 @@ class TransactionItem extends StatelessWidget {
   }
 
   void _showContextMenu(BuildContext context, Offset position) async {
+    final l10n = context.l10n;
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
     final selected = await showMenu<String>(
       context: context,
@@ -148,13 +151,13 @@ class TransactionItem extends StatelessWidget {
         Offset.zero & overlay.size,
       ),
       items: [
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'delete',
           child: Row(
             children: [
-              Icon(Symbols.delete, size: 20),
-              SizedBox(width: 8),
-              Text('Xóa'),
+              const Icon(Symbols.delete, size: 20),
+              const SizedBox(width: 8),
+              Text(l10n.delete),
             ],
           ),
         ),
@@ -168,16 +171,16 @@ class TransactionItem extends StatelessWidget {
       final confirm = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Xác nhận xóa'),
-          content: Text('Bạn có chắc muốn xóa giao dịch "${transaction.title}"?'),
+          title: Text(l10n.confirmDelete),
+          content: Text(l10n.confirmDeleteTransactionMessage(transaction.title)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Hủy'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+              child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
             ),
           ],
         ),

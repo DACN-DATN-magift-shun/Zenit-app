@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:zenit/data/local/storage_service.dart';
 import 'package:zenit/features/auth/services/account_service.dart';
@@ -9,21 +11,31 @@ class AuthService {
   AuthService._internal();
 
   final _accountService = AccountService();
+  final _storageService = StorageService();
 
   // Kiểm tra xem user đã đăng nhập chưa
   Future<bool> isAuthenticated() async {
-    final token = await StorageService().getAccessToken();
-    return token != null && token.isNotEmpty;
+    final token = await _storageService.getAccessToken();
+    if (token == null || token.isEmpty) {
+      return false;
+    }
+
+    if (_isTokenExpired(token)) {
+      await _storageService.clearStorage();
+      return false;
+    }
+
+    return true;
   }
 
   // Lấy access token
   Future<String?> getAccessToken() async {
-    return await StorageService().getAccessToken();
+    return await _storageService.getAccessToken();
   }
 
   // Lấy user ID
   Future<String?> getUserId() async {
-    return await StorageService().getUserId();
+    return await _storageService.getUserId();
   }
 
   // Lấy thông tin user từ API
@@ -32,6 +44,12 @@ class AuthService {
       // API now returns current user without requiring an ID
       final response = await _accountService.getAccount();
       return response;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        await _storageService.clearStorage();
+      }
+      print('Error fetching user info: ${e.message}');
+      return null;
     } catch (e) {
       print('Error fetching user info: $e');
       return null;
@@ -56,7 +74,7 @@ class AuthService {
 
   // Đăng xuất
   Future<void> logout() async {
-    await StorageService().clearStorageAll();
+    await _storageService.clearStorageAll();
   }
 
   // Lưu thông tin đăng nhập
@@ -64,13 +82,35 @@ class AuthService {
     required String accessToken,
     required String refreshToken,
   }) async {
-    await StorageService().saveToken(accessToken, refreshToken);
+    await _storageService.saveToken(accessToken, refreshToken);
   }
 
   // Lưu thông tin đăng ký
   Future<void> saveSignupData({
     required String userId,
   }) async {
-    await StorageService().saveUserId(userId);
+    await _storageService.saveUserId(userId);
+  }
+
+  bool _isTokenExpired(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) {
+        return false;
+      }
+
+      final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+      final payloadMap = jsonDecode(payload) as Map<String, dynamic>;
+      final exp = payloadMap['exp'];
+
+      if (exp is! int) {
+        return false;
+      }
+
+      final nowInSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      return exp <= nowInSeconds;
+    } catch (_) {
+      return false;
+    }
   }
 }

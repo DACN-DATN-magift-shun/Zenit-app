@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
-import 'package:zenit/core/utils/validators/transactions_form_validator.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
@@ -211,7 +211,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
 
     if (transactionId.isEmpty) {
       if (mounted) {
-        AppFlash.error(context, 'Không tìm thấy ID giao dịch để cập nhật');
+        AppFlash.error(context, context.l10n.transactionIdMissingUpdate);
       }
       return;
     }
@@ -223,13 +223,13 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
     final category =
         _selectedCategory ?? _findCategoryById(transaction.categoryId);
     if (category == null) {
-      AppFlash.warning(context, 'Please select a category');
+      AppFlash.warning(context, context.l10n.selectCategoryWarning);
       return;
     }
 
     final amount = _parseAmount(_amountController.text);
     if (amount == null || amount == 0) {
-      AppFlash.warning(context, 'Please enter a valid amount');
+      AppFlash.warning(context, context.l10n.enterValidAmount);
       return;
     }
 
@@ -257,7 +257,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
       });
       _setEditing(false);
 
-      AppFlash.success(context, 'Đã cập nhật giao dịch');
+      AppFlash.success(context, context.l10n.updateTransactionSuccess);
 
       await widget.onTransactionUpdated?.call();
     } catch (e) {
@@ -265,7 +265,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
         return;
       }
 
-      AppFlash.error(context, 'Lỗi: ${e.toString()}');
+      AppFlash.error(context, context.l10n.genericErrorWithReason(e.toString()));
     } finally {
       _setSaving(false);
     }
@@ -339,7 +339,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
   void _showCategorySelector() {
     AppDrawer.showAsBottomSheet(
       context: context,
-      title: 'Choose a tag for transaction',
+      title: context.l10n.chooseTagForTransaction,
       showCloseButton: false,
       showDragHandle: true,
       height: MediaQuery.of(context).size.height * 0.85,
@@ -390,14 +390,21 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
 
   String? _validateAmount(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Please enter amount';
+      return context.l10n.enterAmount;
     }
 
     final amount = _parseAmount(value);
     if (amount == null || amount == 0) {
-      return 'Please enter a valid amount';
+      return context.l10n.enterValidAmount;
     }
 
+    return null;
+  }
+
+  String? _validateTitle(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return context.l10n.transactionName;
+    }
     return null;
   }
 
@@ -495,6 +502,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
 
   Widget _buildBody() {
     final colors = Theme.of(context).extension<AppColorExtension>()!;
+    final l10n = context.l10n;
 
     if (_isLoading) {
       return const Padding(
@@ -513,7 +521,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
               Icon(Icons.error_outline, color: colors.errorIcon, size: 48),
               const SizedBox(height: AppSizes.m),
               Text(
-                'Lỗi khi tải chi tiết giao dịch',
+                l10n.transactionLoadError,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: AppSizes.s),
@@ -527,7 +535,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
               const SizedBox(height: AppSizes.m),
               ElevatedButton(
                 onPressed: _loadTransaction,
-                child: const Text('Thử lại'),
+                child: Text(l10n.retry),
               ),
             ],
           ),
@@ -536,9 +544,9 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
     }
 
     if (_transaction == null) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(AppSizes.xl),
-        child: Center(child: Text('Không tìm thấy giao dịch')),
+        child: Center(child: Text(l10n.transactionNotFound)),
       );
     }
 
@@ -552,7 +560,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
         : null;
     final category =
         _selectedCategory ?? providerCategory ?? _mapCategoryFromTransaction(t);
-    final categoryName = category?.name ?? t.category?.name ?? 'Unknown';
+    final categoryName = category?.name ?? t.category?.name ?? l10n.unknown;
     final categoryColor = category?.color ?? t.category?.color ?? '#9E9E9E';
     final categoryBgColor =
         category?.backgroundColor ?? t.category?.backgroundColor ?? '#F5F5F5';
@@ -560,7 +568,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
     final displayDate = (_selectedDateTime ?? t.transactionDate).toLocal();
     final noteText = (t.note != null && t.note!.isNotEmpty)
         ? t.note!
-        : 'Không có ghi chú';
+      : l10n.noteEmpty;
     final noteMaxHeight = _calculateNoteMaxHeight(context);
 
     return AbsorbPointer(
@@ -586,7 +594,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.zero,
                       ),
-                      validator: TransactionValidator.validateTitle,
+                      validator: _validateTitle,
                     )
                   : Text(
                       t.title,
@@ -602,7 +610,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
 
             _buildFieldRow(
               context,
-              label: 'Amount',
+              label: l10n.amount,
               child: _isEditing
                   ? SizedBox(
                       width: 180,
@@ -636,7 +644,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
 
             _buildFieldRow(
               context,
-              label: 'Time',
+              label: l10n.time,
               child: InkWell(
                 onTap: _isEditing ? _selectTransactionDateTime : null,
                 borderRadius: BorderRadius.circular(
@@ -666,7 +674,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
 
             _buildFieldRow(
               context,
-              label: 'Category',
+              label: l10n.category,
               child: InkWell(
                 onTap: _isEditing ? _showCategorySelector : null,
                 borderRadius: BorderRadius.circular(
@@ -711,7 +719,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Note',
+                  l10n.note,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,

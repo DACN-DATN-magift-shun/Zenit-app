@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/layout/app_bar.dart';
@@ -59,12 +60,14 @@ class _SettingsContentState extends State<SettingsContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return MainLayout(
-      appBar: CommonAppBar(title: ' Settings', showSecondaryText: false),
+      appBar: CommonAppBar(title: l10n.settings, showSecondaryText: false),
       child: _isAuthenticated && _userInfoResponse != null
           ? SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
@@ -125,12 +128,14 @@ class _SettingsContentState extends State<SettingsContent> {
                                 // vi hienj tai chi co usser name, nen se dung user name thay the cho name nhe
                                 (_userInfoResponse!.data['username']
                                         as String?) ??
-                                    'Not login',
+                                    l10n.notLoggedIn,
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Username: ${(_userInfoResponse!.data['username'] as String?) ?? 'N/A'}',
+                                l10n.usernameLabel(
+                                  (_userInfoResponse!.data['username'] as String?) ?? 'N/A',
+                                ),
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
@@ -170,7 +175,7 @@ class _SettingsContentState extends State<SettingsContent> {
                   const SizedBox(height: 20),
                   SettingItem(
                     icon: Symbols.settings_rounded,
-                    title: 'General settings',
+                    title: l10n.generalSettingsItem,
                     onTap: () {
                       NavigationService.instance.navigateTo(
                         '/settings/general',
@@ -179,7 +184,7 @@ class _SettingsContentState extends State<SettingsContent> {
                   ),
                   SettingItem(
                     icon: Symbols.style_rounded,
-                    title: 'Category management',
+                    title: l10n.categoryManagement,
                     onTap: () {
                       NavigationService.instance.navigateTo(
                         '/settings/category_manage',
@@ -188,17 +193,17 @@ class _SettingsContentState extends State<SettingsContent> {
                   ),
                   SettingItem(
                     icon: Symbols.notifications_rounded,
-                    title: 'Notifications',
+                    title: l10n.notifications,
                     onTap: () {
                       NavigationService.instance.navigateTo(
                         '/settings/notifications',
                       );
                     },
                   ),
-                  SettingItem(icon: Symbols.shield_toggle, title: 'Security'),
+                  SettingItem(icon: Symbols.shield_toggle, title: l10n.security),
                   SettingItem(
                     icon: Symbols.support_agent_rounded,
-                    title: 'Support center',
+                    title: l10n.supportCenter,
                     onTap: () {
                       NavigationService.instance.navigateTo(
                         '/settings/contact-us',
@@ -207,7 +212,7 @@ class _SettingsContentState extends State<SettingsContent> {
                   ),
                   SettingItem(
                     icon: Symbols.privacy_tip_rounded,
-                    title: 'Privacy policy and terms',
+                    title: l10n.privacyPolicyAndTerms,
                     onTap: () {
                       NavigationService.instance.navigateTo(
                         '/settings/terms-and-privacy',
@@ -216,7 +221,7 @@ class _SettingsContentState extends State<SettingsContent> {
                   ),
                   SettingItem(
                     icon: Symbols.logout_rounded,
-                    title: 'Logout',
+                    title: l10n.logout,
                     onTap: () {
                       AuthService().logout();
                       NavigationService.instance.navigateTo('/login');
@@ -232,12 +237,12 @@ class _SettingsContentState extends State<SettingsContent> {
                   const Icon(Icons.person_off, size: 64, color: Colors.grey),
                   const SizedBox(height: 16),
                   Text(
-                    'Bạn chưa đăng nhập',
+                    l10n.notLoggedIn,
                     style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Vui lòng đăng nhập để xem thông tin',
+                    l10n.pleaseLogin,
                     style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                   ),
                 ],

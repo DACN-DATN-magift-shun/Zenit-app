@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/auth_layout.dart';
 import 'package:zenit/core/services/navigation_service.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/button.dart';
 import 'package:zenit/core/forms/form_fields/custom_text_form_field.dart';
 import 'package:zenit/core/forms/form_fields/password_form_field.dart';
-import 'package:zenit/core/utils/validators/auth_forms_validator.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/features/auth/services/account_service.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -48,7 +48,47 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
     });
   }
 
+  String? _validateEmail(String? value) {
+    final l10n = context.l10n;
+    if (value == null || value.isEmpty) {
+      return l10n.enterEmail;
+    }
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(value)) {
+      return l10n.invalidEmail;
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    final l10n = context.l10n;
+    if (value == null || value.isEmpty) {
+      return l10n.enterPassword;
+    }
+    if (value.length <= 8) {
+      return l10n.weakPassword;
+    }
+    final hasNumber = RegExp(r'\d').hasMatch(value);
+    final hasSpecial = RegExp(r'[!@#\$%\^&\*\(\)\+\=\{\}\[\]:;"\\<>,\.\?\/\\|~`_ -]').hasMatch(value);
+    if (!hasNumber || !hasSpecial) {
+      return l10n.weakPassword;
+    }
+    return null;
+  }
+
+  String? _validateConfirmPassword(String? value) {
+    final l10n = context.l10n;
+    if (value == null || value.isEmpty) {
+      return l10n.confirmPasswordRequired;
+    }
+    if (value != _newPasswordController.text) {
+      return l10n.passwordNotMatch;
+    }
+    return null;
+  }
+
   Future<void> _handleSendOTP() async {
+    final l10n = context.l10n;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -63,7 +103,7 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
       final responseData = response.data;
       if (responseData is Map<String, dynamic>) {
         final success = responseData['success'] ?? false;
-        final message = responseData['message']?.toString() ?? 'Mã OTP đã được gửi đến email của bạn';
+        final message = responseData['message']?.toString() ?? l10n.otpSentInstruction;
         
         if (mounted) {
           if (success) {
@@ -84,12 +124,12 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
       print('DioException: ${e.message}');
       print('Response: ${e.response?.data}');
       if (mounted) {
-        String serverMsg = 'Lỗi gửi OTP';
+        String serverMsg = l10n.sendOtpError;
         final responseData = e.response?.data;
         if (responseData is Map<String, dynamic>) {
           serverMsg = responseData['message']?.toString() ??
               e.message ??
-              'Lỗi gửi OTP';
+              l10n.sendOtpError;
         } else if (responseData is String && responseData.isNotEmpty) {
           serverMsg = responseData;
         } else if (e.message != null && e.message!.isNotEmpty) {
@@ -100,7 +140,7 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
     } catch (e) {
       print('General error: $e');
       if (mounted) {
-        AppFlash.error(context, 'Có lỗi xảy ra: $e');
+        AppFlash.error(context, l10n.unknownErrorWithReason(e.toString()));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -108,6 +148,7 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
   }
 
   Future<void> _handleResetPassword() async {
+    final l10n = context.l10n;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -129,7 +170,7 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
         final message = verifyData['message']?.toString();
         
         if (!otpValid && mounted) {
-          AppFlash.error(context, message ?? 'OTP không hợp lệ');
+          AppFlash.error(context, message ?? l10n.invalidOtp);
           if (mounted) setState(() => _isLoading = false);
           return;
         }
@@ -148,14 +189,14 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
         final resetData = resetResponse.data;
         if (resetData is Map<String, dynamic>) {
           final success = resetData['success'] ?? false;
-          final message = resetData['message']?.toString() ?? 'Đặt lại mật khẩu thành công!';
+          final message = resetData['message']?.toString() ?? l10n.resetPasswordSuccess;
 
           if (mounted) {
             if (success) {
               NavigationService.instance.navigateTo(
                 '/login',
                 arguments: {
-                  'snackMessage': 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập.'
+                  'snackMessage': l10n.resetPasswordSuccessNavigate
                 },
               );
             } else {
@@ -168,12 +209,12 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
       print('DioException: ${e.message}');
       print('Response: ${e.response?.data}');
       if (mounted) {
-        String serverMsg = 'Lỗi đặt lại mật khẩu';
+        String serverMsg = l10n.resetPasswordError;
         final responseData = e.response?.data;
         if (responseData is Map<String, dynamic>) {
           serverMsg = responseData['message']?.toString() ??
               e.message ??
-              'Lỗi đặt lại mật khẩu';
+              l10n.resetPasswordError;
         } else if (responseData is String && responseData.isNotEmpty) {
           serverMsg = responseData;
         } else if (e.message != null && e.message!.isNotEmpty) {
@@ -184,7 +225,7 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
     } catch (e) {
       print('General error: $e');
       if (mounted) {
-        AppFlash.error(context, 'Có lỗi xảy ra: $e');
+        AppFlash.error(context, l10n.unknownErrorWithReason(e.toString()));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -193,26 +234,28 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AuthLayout(
-      title: 'Forgot password',
-      subtitle: 'Reset passwords',
+      title: l10n.forgotPasswordTitle,
+      subtitle: l10n.resetPasswordSubtitle,
       child: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             CustomTextFormField(
-              label: 'Registed Email or username',
-              hintText: 'example@mail.com',
+              label: l10n.registeredEmailOrUsername,
+              hintText: l10n.emailHint,
               controller: _emailController,
-              validator: AuthFormsValidator.email,
+              validator: _validateEmail,
               keyboardType: TextInputType.emailAddress,
               enabled: !_otpSent,
             ),
             if (!_otpSent) ...[
               const SizedBox(height: 8),
               Text(
-                'We will send you a reset password OTP via email, please check in the spams if you don\'t see.',
+                l10n.otpSentInstruction,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context)
                           .extension<AppColorExtension>()!
@@ -223,7 +266,7 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
             const SizedBox(height: 24),
             if (!_otpSent) ...[
               AppButton(
-                text: 'Send',
+                text: l10n.send,
                 onPressed: _isLoading ? null : _handleSendOTP,
                 icon: Symbols.arrow_circle_right_rounded,
                 gap: 20.0,
@@ -233,12 +276,12 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
             ],
             if (_otpSent) ...[
               CustomTextFormField(
-                label: 'OTP',
-                hintText: 'OTP',
+                label: l10n.otp,
+                hintText: l10n.otpHint,
                 controller: _otpController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập OTP';
+                    return l10n.pleaseEnterOtp;
                   }
                   return null;
                 },
@@ -247,7 +290,7 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
               const SizedBox(height: 8),
               if (_countdown > 0)
                 Text(
-                  'Haven\'t received email yet ? Try again after ${_countdown}s',
+                  l10n.resendAfterSeconds(_countdown),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context)
                             .extension<AppColorExtension>()!
@@ -258,7 +301,7 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
                 InkWell(
                   onTap: _handleSendOTP,
                   child: Text(
-                    'Haven\'t received email yet ? Try again',
+                    l10n.resendNow,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context)
                               .extension<AppColorExtension>()!
@@ -268,23 +311,21 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
                 ),
               const SizedBox(height: 16),
               PasswordFormField(
-                label: 'New password',
+                label: l10n.newPassword,
                 hintText: '• • • • • • • •',
                 controller: _newPasswordController,
-                validator: AuthFormsValidator.password,
+                validator: _validatePassword,
               ),
               const SizedBox(height: 16),
               PasswordFormField(
-                label: 'Confirm new password',
+                label: l10n.confirmNewPassword,
                 hintText: '• • • • • •',
                 controller: _confirmPasswordController,
-                validator: AuthFormsValidator.confirmPassword(
-                  () => _newPasswordController.text,
-                ),
+                validator: _validateConfirmPassword,
               ),
               const SizedBox(height: 8),
               Text(
-                'We will navigate you to the Sign in screen, use the new passwords',
+                l10n.resetPasswordHint,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context)
                           .extension<AppColorExtension>()!
@@ -293,7 +334,7 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
               ),
               const SizedBox(height: 24),
               AppButton(
-                text: 'Confirm',
+                text: l10n.confirm,
                 onPressed: _isLoading ? null : _handleResetPassword,
                 icon: Symbols.arrow_circle_right_rounded,
                 gap: 20.0,
@@ -303,7 +344,7 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
             ],
             const SizedBox(height: 24),
             Text(
-              'By continue, you agree with our terms and privacy policy.',
+              l10n.continueTermsText,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context)
                         .extension<AppColorExtension>()!
