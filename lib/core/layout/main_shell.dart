@@ -15,6 +15,7 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
+  static const int _historyTabIndex = 2;
   late int _currentIndex;
 
   @override
@@ -34,11 +35,11 @@ class _MainShellState extends State<MainShell> {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: const [
-          HomeContent(),      // index 0
-          StatisticContent(), // index 1
-          HistoryContent(),   // index 2
-          SettingsContent(),  // index 3
+        children: [
+          const HomeContent(),      // index 0
+          const StatisticContent(), // index 1
+          HistoryContent(isActive: _currentIndex == _historyTabIndex), // index 2
+          const SettingsContent(),  // index 3
         ],
       ),
       bottomNavigationBar: AppNavigationBar(

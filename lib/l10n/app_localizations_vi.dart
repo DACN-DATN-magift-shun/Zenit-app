@@ -66,6 +66,15 @@ class AppLocalizationsVi extends AppLocalizations {
   String get logout => 'Đăng xuất';
 
   @override
+  String get logoutConfirmTitle => 'Xác nhận đăng xuất';
+
+  @override
+  String get logoutConfirmMessage => 'Bạn có chắc muốn đăng xuất không?';
+
+  @override
+  String get logoutSuccess => 'Đăng xuất thành công';
+
+  @override
   String get notificationsTitle => 'Thông báo';
 
   @override

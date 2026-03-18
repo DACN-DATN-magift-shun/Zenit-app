@@ -54,8 +54,8 @@ class StatisticsCategoryModel {
       icon: json['icon']?.toString() ?? '',
       color: json['color']?.toString() ?? '#FFFFFF',
       backgroundColor: json['backgroundColor']?.toString() ?? '#000000',
-      totalAmount: _parseInt(json['totalAmount']),
-      percentage: _parseDouble(json['percentage']),
+      totalAmount: _parseInt(json['totalAmount'] ?? json['amount']),
+      percentage: _parseDouble(json['percentage'] ?? json['percent']),
     );
   }
 
@@ -90,15 +90,18 @@ class StatisticsGroupModel {
 
   factory StatisticsGroupModel.fromJson(dynamic rawJson) {
     final json = _safeMap(rawJson);
+    final categoryListRaw =
+        (json['categories'] ?? json['categoryStatistics']) as List<dynamic>? ??
+        [];
+
     return StatisticsGroupModel(
-      totalAmount: _parseInt(json['totalAmount']),
+      totalAmount: _parseInt(json['totalAmount'] ?? json['amount']),
       percentage: _parseDouble(json['percentage']),
       percentageChange: _parseDouble(json['percentageChange']),
       groupType: _parseInt(json['groupType']),
-      categories: (json['categories'] as List<dynamic>?)
-              ?.map((item) => StatisticsCategoryModel.fromJson(item))
-              .toList() ??
-          [],
+      categories: categoryListRaw
+          .map((item) => StatisticsCategoryModel.fromJson(item))
+          .toList(),
     );
   }
 
@@ -116,42 +119,83 @@ class StatisticsGroupModel {
   String get groupName {
     switch (groupType) {
       case 0:
-        return 'Neccessary'; // Sinh hoạt thiết yếu
+        return 'Expense';
       case 1:
-        return 'Savings'; // Tiết kiệm
+        return 'Income';
       case 2:
-        return 'SelfDevelopment'; // Phát triển bản thân
+        return 'SelfDevelopment';
       case 3:
-        return 'Entertainment'; // Giải trí
+        return 'Entertainment';
       case 4:
-        return 'Other'; // Khác
+        return 'Other';
       default:
-        return 'Unknown';
+        return 'Group $groupType';
     }
+  }
+}
+
+/// Model tóm tắt thu/chi toàn khoảng thời gian
+class IncomeExpenseStatisticsModel {
+  final int totalIncome;
+  final int totalExpense;
+  final double incomePercentageChange;
+  final double expensePercentageChange;
+
+  const IncomeExpenseStatisticsModel({
+    required this.totalIncome,
+    required this.totalExpense,
+    required this.incomePercentageChange,
+    required this.expensePercentageChange,
+  });
+
+  factory IncomeExpenseStatisticsModel.fromJson(dynamic rawJson) {
+    final json = _safeMap(rawJson);
+    return IncomeExpenseStatisticsModel(
+      totalIncome: _parseInt(json['totalIncome']),
+      totalExpense: _parseInt(json['totalExpense']),
+      incomePercentageChange: _parseDouble(json['incomePercentageChange']),
+      expensePercentageChange: _parseDouble(json['expensePercentageChange']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'totalIncome': totalIncome,
+      'totalExpense': totalExpense,
+      'incomePercentageChange': incomePercentageChange,
+      'expensePercentageChange': expensePercentageChange,
+    };
   }
 }
 
 /// Model cho response của Statistics API
 class StatisticsResponseModel {
   final List<StatisticsGroupModel> items;
+  final IncomeExpenseStatisticsModel incomeExpenseStatistics;
 
   StatisticsResponseModel({
     required this.items,
+    required this.incomeExpenseStatistics,
   });
 
   factory StatisticsResponseModel.fromJson(dynamic rawJson) {
     final json = _safeMap(rawJson);
+    final groupsRaw = (json['items'] ?? json['groupStatistics']) as List<dynamic>? ?? [];
+
     return StatisticsResponseModel(
-      items: (json['items'] as List<dynamic>?)
-              ?.map((item) => StatisticsGroupModel.fromJson(item))
-              .toList() ??
-          [],
+      items: groupsRaw
+          .map((item) => StatisticsGroupModel.fromJson(item))
+          .toList(),
+      incomeExpenseStatistics: IncomeExpenseStatisticsModel.fromJson(
+        json['incomeExpenseStatistics'],
+      ),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'items': items.map((i) => i.toJson()).toList(),
+      'incomeExpenseStatistics': incomeExpenseStatistics.toJson(),
     };
   }
 

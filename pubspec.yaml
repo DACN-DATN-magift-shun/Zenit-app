@@ -10,6 +10,7 @@ dependencies:
   dio: ^5.9.0
   flash: ^3.1.1
   fl_chart: ^0.69.0
+  flutter_slidable: ^3.1.2
   flutter:
     sdk: flutter
   flutter_localizations:

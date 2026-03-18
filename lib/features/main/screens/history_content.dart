@@ -13,7 +13,9 @@ import 'package:zenit/features/transaction/services/transaction_service.dart';
 import 'package:zenit/features/main/widgets/history/transaction_item.dart';
 
 class HistoryContent extends StatefulWidget {
-  const HistoryContent({super.key});
+  const HistoryContent({super.key, this.isActive = false});
+
+  final bool isActive;
 
   @override
   State<HistoryContent> createState() => _HistoryContentState();
@@ -28,34 +30,47 @@ class _HistoryContentState extends State<HistoryContent> {
   bool _isLoading = false;
   bool _hasMore = true;
   bool _isAuthenticated = false;
+  bool _isCheckingAuth = true;
   String? _errorMessage;
   int _totalItems = 0;
 
   static const int _pageSize = 10;
+  late bool _wasActive;
 
   @override
   void initState() {
     super.initState();
+    _wasActive = widget.isActive;
     _initializeScreen();
     _scrollController.addListener(_onScroll);
   }
 
-  Future<void> _initializeScreen() async {
-    setState(() => _isLoading = true);
+  @override
+  void didUpdateWidget(covariant HistoryContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
 
+    if (!_wasActive && widget.isActive) {
+      _refreshTransactions();
+    }
+
+    _wasActive = widget.isActive;
+  }
+
+  Future<void> _initializeScreen() async {
     final isAuth = await _authService.isAuthenticated();
 
     if (!mounted) {
       return;
     }
 
-    _isAuthenticated = isAuth;
+    setState(() {
+      _isAuthenticated = isAuth;
+      _isCheckingAuth = false;
+      _isLoading = false;
+      _errorMessage = null;
+    });
 
     if (!isAuth) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = null;
-      });
       return;
     }
 
@@ -80,7 +95,7 @@ class _HistoryContentState extends State<HistoryContent> {
   }
 
   Future<void> _loadTransactions() async {
-    if (_isLoading) return;
+    if (_isCheckingAuth || !_isAuthenticated || _isLoading) return;
 
     setState(() {
       _isLoading = true;
@@ -300,6 +315,10 @@ class _HistoryContentState extends State<HistoryContent> {
   }
 
   Widget _buildContent(AppColorExtension colors) {
+    if (_isCheckingAuth) {
+      return _buildInitialLoadingView();
+    }
+
     if (!_isAuthenticated) {
       return _buildUnauthenticatedView(colors);
     }
@@ -413,6 +432,16 @@ class _HistoryContentState extends State<HistoryContent> {
     return const Padding(
       padding: EdgeInsets.all(AppSizes.l),
       child: Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  Widget _buildInitialLoadingView() {
+    return const SingleChildScrollView(
+      physics: AlwaysScrollableScrollPhysics(),
+      child: SizedBox(
+        height: 400,
+        child: Center(child: CircularProgressIndicator()),
+      ),
     );
   }
 

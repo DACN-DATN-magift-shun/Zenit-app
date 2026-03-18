@@ -19,6 +19,9 @@
   "supportCenter": "Support center",
   "privacyPolicyAndTerms": "Privacy policy and terms",
   "logout": "Logout",
+  "logoutConfirmTitle": "Confirm logout",
+  "logoutConfirmMessage": "Are you sure you want to log out?",
+  "logoutSuccess": "Logged out successfully",
   "notificationsTitle": "Notifications",
   "comingSoon": "Coming soon",
 

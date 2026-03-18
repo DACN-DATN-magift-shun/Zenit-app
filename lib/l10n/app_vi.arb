@@ -19,6 +19,9 @@
   "supportCenter": "Trung tâm hỗ trợ",
   "privacyPolicyAndTerms": "Điều khoản và chính sách",
   "logout": "Đăng xuất",
+  "logoutConfirmTitle": "Xác nhận đăng xuất",
+  "logoutConfirmMessage": "Bạn có chắc muốn đăng xuất không?",
+  "logoutSuccess": "Đăng xuất thành công",
   "notificationsTitle": "Thông báo",
   "comingSoon": "Sắp ra mắt",
 

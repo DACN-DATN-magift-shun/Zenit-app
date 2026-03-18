@@ -8,6 +8,7 @@ import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/main_layout.dart';
 import 'package:zenit/core/services/auth_service.dart';
 import 'package:zenit/core/services/navigation_service.dart';
+import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/features/main/widgets/setting/setting_items.dart';
 
 class SettingsContent extends StatefulWidget {
@@ -55,6 +56,47 @@ class _SettingsContentState extends State<SettingsContent> {
         _isAuthenticated = false;
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _handleLogout() async {
+    final l10n = context.l10n;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.logoutConfirmTitle),
+        content: Text(l10n.logoutConfirmMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(
+              l10n.logout,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !mounted) return;
+
+    try {
+      await _authService.logout();
+
+      if (!mounted) return;
+
+      NavigationService.instance.pushAndRemoveUntil(
+        '/login',
+        arguments: {'snackMessage': l10n.logoutSuccess},
+      );
+    } catch (e) {
+      if (!mounted) return;
+      AppFlash.error(context, l10n.unknownErrorWithReason(e.toString()));
     }
   }
 
@@ -222,10 +264,7 @@ class _SettingsContentState extends State<SettingsContent> {
                   SettingItem(
                     icon: Symbols.logout_rounded,
                     title: l10n.logout,
-                    onTap: () {
-                      AuthService().logout();
-                      NavigationService.instance.navigateTo('/login');
-                    },
+                    onTap: _handleLogout,
                   ),
                 ],
               ),

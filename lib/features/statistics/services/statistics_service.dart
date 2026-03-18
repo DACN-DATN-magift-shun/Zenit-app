@@ -9,6 +9,14 @@ import 'package:zenit/features/statistics/models/statistics_model.dart';
 class StatisticsService {
   final _api = ApiClient();
 
+  DateTime _startOfDay(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  DateTime _endOfDay(DateTime date) {
+    return DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
+  }
+
   /// Helper để convert response data sang Map<String, dynamic> an toàn
   Map<String, dynamic> _convertToMap(dynamic data) {
     if (data is Map<String, dynamic>) {
@@ -44,9 +52,12 @@ class StatisticsService {
   }) async {
     try {
       // Nếu không có from, lấy ngày đầu tháng hiện tại
-      final fromDate = from ?? DateTime(DateTime.now().year, DateTime.now().month, 1);
+      final rawFromDate = from ?? DateTime(DateTime.now().year, DateTime.now().month, 1);
       // Nếu không có to, lấy thời điểm hiện tại
-      final toDate = to ?? DateTime.now();
+      final rawToDate = to ?? DateTime.now();
+
+      final fromDate = _startOfDay(rawFromDate);
+      final toDate = to == null ? rawToDate : _endOfDay(rawToDate);
 
       final queryParams = <String, dynamic>{
         'From': fromDate.toUtc().toIso8601String(),
@@ -84,8 +95,11 @@ class StatisticsService {
     DateTime? to,
   }) async {
     try {
-      final fromDate = from ?? DateTime(DateTime.now().year, DateTime.now().month, 1);
-      final toDate = to ?? DateTime.now();
+      final rawFromDate = from ?? DateTime(DateTime.now().year, DateTime.now().month, 1);
+      final rawToDate = to ?? DateTime.now();
+
+      final fromDate = _startOfDay(rawFromDate);
+      final toDate = to == null ? rawToDate : _endOfDay(rawToDate);
 
       final queryParams = <String, dynamic>{
         'From': fromDate.toUtc().toIso8601String(),

@@ -1,3 +1,4 @@
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:zenit/core/l10n/l10n.dart';
@@ -38,158 +39,159 @@ class TransactionItem extends StatelessWidget {
     // final amountColor = isExpense ? colors.errorText : colors.successText;
     // final amountPrefix = isExpense ? '-' : '+';
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      onLongPressStart: (details) {
-        _showContextMenu(context, details.globalPosition);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSizes.m,
-          vertical: AppSizes.s,
-        ),
-        decoration: BoxDecoration(
-          color: colors.neutralBackground,
-          border: Border(
-            bottom: BorderSide(
-              color: colors.neutralBorder,
-              width: 0.5,
+    return Slidable(
+      key: ValueKey(
+        transaction.id ??
+            '${transaction.title}-${transaction.transactionDate.millisecondsSinceEpoch}',
+      ),
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        extentRatio: 0.5,
+        children: [
+          CustomSlidableAction(
+            onPressed: (actionContext) {
+              Slidable.of(actionContext)?.close();
+              onDelete?.call();
+            },
+            backgroundColor: colors.neutralBackground,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.xs,
+              vertical: AppSizes.s,
+            ),
+            child: Container(
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: colors.errorBackground,
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
+              ),
+              child: Text(
+                l10n.delete,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colors.errorIcon,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
             ),
           ),
-        ),
-        child: Row(
-          children: [
-            // Category icon
-            Material(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
-              child: Container(
-                padding: const EdgeInsets.all(AppSizes.s),
-                child: Icon(
-                  _parseIcon(category?.icon ?? ''),
-                  fill: 1.0,
-                  weight: 400,
-                  grade: 0.25,
-                  color: iconColor,
-                  size: AppSizes.textXXL,
-                ),
+          CustomSlidableAction(
+            onPressed: (actionContext) => Slidable.of(actionContext)?.close(),
+            backgroundColor: colors.neutralBackground,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.xs,
+              vertical: AppSizes.s,
+            ),
+            child: Container(
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: colors.neutralSurface,
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
+              ),
+              child: Text(
+                l10n.cancel,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colors.neutralTextSecondary,
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
             ),
-            const SizedBox(width: AppSizes.m),
-
-            // Transaction info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    transaction.title,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: colors.neutralTextPrimary,
-                        ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Text(
-                        category?.name ?? l10n.unknown,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colors.neutralTextSecondary,
-                            ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '•',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colors.neutralTextSecondary,
-                            ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        formattedDate,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colors.neutralTextSecondary,
-                            ),
-                      ),
-                    ],
-                  ),
-                ],
+          ),
+        ],
+      ),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSizes.m,
+            vertical: AppSizes.s,
+          ),
+          decoration: BoxDecoration(
+            color: colors.neutralBackground,
+            border: Border(
+              bottom: BorderSide(
+                color: colors.neutralBorder,
+                width: 0.5,
               ),
             ),
-
-            // Amount
-            Text(
-              // '$amountPrefix$formattedAmount',
-              formattedAmount,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    // color: amountColor,
-                    color: colors.neutralTextPrimary,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showContextMenu(BuildContext context, Offset position) async {
-    final l10n = context.l10n;
-    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-    final selected = await showMenu<String>(
-      context: context,
-      position: RelativeRect.fromRect(
-        Rect.fromCenter(
-          center: position,
-          width: 1,
-          height: 1,
-        ),
-        Offset.zero & overlay.size,
-      ),
-      items: [
-        PopupMenuItem(
-          value: 'delete',
+          ),
           child: Row(
             children: [
-              const Icon(Symbols.delete, size: 20),
-              const SizedBox(width: 8),
-              Text(l10n.delete),
+              // Category icon
+              Material(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
+                child: Container(
+                  padding: const EdgeInsets.all(AppSizes.s),
+                  child: Icon(
+                    _parseIcon(category?.icon ?? ''),
+                    fill: 1.0,
+                    weight: 400,
+                    grade: 0.25,
+                    color: iconColor,
+                    size: AppSizes.textXXL,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSizes.m),
+
+              // Transaction info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      transaction.title,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: colors.neutralTextPrimary,
+                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Text(
+                          category?.name ?? l10n.unknown,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: colors.neutralTextSecondary,
+                              ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '•',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: colors.neutralTextSecondary,
+                              ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          formattedDate,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: colors.neutralTextSecondary,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Amount
+              Text(
+                // '$amountPrefix$formattedAmount',
+                formattedAmount,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      // color: amountColor,
+                      color: colors.neutralTextPrimary,
+                    ),
+              ),
             ],
           ),
         ),
-      ],
+      ),
     );
-
-    if (!context.mounted) return;
-
-    if (selected == 'delete' && onDelete != null) {
-      // Show confirmation dialog
-      final confirm = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(l10n.confirmDelete),
-          content: Text(l10n.confirmDeleteTransactionMessage(transaction.title)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(l10n.cancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
-            ),
-          ],
-        ),
-      );
-
-      if (confirm == true) {
-        onDelete!();
-      }
-    }
   }
 
   IconData _parseIcon(String iconName) {
