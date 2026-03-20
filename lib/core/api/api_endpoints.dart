@@ -22,9 +22,9 @@ class ApiEndpoints {
   static const String accounts = "${authBaseUrl}Accounts/me";
   static const String register = "${authBaseUrl}Accounts/register";
   static const String login = "${authBaseUrl}Accounts/login";
-  static const String sendOtp = "${authBaseUrl}Account/send-otp";
-  static const String verifyOtp = "${authBaseUrl}Account/verify-otp";
-  static const String resetPassword = "${authBaseUrl}Account/reset-password";
+  static const String sendOtp = "${authBaseUrl}Accounts/send-otp";
+  static const String verifyOtp = "${authBaseUrl}Accounts/verify-otp";
+  static const String resetPassword = "${authBaseUrl}Accounts/reset-password";
 
   // Category Endpoints (using categoryBaseUrl)
   static const String categories = "${categoryBaseUrl}Categories";

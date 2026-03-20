@@ -50,7 +50,7 @@ class StatisticsCategoryModel {
     final json = _safeMap(rawJson);
     return StatisticsCategoryModel(
       id: json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
+      name: json['name']?.toString() ?? json['categoryName']?.toString() ?? '',
       icon: json['icon']?.toString() ?? '',
       color: json['color']?.toString() ?? '#FFFFFF',
       backgroundColor: json['backgroundColor']?.toString() ?? '#000000',
@@ -77,7 +77,7 @@ class StatisticsGroupModel {
   final int totalAmount;
   final double percentage;
   final double percentageChange;
-  final int groupType; // 0: Chi tiêu, 1: Thu nhập
+  final int groupType; // 0: Necessary, 1: Savings, 2: SelfDevelopment, 3: Entertainment, 4: Giving
   final List<StatisticsCategoryModel> categories;
 
   StatisticsGroupModel({
@@ -119,15 +119,15 @@ class StatisticsGroupModel {
   String get groupName {
     switch (groupType) {
       case 0:
-        return 'Expense';
+        return 'Necessary';
       case 1:
-        return 'Income';
+        return 'Savings';
       case 2:
-        return 'SelfDevelopment';
+        return 'Self Development';
       case 3:
         return 'Entertainment';
       case 4:
-        return 'Other';
+        return 'Giving';
       default:
         return 'Group $groupType';
     }
@@ -199,8 +199,8 @@ class StatisticsResponseModel {
     };
   }
 
-  /// Lấy group Chi tiêu (groupType = 0)
-  StatisticsGroupModel? get expenseGroup {
+  /// Lấy group Necessary (groupType = 0)
+  StatisticsGroupModel? get necessaryGroup {
     try {
       return items.firstWhere((item) => item.groupType == 0);
     } catch (e) {
@@ -208,14 +208,47 @@ class StatisticsResponseModel {
     }
   }
 
-  /// Lấy group Thu nhập (groupType = 1)
-  StatisticsGroupModel? get incomeGroup {
+  /// Lấy group Savings (groupType = 1)
+  StatisticsGroupModel? get savingsGroup {
     try {
       return items.firstWhere((item) => item.groupType == 1);
     } catch (e) {
       return null;
     }
   }
+
+  /// Lấy group Self Development (groupType = 2)
+  StatisticsGroupModel? get selfDevelopmentGroup {
+    try {
+      return items.firstWhere((item) => item.groupType == 2);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Lấy group Entertainment (groupType = 3)
+  StatisticsGroupModel? get entertainmentGroup {
+    try {
+      return items.firstWhere((item) => item.groupType == 3);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Lấy group Giving (groupType = 4)
+  StatisticsGroupModel? get givingGroup {
+    try {
+      return items.firstWhere((item) => item.groupType == 4);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @Deprecated('Use necessaryGroup instead. groupType 0 is Necessary, not Expense.')
+  StatisticsGroupModel? get expenseGroup => necessaryGroup;
+
+  @Deprecated('Use savingsGroup instead. groupType 1 is Savings, not Income.')
+  StatisticsGroupModel? get incomeGroup => savingsGroup;
 
   /// Tổng số tiền của tất cả các group
   int get totalAmount {

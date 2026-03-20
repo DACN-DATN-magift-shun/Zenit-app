@@ -103,7 +103,7 @@ class TransactionItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSizes.m,
-            vertical: AppSizes.s,
+            vertical: AppSizes.m,
           ),
           decoration: BoxDecoration(
             color: colors.neutralBackground,

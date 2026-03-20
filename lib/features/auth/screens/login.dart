@@ -9,6 +9,7 @@ import 'package:zenit/core/forms/login_form.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
 
 import 'package:zenit/core/services/auth_service.dart';
+import 'package:zenit/core/utils/auth_error_message.dart';
 import 'package:zenit/features/auth/services/account_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -27,7 +28,8 @@ class _LoginScreenState extends State<LoginScreen> {
     // Hiển thị thông báo nếu có từ navigation arguments (chỉ một lần)
     if (!_hasShownMessage) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+        final args =
+            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
         final snackMessage = args?['snackMessage'] as String?;
         if (snackMessage != null && mounted) {
           AppFlash.success(context, snackMessage);
@@ -55,12 +57,12 @@ class _LoginScreenState extends State<LoginScreen> {
       print('Response data type: ${response.data.runtimeType}');
 
       final responseData = response.data;
-      
+
       // Safely extract tokens
       String? accessToken;
       String? refreshToken;
       String? errorMessage;
-      
+
       if (responseData is Map) {
         accessToken = responseData['accessToken']?.toString();
         refreshToken = responseData['refreshToken']?.toString();
@@ -81,22 +83,25 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } else {
         if (mounted) {
-          AppFlash.error(context, errorMessage ?? l10n.invalidResponseData);
+          AppFlash.error(
+            context,
+            AuthErrorMessage.resolve(
+              context: context,
+              responseData: responseData,
+              fallback: errorMessage ?? l10n.invalidResponseData,
+            ),
+          );
         }
       }
     } on DioException catch (e) {
       print('DioException: ${e.message}');
       print('Response: ${e.response?.data}');
       if (mounted) {
-        String serverMsg = l10n.loginError;
-        final responseData = e.response?.data;
-        if (responseData is Map<String, dynamic>) {
-          serverMsg = responseData['message']?.toString() ?? e.message ?? l10n.loginError;
-        } else if (responseData is String && responseData.isNotEmpty) {
-          serverMsg = responseData;
-        } else if (e.message != null && e.message!.isNotEmpty) {
-          serverMsg = e.message!;
-        }
+        final serverMsg = AuthErrorMessage.resolve(
+          context: context,
+          responseData: e.response?.data,
+          fallback: l10n.loginError,
+        );
         AppFlash.error(context, serverMsg);
       }
     } catch (e) {

@@ -10,6 +10,7 @@ dependencies:
   dio: ^5.9.0
   flash: ^3.1.1
   fl_chart: ^0.69.0
+  flutter_animate: ^4.5.0
   flutter_slidable: ^3.1.2
   flutter:
     sdk: flutter
@@ -27,6 +28,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+
+# Thêm các package cho icon và splash screen
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.0
 
 flutter:
   generate: true

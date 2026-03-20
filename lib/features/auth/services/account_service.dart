@@ -48,10 +48,7 @@ class AccountService {
   }) async {
     return await _api.patch(
       ApiEndpoints.accounts,
-      data: {
-        "phone": phone,
-        "address": address,
-      },
+      data: {"phone": phone, "address": address},
     );
   }
 
@@ -59,44 +56,27 @@ class AccountService {
     return await _api.delete(ApiEndpoints.accounts);
   }
 
-  Future<Response> sendOtp({
-    required String email,
-    String? phoneNumber,
-  }) async {
-    return await _api.post(
-      ApiEndpoints.sendOtp,
-      data: {
-        "email": email,
-        "phoneNumber": phoneNumber ?? "",
-      },
-    );
+  Future<Response> sendOtp({required String email}) async {
+    return await _api.post(ApiEndpoints.sendOtp, data: {"email": email});
   }
 
   Future<Response> verifyOtp({
     required String email,
-    required String otpCode,
+    required String otp,
   }) async {
     return await _api.post(
       ApiEndpoints.verifyOtp,
-      data: {
-        "email": email,
-        "otpCode": otpCode,
-      },
+      data: {"email": email, "otp": otp},
     );
   }
 
   Future<Response> resetPassword({
-    required String email,
+    required String resetToken,
     required String newPassword,
-    required String confirmPassword,
   }) async {
     return await _api.post(
       ApiEndpoints.resetPassword,
-      data: {
-        "email": email,
-        "newPassword": newPassword,
-        "confirmPassword": confirmPassword,
-      },
+      data: {"resetToken": resetToken, "newPassword": newPassword},
     );
   }
 }

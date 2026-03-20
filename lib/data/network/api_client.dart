@@ -111,8 +111,8 @@ class ApiClient {
   bool _isAuthEndpoint(String path) {
     return path.contains('Accounts/login') ||
         path.contains('Accounts/register') ||
-        path.contains('Account/send-otp') ||
-        path.contains('Account/verify-otp') ||
-        path.contains('Account/reset-password');
+        path.contains('Accounts/send-otp') ||
+        path.contains('Accounts/verify-otp') ||
+        path.contains('Accounts/reset-password');
   }
 }

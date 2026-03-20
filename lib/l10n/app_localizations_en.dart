@@ -350,6 +350,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'You need to log in to view transaction history';
 
   @override
+  String get recentTransactionsTitle => 'Recent transactions';
+
+  @override
   String get statisticsTitle => 'Statistics';
 
   @override

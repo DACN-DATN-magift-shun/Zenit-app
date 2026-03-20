@@ -348,6 +348,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get needLoginHistory => 'Bạn cần đăng nhập để xem lịch sử giao dịch';
 
   @override
+  String get recentTransactionsTitle => 'Giao dịch gần đây';
+
+  @override
   String get statisticsTitle => 'Thống kê';
 
   @override

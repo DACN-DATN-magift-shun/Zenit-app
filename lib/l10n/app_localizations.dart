@@ -740,6 +740,12 @@ abstract class AppLocalizations {
   /// **'You need to log in to view transaction history'**
   String get needLoginHistory;
 
+  /// No description provided for @recentTransactionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent transactions'**
+  String get recentTransactionsTitle;
+
   /// No description provided for @statisticsTitle.
   ///
   /// In en, this message translates to:

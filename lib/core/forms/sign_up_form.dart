@@ -6,14 +6,20 @@ import 'package:zenit/core/forms/form_fields/password_form_field.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/services/navigation_service.dart';
+import 'package:zenit/core/widgets/auth_language_toggle.dart';
 
 class SignUpForm extends StatefulWidget {
-  final void Function(String username, String email, String phone, String address, String password, String confirmPassword) onSubmit;
+  final void Function(
+    String username,
+    String email,
+    String phone,
+    String address,
+    String password,
+    String confirmPassword,
+  )
+  onSubmit;
 
-  const SignUpForm({
-    super.key,
-    required this.onSubmit,
-  });
+  const SignUpForm({super.key, required this.onSubmit});
 
   @override
   State<SignUpForm> createState() => _SignUpFormState();
@@ -88,7 +94,9 @@ class _SignUpFormState extends State<SignUpForm> {
       return l10n.weakPassword;
     }
     final hasNumber = RegExp(r'\d').hasMatch(value);
-    final hasSpecial = RegExp(r'[!@#\$%\^&\*\(\)\+\=\{\}\[\]:;"\\<>,\.\?\/\\|~`_ -]').hasMatch(value);
+    final hasSpecial = RegExp(
+      r'[!@#\$%\^&\*\(\)\+\=\{\}\[\]:;"\\<>,\.\?\/\\|~`_ -]',
+    ).hasMatch(value);
     if (!hasNumber || !hasSpecial) {
       return l10n.weakPassword;
     }
@@ -143,6 +151,7 @@ class _SignUpFormState extends State<SignUpForm> {
         children: [
           CustomTextFormField(
             label: l10n.username,
+            labelTrailing: const AuthLanguageToggle(),
             hintText: l10n.usernameHint,
             controller: _usernameController,
             validator: _validateUsername,
@@ -198,10 +207,12 @@ class _SignUpFormState extends State<SignUpForm> {
             child: Text(
               l10n.alreadyHaveAccountLogin,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
-                  ),
+                color: Theme.of(
+                  context,
+                ).extension<AppColorExtension>()!.primaryActive,
+              ),
               textAlign: TextAlign.center,
-          ),
+            ),
           ),
         ],
       ),

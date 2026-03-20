@@ -148,6 +148,7 @@
   "noTransactions": "No transactions yet",
   "pullToRefresh": "Pull down to refresh",
   "needLoginHistory": "You need to log in to view transaction history",
+  "recentTransactionsTitle": "Recent transactions",
 
   "statisticsTitle": "Statistics",
   "needLoginStatistics": "You need to log in to view statistics",

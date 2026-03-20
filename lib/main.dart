@@ -16,6 +16,7 @@ import 'package:zenit/features/setting_childs/terms_and_privacy/terms_and_privac
 import 'package:zenit/features/auth/screens/signup.dart';
 import 'package:zenit/features/auth/screens/reset_passwords.dart';
 import 'package:zenit/features/main/screens/notification.dart';
+import 'package:zenit/features/main/screens/opening_splash_screen.dart';
 import 'package:zenit/l10n/app_localizations.dart';
 
 void main() {
@@ -36,7 +37,7 @@ class MainApp extends StatelessWidget {
         builder: (context, localeProvider, child) {
           return MaterialApp(
             title: 'Zenit',
-            onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+            onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
             locale: localeProvider.locale,
             supportedLocales: LocaleProvider.supportedLocales,
             localizationsDelegates: const [
@@ -49,8 +50,9 @@ class MainApp extends StatelessWidget {
             darkTheme: darkTheme,
             themeMode: ThemeMode.system,
             navigatorKey: NavigationService.instance.navigatorKey,
-            initialRoute: '/login',
+            initialRoute: '/opening',
             routes: {
+              '/opening': (c) => const OpeningSplashScreen(),
               '/': (c) => const MainShell(),
               '/login': (c) => const LoginScreen(),
               '/home': (c) => const MainShell(),

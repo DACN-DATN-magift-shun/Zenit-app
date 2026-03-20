@@ -6,13 +6,12 @@ import 'package:zenit/core/forms/form_fields/password_form_field.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/services/navigation_service.dart';
+import 'package:zenit/core/widgets/auth_language_toggle.dart';
+
 class LoginForm extends StatefulWidget {
   final void Function(String email, String password) onSubmit;
 
-  const LoginForm({
-    super.key,
-    required this.onSubmit
-  });
+  const LoginForm({super.key, required this.onSubmit});
 
   @override
   State<LoginForm> createState() => _LoginFormState();
@@ -32,10 +31,7 @@ class _LoginFormState extends State<LoginForm> {
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
-      widget.onSubmit(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
+      widget.onSubmit(_emailController.text.trim(), _passwordController.text);
     }
   }
 
@@ -66,7 +62,9 @@ class _LoginFormState extends State<LoginForm> {
     }
 
     final hasNumber = RegExp(r'\d').hasMatch(value);
-    final hasSpecial = RegExp(r'[!@#\$%\^&\*\(\)\+\=\{\}\[\]:;"\\<>,\.\?\/\\|~`_ -]').hasMatch(value);
+    final hasSpecial = RegExp(
+      r'[!@#\$%\^&\*\(\)\+\=\{\}\[\]:;"\\<>,\.\?\/\\|~`_ -]',
+    ).hasMatch(value);
     if (!hasNumber || !hasSpecial) {
       return l10n.weakPassword;
     }
@@ -85,6 +83,7 @@ class _LoginFormState extends State<LoginForm> {
         children: [
           CustomTextFormField(
             label: l10n.email,
+            labelTrailing: const AuthLanguageToggle(),
             hintText: l10n.emailHint,
             controller: _emailController,
             validator: _validateEmail,
@@ -99,12 +98,15 @@ class _LoginFormState extends State<LoginForm> {
           ),
           const SizedBox(height: 12),
           InkWell(
-            onTap: () => NavigationService.instance.navigateTo('/reset-password'),
+            onTap: () =>
+                NavigationService.instance.navigateTo('/reset-password'),
             child: Text(
               l10n.forgotPassword,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
-            ),
+                color: Theme.of(
+                  context,
+                ).extension<AppColorExtension>()!.primaryActive,
+              ),
               textAlign: TextAlign.right,
             ),
           ),
@@ -122,8 +124,10 @@ class _LoginFormState extends State<LoginForm> {
             child: Text(
               l10n.noAccountSignup,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
-            ),
+                color: Theme.of(
+                  context,
+                ).extension<AppColorExtension>()!.primaryActive,
+              ),
               textAlign: TextAlign.center,
             ),
           ),
@@ -131,8 +135,10 @@ class _LoginFormState extends State<LoginForm> {
           Text(
             l10n.loginTermsText,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).extension<AppColorExtension>()!.neutralTextDisable,
-          ),
+              color: Theme.of(
+                context,
+              ).extension<AppColorExtension>()!.neutralTextDisable,
+            ),
             textAlign: TextAlign.center,
           ),
         ],

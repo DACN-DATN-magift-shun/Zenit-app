@@ -9,7 +9,6 @@ import 'package:zenit/core/widgets/button.dart';
 import 'package:zenit/features/statistics/models/statistics_model.dart';
 import 'package:zenit/features/statistics/services/statistics_service.dart';
 import 'package:zenit/features/statistics/widgets/date_range_selector.dart';
-import 'package:zenit/features/statistics/widgets/statistics_legend.dart';
 import 'package:zenit/features/statistics/widgets/statistics_pie_chart.dart';
 
 class StatisticContent extends StatefulWidget {
@@ -364,7 +363,7 @@ class _StatisticContentState extends State<StatisticContent> {
         Container(
           padding: const EdgeInsets.all(AppSizes.l),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFFF3F7FA),
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
             boxShadow: [
               BoxShadow(
@@ -378,11 +377,6 @@ class _StatisticContentState extends State<StatisticContent> {
             children: [
               // Pie Chart
               StatisticsPieChart(groups: statistics.items),
-              
-              const SizedBox(height: AppSizes.l),
-              
-              // Legend
-              StatisticsLegend(groups: statistics.items),
             ],
           ),
         ),

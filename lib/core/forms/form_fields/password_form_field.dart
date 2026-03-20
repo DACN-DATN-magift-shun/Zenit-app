@@ -4,6 +4,7 @@ import 'package:zenit/core/theme/app_theme.dart';
 class PasswordFormField extends StatefulWidget {
   final String? hintText;
   final String? label;
+  final Widget? labelTrailing;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
   final AutovalidateMode autovalidateMode;
@@ -11,6 +12,7 @@ class PasswordFormField extends StatefulWidget {
   const PasswordFormField({
     super.key,
     this.label,
+    this.labelTrailing,
     this.hintText = '••••••••',
     this.controller,
     this.validator,
@@ -30,9 +32,20 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.label != null) ...[
-          Text(
-            widget.label!,
-            style: Theme.of(context).textTheme.titleMedium,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  widget.label!,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              if (widget.labelTrailing != null) ...[
+                const SizedBox(width: 8),
+                widget.labelTrailing!,
+              ],
+            ],
           ),
           const SizedBox(height: 8),
         ],

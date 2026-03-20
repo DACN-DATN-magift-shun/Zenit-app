@@ -148,6 +148,7 @@
   "noTransactions": "Chưa có giao dịch nào",
   "pullToRefresh": "Kéo xuống để làm mới",
   "needLoginHistory": "Bạn cần đăng nhập để xem lịch sử giao dịch",
+  "recentTransactionsTitle": "Giao dịch gần đây",
 
   "statisticsTitle": "Thống kê",
   "needLoginStatistics": "Bạn cần đăng nhập để xem thống kê",

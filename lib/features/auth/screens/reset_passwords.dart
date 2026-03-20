@@ -3,7 +3,9 @@ import 'package:dio/dio.dart';
 import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/auth_layout.dart';
 import 'package:zenit/core/services/navigation_service.dart';
+import 'package:zenit/core/utils/auth_error_message.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
+import 'package:zenit/core/widgets/auth_language_toggle.dart';
 import 'package:zenit/core/widgets/button.dart';
 import 'package:zenit/core/forms/form_fields/custom_text_form_field.dart';
 import 'package:zenit/core/forms/form_fields/password_form_field.dart';
@@ -22,12 +24,59 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
   bool _isLoading = false;
   bool _otpSent = false;
   int _countdown = 24; // Countdown timer in seconds (24s as shown in UI)
-  
+
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _otpController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
+  bool _isOtpExpired(dynamic responseData) {
+    if (responseData is Map<String, dynamic>) {
+      final details = responseData['details']?.toString().toUpperCase();
+      if (details == 'OTP_EXPIRED') return true;
+
+      final message = responseData['message']?.toString().toUpperCase();
+      if (message != null && message.contains('OTP_EXPIRED')) return true;
+    }
+    return false;
+  }
+
+  String? _extractResetToken(dynamic responseData) {
+    if (responseData is! Map<String, dynamic>) return null;
+
+    final directToken = responseData['resetToken'];
+    if (directToken is String && directToken.isNotEmpty) {
+      return directToken;
+    }
+
+    final nestedData = responseData['data'];
+    if (nestedData is Map<String, dynamic>) {
+      final nestedToken = nestedData['resetToken'];
+      if (nestedToken is String && nestedToken.isNotEmpty) {
+        return nestedToken;
+      }
+    }
+
+    return null;
+  }
+
+  String _otpExpiredMessage(BuildContext context) {
+    final isVietnamese = Localizations.localeOf(context).languageCode == 'vi';
+    return isVietnamese
+        ? 'OTP đã hết hạn. Vui lòng nhập lại email để yêu cầu mã mới.'
+        : 'OTP expired. Please enter your email to request a new code.';
+  }
+
+  void _backToEmailStepAfterOtpExpired() {
+    _otpController.clear();
+    _newPasswordController.clear();
+    _confirmPasswordController.clear();
+    setState(() {
+      _otpSent = false;
+      _countdown = 24;
+    });
+  }
 
   @override
   void dispose() {
@@ -69,7 +118,9 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
       return l10n.weakPassword;
     }
     final hasNumber = RegExp(r'\d').hasMatch(value);
-    final hasSpecial = RegExp(r'[!@#\$%\^&\*\(\)\+\=\{\}\[\]:;"\\<>,\.\?\/\\|~`_ -]').hasMatch(value);
+    final hasSpecial = RegExp(
+      r'[!@#\$%\^&\*\(\)\+\=\{\}\[\]:;"\\<>,\.\?\/\\|~`_ -]',
+    ).hasMatch(value);
     if (!hasNumber || !hasSpecial) {
       return l10n.weakPassword;
     }
@@ -101,23 +152,35 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
       print('Send OTP Response: ${response.data}');
 
       final responseData = response.data;
+      final isHttpSuccess =
+          response.statusCode != null &&
+          response.statusCode! >= 200 &&
+          response.statusCode! < 300;
+      bool success = isHttpSuccess;
+      String message = l10n.otpSentInstruction;
+
       if (responseData is Map<String, dynamic>) {
-        final success = responseData['success'] ?? false;
-        final message = responseData['message']?.toString() ?? l10n.otpSentInstruction;
-        
-        if (mounted) {
-          if (success) {
-            AppFlash.success(context, message);
-          } else {
-            AppFlash.error(context, message);
-          }
-          
-          if (success) {
-            setState(() {
-              _otpSent = true;
-            });
-            _startCountdown();
-          }
+        final apiSuccess = responseData['success'];
+        if (apiSuccess is bool) {
+          success = apiSuccess;
+        }
+        final apiMessage = responseData['message']?.toString();
+        if (apiMessage != null && apiMessage.isNotEmpty) {
+          message = apiMessage;
+        }
+      } else if (responseData is String && responseData.isNotEmpty) {
+        message = responseData;
+      }
+
+      if (mounted) {
+        if (success) {
+          AppFlash.success(context, message);
+          setState(() {
+            _otpSent = true;
+          });
+          _startCountdown();
+        } else {
+          AppFlash.error(context, message);
         }
       }
     } on DioException catch (e) {
@@ -126,15 +189,11 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
       if (mounted) {
         String serverMsg = l10n.sendOtpError;
         final responseData = e.response?.data;
-        if (responseData is Map<String, dynamic>) {
-          serverMsg = responseData['message']?.toString() ??
-              e.message ??
-              l10n.sendOtpError;
-        } else if (responseData is String && responseData.isNotEmpty) {
-          serverMsg = responseData;
-        } else if (e.message != null && e.message!.isNotEmpty) {
-          serverMsg = e.message!;
-        }
+        serverMsg = AuthErrorMessage.resolve(
+          context: context,
+          responseData: responseData,
+          fallback: l10n.sendOtpError,
+        );
         AppFlash.error(context, serverMsg);
       }
     } catch (e) {
@@ -157,52 +216,66 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
       // Bước 1: Verify OTP trước
       final verifyResponse = await AccountService().verifyOtp(
         email: _emailController.text.trim(),
-        otpCode: _otpController.text.trim(),
+        otp: _otpController.text.trim(),
       );
 
       print('Verify OTP Response: ${verifyResponse.data}');
 
       final verifyData = verifyResponse.data;
-      bool otpValid = false;
-
-      if (verifyData is Map<String, dynamic>) {
-        otpValid = verifyData['success'] ?? false;
-        final message = verifyData['message']?.toString();
-        
-        if (!otpValid && mounted) {
-          AppFlash.error(context, message ?? l10n.invalidOtp);
-          if (mounted) setState(() => _isLoading = false);
-          return;
-        }
+      if (_isOtpExpired(verifyData) && mounted) {
+        _backToEmailStepAfterOtpExpired();
+        AppFlash.error(context, _otpExpiredMessage(context));
+        return;
       }
 
-      // Bước 2: Nếu OTP hợp lệ, tiến hành reset password
-      if (otpValid) {
-        final resetResponse = await AccountService().resetPassword(
-          email: _emailController.text.trim(),
-          newPassword: _newPasswordController.text,
-          confirmPassword: _confirmPasswordController.text,
+      final resetToken = _extractResetToken(verifyData);
+      if (resetToken == null) {
+        final serverMsg = AuthErrorMessage.resolve(
+          context: context,
+          responseData: verifyData,
+          fallback: l10n.invalidOtp,
         );
+        if (mounted) AppFlash.error(context, serverMsg);
+        return;
+      }
 
-        print('Reset Password Response: ${resetResponse.data}');
+      // Bước 2: Dùng resetToken từ verify để reset password
+      final resetResponse = await AccountService().resetPassword(
+        resetToken: resetToken,
+        newPassword: _newPasswordController.text,
+      );
 
-        final resetData = resetResponse.data;
-        if (resetData is Map<String, dynamic>) {
-          final success = resetData['success'] ?? false;
-          final message = resetData['message']?.toString() ?? l10n.resetPasswordSuccess;
+      print('Reset Password Response: ${resetResponse.data}');
 
-          if (mounted) {
-            if (success) {
-              NavigationService.instance.navigateTo(
-                '/login',
-                arguments: {
-                  'snackMessage': l10n.resetPasswordSuccessNavigate
-                },
-              );
-            } else {
-              AppFlash.error(context, message);
-            }
-          }
+      final resetData = resetResponse.data;
+      final isHttpSuccess =
+          resetResponse.statusCode != null &&
+          resetResponse.statusCode! >= 200 &&
+          resetResponse.statusCode! < 300;
+      bool success = isHttpSuccess;
+      String message = l10n.resetPasswordSuccessNavigate;
+
+      if (resetData is Map<String, dynamic>) {
+        final apiSuccess = resetData['success'];
+        if (apiSuccess is bool) {
+          success = apiSuccess;
+        }
+        final apiMessage = resetData['message']?.toString();
+        if (apiMessage != null && apiMessage.isNotEmpty) {
+          message = apiMessage;
+        }
+      } else if (resetData is String && resetData.isNotEmpty) {
+        message = resetData;
+      }
+
+      if (mounted) {
+        if (success) {
+          NavigationService.instance.navigateTo(
+            '/login',
+            arguments: {'snackMessage': message},
+          );
+        } else {
+          AppFlash.error(context, message);
         }
       }
     } on DioException catch (e) {
@@ -211,15 +284,18 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
       if (mounted) {
         String serverMsg = l10n.resetPasswordError;
         final responseData = e.response?.data;
-        if (responseData is Map<String, dynamic>) {
-          serverMsg = responseData['message']?.toString() ??
-              e.message ??
-              l10n.resetPasswordError;
-        } else if (responseData is String && responseData.isNotEmpty) {
-          serverMsg = responseData;
-        } else if (e.message != null && e.message!.isNotEmpty) {
-          serverMsg = e.message!;
+
+        if (_isOtpExpired(responseData)) {
+          _backToEmailStepAfterOtpExpired();
+          AppFlash.error(context, _otpExpiredMessage(context));
+          return;
         }
+
+        serverMsg = AuthErrorMessage.resolve(
+          context: context,
+          responseData: responseData,
+          fallback: l10n.resetPasswordError,
+        );
         AppFlash.error(context, serverMsg);
       }
     } catch (e) {
@@ -246,6 +322,7 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
           children: [
             CustomTextFormField(
               label: l10n.registeredEmailOrUsername,
+              labelTrailing: const AuthLanguageToggle(),
               hintText: l10n.emailHint,
               controller: _emailController,
               validator: _validateEmail,
@@ -257,10 +334,10 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
               Text(
                 l10n.otpSentInstruction,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context)
-                          .extension<AppColorExtension>()!
-                          .neutralTextDisable,
-                    ),
+                  color: Theme.of(
+                    context,
+                  ).extension<AppColorExtension>()!.neutralTextDisable,
+                ),
               ),
             ],
             const SizedBox(height: 24),
@@ -270,8 +347,10 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
                 onPressed: _isLoading ? null : _handleSendOTP,
                 icon: Symbols.arrow_circle_right_rounded,
                 gap: 20.0,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 14,
+                ),
               ),
             ],
             if (_otpSent) ...[
@@ -292,10 +371,10 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
                 Text(
                   l10n.resendAfterSeconds(_countdown),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .extension<AppColorExtension>()!
-                            .neutralTextDisable,
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).extension<AppColorExtension>()!.neutralTextDisable,
+                  ),
                 ),
               if (_countdown <= 0)
                 InkWell(
@@ -303,10 +382,10 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
                   child: Text(
                     l10n.resendNow,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context)
-                              .extension<AppColorExtension>()!
-                              .primaryActive,
-                        ),
+                      color: Theme.of(
+                        context,
+                      ).extension<AppColorExtension>()!.primaryActive,
+                    ),
                   ),
                 ),
               const SizedBox(height: 16),
@@ -327,10 +406,10 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
               Text(
                 l10n.resetPasswordHint,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context)
-                          .extension<AppColorExtension>()!
-                          .neutralTextDisable,
-                    ),
+                  color: Theme.of(
+                    context,
+                  ).extension<AppColorExtension>()!.neutralTextDisable,
+                ),
               ),
               const SizedBox(height: 24),
               AppButton(
@@ -338,18 +417,20 @@ class _ResetPasswordsScreenState extends State<ResetPasswordsScreen> {
                 onPressed: _isLoading ? null : _handleResetPassword,
                 icon: Symbols.arrow_circle_right_rounded,
                 gap: 20.0,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 14,
+                ),
               ),
             ],
             const SizedBox(height: 24),
             Text(
               l10n.continueTermsText,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context)
-                        .extension<AppColorExtension>()!
-                        .neutralTextDisable,
-                  ),
+                color: Theme.of(
+                  context,
+                ).extension<AppColorExtension>()!.neutralTextDisable,
+              ),
               textAlign: TextAlign.center,
             ),
             if (_isLoading)

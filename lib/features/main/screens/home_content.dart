@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/main_layout.dart';
@@ -8,6 +9,7 @@ import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/features/transaction/forms/add_transaction_form.dart';
+import 'package:zenit/features/transaction/models/transaction_model.dart';
 import 'package:zenit/features/transaction/services/transaction_service.dart';
 import 'package:zenit/features/main/models/action_item.dart';
 import 'package:zenit/features/main/models/home_action_item.dart';
@@ -23,10 +25,14 @@ class HomeContent extends StatefulWidget {
 class _HomeContentState extends State<HomeContent> {
   final AuthService _authService = AuthService();
   final TransactionService _transactionService = TransactionService();
+  static const int _recentTransactionsLimit = 3;
   
   String _userName = '';
   bool _isAuthenticated = false;
   bool _isLoading = true;
+  bool _isLoadingRecentTransactions = false;
+  String? _recentTransactionsError;
+  List<TransactionModel> _recentTransactions = [];
 
   List<HomeActionItem> _buildActionItems(BuildContext context) {
     final l10n = context.l10n;
@@ -83,28 +89,104 @@ class _HomeContentState extends State<HomeContent> {
     setState(() => _isLoading = true);
     
     final isAuth = await _authService.isAuthenticated();
-    
-    if (isAuth) {
-      final response = await _authService.getUserInfo();
-      
-      if (response != null && response.statusCode == 200) {
-        setState(() {
-          _isAuthenticated = true;
-          _userName = response.data['username'] ?? 'User';
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _isAuthenticated = false;
-          _isLoading = false;
-        });
+
+    if (!mounted) return;
+
+    setState(() {
+      _isAuthenticated = isAuth;
+      _isLoading = false;
+      if (!isAuth) {
+        _userName = '';
       }
-    } else {
+    });
+
+    if (!isAuth) {
       setState(() {
-        _isAuthenticated = false;
-        _isLoading = false;
+        _recentTransactions = [];
+        _recentTransactionsError = null;
+      });
+      return;
+    }
+
+    _loadRecentTransactions();
+
+    final response = await _authService.getUserInfo();
+
+    if (!mounted) return;
+    
+    if (response != null && response.statusCode == 200) {
+      final rawData = response.data;
+      final data = rawData is Map<String, dynamic>
+          ? rawData
+          : rawData is Map
+              ? Map<String, dynamic>.from(rawData)
+              : <String, dynamic>{};
+      final userData = data['data'] is Map
+          ? Map<String, dynamic>.from(data['data'] as Map)
+          : data;
+
+      setState(() {
+        _userName = userData['username']?.toString().trim().isNotEmpty == true
+            ? userData['username'].toString()
+            : 'User';
       });
     }
+  }
+
+  Future<void> _loadRecentTransactions({bool showLoading = true}) async {
+    if (!_isAuthenticated) {
+      setState(() {
+        _recentTransactions = [];
+        _recentTransactionsError = null;
+        _isLoadingRecentTransactions = false;
+      });
+      return;
+    }
+
+    if (showLoading) {
+      setState(() {
+        _isLoadingRecentTransactions = true;
+        _recentTransactionsError = null;
+      });
+    } else {
+      setState(() {
+        _recentTransactionsError = null;
+      });
+    }
+
+    try {
+      final response = await _transactionService.getAllTransactions(
+        pageSize: _recentTransactionsLimit,
+        useCountTotal: false,
+      );
+
+      if (!mounted) return;
+
+      final sortedItems = [...response.items]
+        ..sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
+
+      setState(() {
+        _recentTransactions = sortedItems.take(_recentTransactionsLimit).toList();
+        _isLoadingRecentTransactions = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _recentTransactionsError = e.toString();
+        _isLoadingRecentTransactions = false;
+      });
+    }
+  }
+
+  void _prependRecentTransaction(TransactionModel transaction) {
+    setState(() {
+      final merged = [
+        transaction,
+        ..._recentTransactions.where((item) => item.id != transaction.id),
+      ]..sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
+
+      _recentTransactions = merged.take(_recentTransactionsLimit).toList();
+    });
   }
 
   /// Handle action item tap using switch-case
@@ -162,7 +244,7 @@ class _HomeContentState extends State<HomeContent> {
     if (formData == null) return; // Validation failed
 
     try {
-      await _transactionService.createTransaction(
+      final createdTransaction = await _transactionService.createTransaction(
         title: formData.title,
         note: formData.note,
         amount: formData.amount,
@@ -172,8 +254,9 @@ class _HomeContentState extends State<HomeContent> {
 
       if (mounted) {
         Navigator.of(context).pop(); // Close drawer
+        _prependRecentTransaction(createdTransaction);
+        _loadRecentTransactions(showLoading: false);
         AppFlash.success(context, context.l10n.transactionAddedSuccess);
-        // TODO: Refresh transaction list nếu cần
       }
     } catch (e) {
       if (mounted) {
@@ -195,6 +278,135 @@ class _HomeContentState extends State<HomeContent> {
   void _showMoreActions() {
     // TODO: Show more actions bottom sheet or screen
     AppFlash.info(context, context.l10n.showMoreActions);
+  }
+
+  String _formatCurrency(int amount) {
+    final formatter = NumberFormat.currency(
+      locale: 'vi_VN',
+      symbol: 'đ',
+      decimalDigits: 0,
+    );
+    return formatter.format(amount);
+  }
+
+  String _formatTransactionDate(DateTime date) {
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  Widget _buildRecentTransactionsSection(BuildContext context) {
+    final l10n = context.l10n;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSizes.l),
+      decoration: BoxDecoration(
+        color: AppColors.light.neutralBackground,
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
+        border: Border.all(
+          color: AppColors.light.neutralBorder,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.recentTransactionsTitle,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: AppColors.light.neutralTextPrimary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: AppSizes.m),
+          if (!_isAuthenticated)
+            Text(
+              l10n.needLoginHistory,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.light.neutralTextSecondary,
+              ),
+            )
+          else if (_isLoadingRecentTransactions)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: AppSizes.l),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_recentTransactionsError != null && _recentTransactions.isEmpty)
+            Text(
+              l10n.cannotLoadData,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.light.errorText,
+              ),
+            )
+          else if (_recentTransactions.isEmpty)
+            Text(
+              l10n.noTransactions,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.light.neutralTextSecondary,
+              ),
+            )
+          else
+            Column(
+              children: List.generate(_recentTransactions.length, (index) {
+                final item = _recentTransactions[index];
+                final categoryName = item.category?.name ?? l10n.unknown;
+
+                return Container(
+                  margin: EdgeInsets.only(
+                    bottom: index == _recentTransactions.length - 1 ? 0 : AppSizes.m,
+                  ),
+                  padding: const EdgeInsets.all(AppSizes.m),
+                  decoration: BoxDecoration(
+                    color: AppColors.light.secondaryMain,
+                    borderRadius: BorderRadius.circular(AppSizes.borderRadiusXSmall),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppColors.light.neutralTextPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: AppSizes.xs),
+                            Text(
+                              '$categoryName • ${_formatTransactionDate(item.transactionDate)}',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.light.neutralTextSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: AppSizes.s),
+                      Text(
+                        _formatCurrency(item.amount),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.light.neutralTextPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -226,6 +438,8 @@ class _HomeContentState extends State<HomeContent> {
               items: _buildActionItems(context),
               onItemTap: _handleActionTap,
             ),
+            const SizedBox(height: AppSizes.l),
+            _buildRecentTransactionsSection(context),
             const SizedBox(height: AppSizes.xl),
           ],
         ),
