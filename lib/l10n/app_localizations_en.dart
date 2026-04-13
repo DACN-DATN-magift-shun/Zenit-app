@@ -51,6 +51,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryManagement => 'Category management';
 
   @override
+  String get moneySourceManagement => 'Money source management';
+
+  @override
   String get notifications => 'Notifications';
 
   @override
@@ -297,10 +300,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionQuickImport => 'Quick import';
 
   @override
+  String get actionLoans => 'Loans';
+
+  @override
+  String get actionTransfer => 'Transfer';
+
+  @override
+  String get actionMoneySource => 'Wallets';
+
+  @override
   String get actionGoals => 'Goals';
 
   @override
   String get actionMoreActions => 'More actions';
+
+  @override
+  String get loansTitle => 'Loans';
+
+  @override
+  String get transferTitle => 'Transfer';
 
   @override
   String get addTransaction => 'Add transaction';

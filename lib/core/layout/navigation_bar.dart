@@ -44,41 +44,46 @@ class AppNavigationBar extends StatelessWidget {
             horizontal: AppSizes.navBarPadding,
             vertical: AppSizes.navBarPadding,
           ),
-          child: GNav(
-            selectedIndex: selectedIndex,
-            onTabChange: onTabChange,
-            gap: AppSizes.m,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSizes.navBarTabPadding,
-              vertical: AppSizes.elementSpacing,
+          child: IconTheme(
+            data: const IconThemeData(
+              weight: 600, // Làm icon in đậm hơn
             ),
-            duration: const Duration(milliseconds: 400),
-            backgroundColor: Colors.transparent,
-            color: AppColors.light.primaryShade,
-            activeColor: AppColors.light.primaryShade,
-            tabBackgroundColor: AppColors.light.secondaryMain,
-            tabs: [
-              GButton(
-                icon: Symbols.home,
-                text: l10n.home,
-                iconSize: AppSizes.iconNav,
+            child: GNav(
+              selectedIndex: selectedIndex,
+              onTabChange: onTabChange,
+              gap: AppSizes.m,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.navBarTabPadding,
+                vertical: AppSizes.elementSpacing,
               ),
-              GButton(
-                icon: Symbols.timelapse,
-                text: l10n.statistics,
-                iconSize: AppSizes.iconNav,
-              ),
-              GButton(
-                icon: Symbols.menu,
-                text: l10n.history,
-                iconSize: AppSizes.iconNav,
-              ),
-              GButton(
-                icon: Symbols.settings,
-                text: l10n.settings,
-                iconSize: AppSizes.iconNav,
-              ),
-            ],
+              duration: const Duration(milliseconds: 400),
+              backgroundColor: Colors.transparent,
+              color: AppColors.light.primaryShade,
+              activeColor: AppColors.light.primaryShade,
+              tabBackgroundColor: AppColors.light.secondaryMain,
+              tabs: [
+                GButton(
+                  icon: Symbols.home_rounded,
+                  text: l10n.home,
+                  iconSize: AppSizes.iconNav,
+                ),
+                GButton(
+                  icon: Symbols.timelapse_rounded,
+                  text: l10n.statistics,
+                  iconSize: AppSizes.iconNav,
+                ),
+                GButton(
+                  icon: Symbols.menu_rounded,
+                  text: l10n.history,
+                  iconSize: AppSizes.iconNav,
+                ),
+                GButton(
+                  icon: Symbols.settings_rounded,
+                  text: l10n.settings,
+                  iconSize: AppSizes.iconNav,
+                ),
+              ],
+            ),
           ),
         ),
       ),

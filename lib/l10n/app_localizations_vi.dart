@@ -51,6 +51,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get categoryManagement => 'Quản lý danh mục';
 
   @override
+  String get moneySourceManagement => 'Quản lý nguồn tiền';
+
+  @override
   String get notifications => 'Thông báo';
 
   @override
@@ -296,10 +299,25 @@ class AppLocalizationsVi extends AppLocalizations {
   String get actionQuickImport => 'Nhập nhanh';
 
   @override
+  String get actionLoans => 'Nợ';
+
+  @override
+  String get actionTransfer => 'Chuyển tiền';
+
+  @override
+  String get actionMoneySource => 'Nguồn tiền';
+
+  @override
   String get actionGoals => 'Mục tiêu';
 
   @override
   String get actionMoreActions => 'Tác vụ khác';
+
+  @override
+  String get loansTitle => 'Khoản nợ';
+
+  @override
+  String get transferTitle => 'Chuyển tiền';
 
   @override
   String get addTransaction => 'Thêm giao dịch';

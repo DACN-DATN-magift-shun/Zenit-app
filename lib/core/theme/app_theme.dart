@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_sizes.dart';
 import 'app_typography.dart';
+
+const Color _inputFillColor = Color(0xFFD2E4FF);
+
 /// Custom ThemeExtension để lưu tất cả màu trong AppColors
 class AppColorExtension extends ThemeExtension<AppColorExtension> {
   final Color primaryMain;
@@ -155,21 +158,49 @@ class AppColorExtension extends ThemeExtension<AppColorExtension> {
       secondaryHover: Color.lerp(secondaryHover, other.secondaryHover, t)!,
       secondaryActive: Color.lerp(secondaryActive, other.secondaryActive, t)!,
       secondaryText: Color.lerp(secondaryText, other.secondaryText, t)!,
-      secondarySubtext: Color.lerp(secondarySubtext, other.secondarySubtext, t)!,
+      secondarySubtext: Color.lerp(
+        secondarySubtext,
+        other.secondarySubtext,
+        t,
+      )!,
       secondaryShade: Color.lerp(secondaryShade, other.secondaryShade, t)!,
-      neutralBackground: Color.lerp(neutralBackground, other.neutralBackground, t)!,
+      neutralBackground: Color.lerp(
+        neutralBackground,
+        other.neutralBackground,
+        t,
+      )!,
       neutralSurface: Color.lerp(neutralSurface, other.neutralSurface, t)!,
       neutralBorder: Color.lerp(neutralBorder, other.neutralBorder, t)!,
-      neutralTextDisable: Color.lerp(neutralTextDisable, other.neutralTextDisable, t)!,
-      neutralTextSecondary: Color.lerp(neutralTextSecondary, other.neutralTextSecondary, t)!,
-      neutralTextPrimary: Color.lerp(neutralTextPrimary, other.neutralTextPrimary, t)!,
-      successBackground: Color.lerp(successBackground, other.successBackground, t)!,
+      neutralTextDisable: Color.lerp(
+        neutralTextDisable,
+        other.neutralTextDisable,
+        t,
+      )!,
+      neutralTextSecondary: Color.lerp(
+        neutralTextSecondary,
+        other.neutralTextSecondary,
+        t,
+      )!,
+      neutralTextPrimary: Color.lerp(
+        neutralTextPrimary,
+        other.neutralTextPrimary,
+        t,
+      )!,
+      successBackground: Color.lerp(
+        successBackground,
+        other.successBackground,
+        t,
+      )!,
       successText: Color.lerp(successText, other.successText, t)!,
       successIcon: Color.lerp(successIcon, other.successIcon, t)!,
       errorBackground: Color.lerp(errorBackground, other.errorBackground, t)!,
       errorText: Color.lerp(errorText, other.errorText, t)!,
       errorIcon: Color.lerp(errorIcon, other.errorIcon, t)!,
-      warningBackground: Color.lerp(warningBackground, other.warningBackground, t)!,
+      warningBackground: Color.lerp(
+        warningBackground,
+        other.warningBackground,
+        t,
+      )!,
       warningText: Color.lerp(warningText, other.warningText, t)!,
       warningIcon: Color.lerp(warningIcon, other.warningIcon, t)!,
       infoBackground: Color.lerp(infoBackground, other.infoBackground, t)!,
@@ -181,9 +212,7 @@ class AppColorExtension extends ThemeExtension<AppColorExtension> {
 
 /// ================= LIGHT THEME =================
 final ThemeData lightTheme = ThemeData(
-  iconTheme: const IconThemeData(
-    color: Colors.black, 
-  ),
+  iconTheme: const IconThemeData(color: Colors.black),
   useMaterial3: true,
   brightness: Brightness.light,
   scaffoldBackgroundColor: AppColors.light.neutralBackground,
@@ -210,8 +239,11 @@ final ThemeData lightTheme = ThemeData(
   ),
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
-    fillColor: AppColors.light.neutralSurface,
-    contentPadding: const EdgeInsets.symmetric(horizontal: AppSizes.m, vertical: AppSizes.s),
+    fillColor: _inputFillColor,
+    contentPadding: const EdgeInsets.symmetric(
+      horizontal: AppSizes.m,
+      vertical: AppSizes.s,
+    ),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
       borderSide: BorderSide(color: AppColors.light.neutralBorder),
@@ -286,8 +318,11 @@ final ThemeData darkTheme = ThemeData(
   ),
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
-    fillColor: AppColors.dark.neutralSurface,
-    contentPadding: const EdgeInsets.symmetric(horizontal: AppSizes.m, vertical: AppSizes.s),
+    fillColor: _inputFillColor,
+    contentPadding: const EdgeInsets.symmetric(
+      horizontal: AppSizes.m,
+      vertical: AppSizes.s,
+    ),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
       borderSide: BorderSide(color: AppColors.dark.neutralBorder),

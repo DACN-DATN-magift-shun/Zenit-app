@@ -2,6 +2,9 @@
 enum ActionType {
   transaction,
   quickImport,
+  loans,
+  transfer,
+  moneySourceManage,
   goals,
   moreActions,
 }
@@ -14,6 +17,12 @@ extension ActionTypeExtension on ActionType {
         return 'Transaction';
       case ActionType.quickImport:
         return 'Quick import';
+      case ActionType.loans:
+        return 'Loans';
+      case ActionType.transfer:
+        return 'Transfer';
+      case ActionType.moneySourceManage:
+        return 'Money source management';
       case ActionType.goals:
         return 'Goals';
       case ActionType.moreActions:

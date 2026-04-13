@@ -24,36 +24,51 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize =>
-      Size.fromHeight(showSecondaryText && (secondaryText?.isNotEmpty ?? false) ? 110.0 : 72.0);
+  Size get preferredSize => Size.fromHeight(
+    showSecondaryText && (secondaryText?.isNotEmpty ?? false) ? 110.0 : 72.0,
+  );
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final hasSecondary = showSecondaryText && (secondaryText?.isNotEmpty ?? false);
+    final hasSecondary =
+        showSecondaryText && (secondaryText?.isNotEmpty ?? false);
 
     return SafeArea(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
         color: Theme.of(context).scaffoldBackgroundColor,
         child: Row(
-          crossAxisAlignment: hasSecondary ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+          crossAxisAlignment: hasSecondary
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.center,
           children: [
             if (showReturnIcon)
               GestureDetector(
                 onTap: onBack ?? () => NavigationService.instance.goBack(),
                 child: Padding(
-                  padding: EdgeInsets.only(right: 12.0, top: hasSecondary ? 4.0 : 0),
-                  child: Icon(Symbols.arrow_back_ios_new_rounded, size: AppSizes.iconM),
+                  padding: EdgeInsets.only(
+                    right: 12.0,
+                    top: hasSecondary ? 2.0 : 0,
+                  ),
+                  child: Icon(
+                    Symbols.arrow_back_ios_new_rounded,
+                    size: AppSizes.iconM,
+                  ),
                 ),
               ),
             Expanded(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: hasSecondary ? MainAxisAlignment.start : MainAxisAlignment.center,
+                mainAxisAlignment: hasSecondary
+                    ? MainAxisAlignment.start
+                    : MainAxisAlignment.center,
                 children: [
                   Text(
                     title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: textTheme.titleLarge,
                   ),
                   if (hasSecondary)
@@ -61,6 +76,8 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                       padding: const EdgeInsets.only(top: 6.0),
                       child: Text(
                         secondaryText!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: textTheme.titleMedium,
                       ),
                     ),
@@ -68,17 +85,16 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             IconButton(
-              onPressed: onNotificationTap ?? () {
-                NavigationService.instance.navigateTo('/notifications');
-              },
-              constraints: const BoxConstraints.tightFor(
-                width: 40,
-                height: 40,
-              ),
+              onPressed:
+                  onNotificationTap ??
+                  () {
+                    NavigationService.instance.navigateTo('/notifications');
+                  },
+              constraints: const BoxConstraints.tightFor(width: 36, height: 36),
               padding: EdgeInsets.zero,
               icon: Icon(
                 Symbols.notifications_rounded,
-                size: AppSizes.iconM,
+                size: 20,
                 color: Theme.of(context).iconTheme.color,
               ),
             ),

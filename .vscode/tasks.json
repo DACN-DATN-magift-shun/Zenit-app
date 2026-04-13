@@ -1,0 +1,22 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "format-money-source-files",
+			"type": "shell",
+			"command": "dart",
+			"args": [
+				"format",
+				"lib/features/setting_childs/money_source_manage/screen/money_source_manage.dart",
+				"lib/features/setting_childs/money_source_manage/forms/add_edit_money_source_form.dart",
+				"lib/features/setting_childs/money_source_manage/providers/money_source_provider.dart",
+				"lib/features/setting_childs/money_source_manage/services/money_source_service.dart",
+				"lib/features/setting_childs/money_source_manage/models/money_source_model.dart",
+				"lib/core/forms/form_fields/custom_text_form_field.dart",
+				"lib/main.dart"
+			],
+			"isBackground": false,
+			"group": "build"
+		}
+	]
+}

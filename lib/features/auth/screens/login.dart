@@ -76,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         if (mounted) {
-          NavigationService.instance.navigateTo(
+          NavigationService.instance.pushAndRemoveUntil(
             '/home',
             arguments: {'snackMessage': l10n.loginSuccess},
           );

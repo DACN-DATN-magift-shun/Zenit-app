@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:zenit/core/l10n/l10n.dart';
@@ -8,9 +9,12 @@ import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
 import 'package:zenit/features/setting_childs/category_manage/providers/category_provider.dart';
+import 'package:zenit/features/setting_childs/money_source_manage/models/money_source_model.dart';
+import 'package:zenit/features/setting_childs/money_source_manage/providers/money_source_provider.dart';
 import 'package:zenit/features/transaction/models/transaction_model.dart';
 import 'package:zenit/features/transaction/services/transaction_service.dart';
 import 'package:zenit/features/transaction/widgets/category_selector_drawer.dart';
+import 'package:zenit/features/photos/services/photo_service.dart';
 
 class ViewEditTranFormController {
   _ViewEditTranFormState? _state;
@@ -47,12 +51,14 @@ class ViewEditTranFormController {
 
 class ViewEditTranForm extends StatefulWidget {
   final String transactionId;
+  final TransactionModel? initialTransaction;
   final ViewEditTranFormController? controller;
   final Future<void> Function()? onTransactionUpdated;
 
   const ViewEditTranForm({
     super.key,
     required this.transactionId,
+    this.initialTransaction,
     this.controller,
     this.onTransactionUpdated,
   });
@@ -67,6 +73,8 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
+  final PhotoService _photoService = PhotoService();
 
   bool _isLoading = true;
   bool _isEditing = false;
@@ -75,6 +83,8 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
   TransactionModel? _transaction;
   DateTime? _selectedDateTime;
   CategoryModel? _selectedCategory;
+  MoneySourceModel? _selectedWallet;
+  XFile? _selectedPhoto;
 
   @override
   void initState() {
@@ -87,8 +97,12 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
       if (!categoryProvider.hasData) {
         categoryProvider.loadAllCategories();
       }
+      final moneySourceProvider = context.read<MoneySourceProvider>();
+      if (!moneySourceProvider.hasData) {
+        moneySourceProvider.loadAllMoneySources();
+      }
     });
-    _loadTransaction();
+    _initializeTransaction();
   }
 
   @override
@@ -111,7 +125,22 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
     super.dispose();
   }
 
-  Future<void> _loadTransaction() async {
+  Future<void> _initializeTransaction() async {
+    final initialTransaction = widget.initialTransaction;
+    if (initialTransaction != null) {
+      _populateForm(initialTransaction);
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _transaction = initialTransaction;
+        _isLoading = false;
+        _errorMessage = null;
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -144,6 +173,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
     _selectedCategory =
         _findCategoryById(transaction.categoryId) ??
         _mapCategoryFromTransaction(transaction);
+    _selectedWallet = _findWalletById(transaction.walletId);
   }
 
   void _setEditing(bool value) {
@@ -227,6 +257,17 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
       return;
     }
 
+    final wallet = _selectedWallet ?? _findWalletById(transaction.walletId);
+    if (wallet == null) {
+      AppFlash.warning(
+        context,
+        _isVietnamese(context)
+            ? 'Vui lòng chọn ví cho giao dịch'
+            : 'Please select a wallet for this transaction',
+      );
+      return;
+    }
+
     final amount = _parseAmount(_amountController.text);
     if (amount == null || amount == 0) {
       AppFlash.warning(context, context.l10n.enterValidAmount);
@@ -242,10 +283,18 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
           .toLocal(),
       categoryId: category.id,
       category: _mapTransactionCategory(category),
+      walletId: wallet.id,
     );
 
     _setSaving(true);
     try {
+      if (_selectedPhoto != null) {
+        await _photoService.uploadPhoto(
+          file: _selectedPhoto!,
+          transactionId: transactionId,
+        );
+      }
+
       await _transactionService.updateTransactions([updatedTransaction]);
 
       if (!mounted) {
@@ -254,6 +303,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
 
       setState(() {
         _transaction = updatedTransaction;
+        _selectedPhoto = null;
       });
       _setEditing(false);
 
@@ -265,9 +315,37 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
         return;
       }
 
-      AppFlash.error(context, context.l10n.genericErrorWithReason(e.toString()));
+      AppFlash.error(
+        context,
+        context.l10n.genericErrorWithReason(e.toString()),
+      );
     } finally {
       _setSaving(false);
+    }
+  }
+
+  Future<void> _pickPhoto() async {
+    try {
+      final picked = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+
+      if (picked == null || !mounted) {
+        return;
+      }
+
+      setState(() {
+        _selectedPhoto = picked;
+      });
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+      AppFlash.error(
+        context,
+        context.l10n.genericErrorWithReason(e.toString()),
+      );
     }
   }
 
@@ -534,7 +612,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
               ),
               const SizedBox(height: AppSizes.m),
               ElevatedButton(
-                onPressed: _loadTransaction,
+                onPressed: _initializeTransaction,
                 child: Text(l10n.retry),
               ),
             ],
@@ -565,10 +643,24 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
     final categoryBgColor =
         category?.backgroundColor ?? t.category?.backgroundColor ?? '#F5F5F5';
     final categoryIcon = category?.icon ?? t.category?.icon ?? 'category';
+
+    final moneySourceProvider = context.watch<MoneySourceProvider>();
+    final matchedWallet = moneySourceProvider.moneySources.where(
+      (w) => w.id == t.walletId,
+    );
+    final providerWallet = matchedWallet.isNotEmpty
+        ? matchedWallet.first
+        : null;
+    final wallet = _selectedWallet ?? providerWallet;
+    final walletName = wallet?.name ?? l10n.unknown;
+    final walletIcon = wallet?.iconName ?? 'account_balance_wallet_rounded';
+    final walletColor = wallet?.iconColor ?? const Color(0xFF111111);
+    final walletBgColor = wallet?.backgroundColor ?? const Color(0xFFF5F5F5);
+
     final displayDate = (_selectedDateTime ?? t.transactionDate).toLocal();
     final noteText = (t.note != null && t.note!.isNotEmpty)
         ? t.note!
-      : l10n.noteEmpty;
+        : l10n.noteEmpty;
     final noteMaxHeight = _calculateNoteMaxHeight(context);
 
     return AbsorbPointer(
@@ -715,6 +807,101 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
 
             const SizedBox(height: AppSizes.l),
 
+            _buildFieldRow(
+              context,
+              label: _isVietnamese(context) ? 'Ví' : 'Wallet',
+              child: InkWell(
+                onTap: _isEditing ? _showWalletSelector : null,
+                borderRadius: BorderRadius.circular(
+                  AppSizes.borderRadiusXSmall,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.m,
+                    vertical: AppSizes.s,
+                  ),
+                  decoration: BoxDecoration(
+                    color: walletBgColor.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(
+                      AppSizes.borderRadiusXSmall,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        MoneySourceIconMapper.fromName(walletIcon),
+                        size: 16,
+                        color: walletColor,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        walletName,
+                        style: TextStyle(
+                          color: colors.neutralTextPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            _buildFieldRow(
+              context,
+              label: _isVietnamese(context) ? 'Ảnh' : 'Photo',
+              child: InkWell(
+                onTap: _isEditing ? _pickPhoto : null,
+                borderRadius: BorderRadius.circular(
+                  AppSizes.borderRadiusXSmall,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _selectedPhoto != null
+                          ? Symbols.image_rounded
+                          : Symbols.add_photo_alternate_rounded,
+                      color: colors.neutralTextSecondary,
+                      size: 18,
+                    ),
+                    const SizedBox(width: AppSizes.xs),
+                    Text(
+                      _selectedPhoto != null
+                          ? _selectedPhoto!.name
+                          : (_isVietnamese(context)
+                                ? 'Chọn ảnh'
+                                : 'Choose photo'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: colors.neutralTextSecondary),
+                    ),
+                    if (_isEditing && _selectedPhoto != null) ...[
+                      const SizedBox(width: AppSizes.xs),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedPhoto = null;
+                          });
+                        },
+                        child: Icon(
+                          Symbols.close_rounded,
+                          size: 16,
+                          color: colors.neutralTextDisable,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+
+            if (!_isEditing) ...[
+              const SizedBox(height: AppSizes.s),
+              _buildPhotoPreview(context, t.firstPhotoUrl),
+            ],
+
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -784,6 +971,135 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
     );
   }
 
+  Widget _buildPhotoPreview(BuildContext context, String? photoUrl) {
+    final colors = Theme.of(context).extension<AppColorExtension>()!;
+
+    if (photoUrl == null || photoUrl.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showPhotoDialog(photoUrl),
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
+          child: Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: colors.neutralSurface,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
+              border: Border.all(
+                color: colors.neutralBorder.withValues(alpha: 0.6),
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
+              child: Image.network(
+                photoUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stack) {
+                  return Icon(
+                    Symbols.image_rounded,
+                    color: colors.neutralTextDisable,
+                    size: 26,
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showPhotoDialog(String photoUrl) async {
+    final colors = Theme.of(context).extension<AppColorExtension>()!;
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(AppSizes.l),
+          backgroundColor: Colors.transparent,
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.9,
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+            ),
+            decoration: BoxDecoration(
+              color: colors.neutralBackground,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusMedium),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSizes.m,
+                    AppSizes.s,
+                    AppSizes.s,
+                    AppSizes.s,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _isVietnamese(context) ? 'Xem ảnh' : 'View photo',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Symbols.close_rounded),
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSizes.m,
+                      0,
+                      AppSizes.m,
+                      AppSizes.m,
+                    ),
+                    child: InteractiveViewer(
+                      minScale: 1,
+                      maxScale: 4,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          AppSizes.borderRadiusMedium,
+                        ),
+                        child: Image.network(
+                          photoUrl,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stack) {
+                            return SizedBox(
+                              height: 220,
+                              child: Center(
+                                child: Text(
+                                  _isVietnamese(context)
+                                      ? 'Không tải được ảnh'
+                                      : 'Unable to load photo',
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   double _calculateNoteMaxHeight(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final proposed = screenHeight * 0.30;
@@ -823,6 +1139,73 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
             child: Align(alignment: Alignment.centerRight, child: child),
           ),
         ],
+      ),
+    );
+  }
+
+  bool _isVietnamese(BuildContext context) {
+    return Localizations.localeOf(context).languageCode.toLowerCase() == 'vi';
+  }
+
+  MoneySourceModel? _findWalletById(String walletId) {
+    final wallets = context.read<MoneySourceProvider>().moneySources;
+    for (final wallet in wallets) {
+      if (wallet.id == walletId) {
+        return wallet;
+      }
+    }
+    return null;
+  }
+
+  void _showWalletSelector() {
+    final colors = Theme.of(context).extension<AppColorExtension>()!;
+
+    AppDrawer.showAsBottomSheet(
+      context: context,
+      title: _isVietnamese(context) ? 'Ví' : 'Wallet',
+      showCloseButton: false,
+      showDragHandle: true,
+      height: MediaQuery.of(context).size.height * 0.6,
+      body: Consumer<MoneySourceProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading && provider.moneySources.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (provider.moneySources.isEmpty) {
+            return Center(
+              child: Text(
+                _isVietnamese(context) ? 'Chưa có ví nào' : 'No wallet found.',
+              ),
+            );
+          }
+
+          return ListView.separated(
+            padding: const EdgeInsets.all(AppSizes.l),
+            itemCount: provider.moneySources.length,
+            separatorBuilder: (_, __) => const SizedBox(height: AppSizes.s),
+            itemBuilder: (context, index) {
+              final wallet = provider.moneySources[index];
+              return ListTile(
+                leading: Icon(wallet.iconData, color: wallet.iconColor),
+                tileColor: wallet.backgroundColor.withValues(alpha: 0.2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    AppSizes.borderRadiusSmall,
+                  ),
+                ),
+                title: Text(
+                  wallet.name,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                trailing: Text('${wallet.amount}'),
+                onTap: () {
+                  setState(() => _selectedWallet = wallet);
+                  Navigator.pop(context);
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }

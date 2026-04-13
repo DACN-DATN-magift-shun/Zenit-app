@@ -8,8 +8,7 @@ import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
-
-import 'package:zenit/core/widgets/custom_long_press_menu.dart'; 
+import 'package:zenit/core/widgets/custom_long_press_menu.dart';
 import 'package:zenit/features/setting_childs/category_manage/forms/add_edit_category_form.dart';
 import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
 import 'package:zenit/features/setting_childs/category_manage/providers/category_provider.dart';
@@ -27,6 +26,7 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // cái addpost này để tránh lỗi trong flutter, để load UI trước rồi mới chạy lệnh trong ngoặc.
       context.read<CategoryProvider>().loadAllCategories();
     });
   }
@@ -46,39 +46,71 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
       child: Consumer<CategoryProvider>(
         builder: (context, categoryProvider, child) {
           if (categoryProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator.adaptive());
           }
 
           if (categoryProvider.errorMessage != null) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    l10n.errorOccurred,
-                    style: Theme.of(context).textTheme.titleMedium,
+              child: Card(
+                elevation: 0,
+                color: Theme.of(context).colorScheme.errorContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSizes.l),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Symbols.error_rounded,
+                        size: 28,
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        l10n.errorOccurred,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onErrorContainer,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        categoryProvider.errorMessage!,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      FilledButton.tonalIcon(
+                        onPressed: () => categoryProvider.loadAllCategories(),
+                        icon: const Icon(Symbols.refresh_rounded),
+                        label: Text(l10n.retry),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    categoryProvider.errorMessage!,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => categoryProvider.loadAllCategories(),
-                    child: Text(l10n.retry),
-                  ),
-                ],
+                ),
               ),
             );
           }
 
           if (!categoryProvider.hasData) {
             return Center(
-              child: Text(
-                l10n.noData,
-                style: Theme.of(context).textTheme.titleMedium,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Symbols.category_rounded,
+                    size: 32,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.noData,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
               ),
             );
           }
@@ -89,8 +121,14 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
               padding: const EdgeInsets.symmetric(horizontal: AppSizes.s),
               itemCount: categoryProvider.categoryGroups.length,
               itemBuilder: (context, index) {
-                final groupType = categoryProvider.categoryGroups.keys.elementAt(index);
+                final groupType = categoryProvider.categoryGroups.keys
+                    .elementAt(index);
                 final group = categoryProvider.categoryGroups[groupType]!;
+                final localizedGroupName = _getLocalizedGroupName(
+                  context,
+                  groupType,
+                  group.name,
+                );
 
                 if (group.categories.isEmpty) {
                   return const SizedBox.shrink();
@@ -99,13 +137,15 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: GroupCategory(
-                    title: group.name,
+                    title: localizedGroupName,
                     titleChipColor: _getGroupChipColor(groupType),
                     chipIcon: _getGroupChipIcon(groupType),
-                    onAdd: () => _showAddCategoryDrawer(context, groupType, group.name),
+                    onAdd: () => _showAddCategoryDrawer(
+                      context,
+                      groupType,
+                      localizedGroupName,
+                    ),
                     items: group.categories.map((category) {
-                      
- 
                       return CustomLongPressMenu<String>(
                         items: [
                           PopupMenuItem(
@@ -114,13 +154,18 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                               children: [
                                 Icon(
                                   Symbols.edit,
-                                  color: Theme.of(context).extension<AppColorExtension>()!.neutralTextPrimary,
+                                  color: Theme.of(context)
+                                      .extension<AppColorExtension>()!
+                                      .neutralTextPrimary,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   l10n.edit,
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: Theme.of(context).extension<AppColorExtension>()!.neutralTextPrimary,
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .extension<AppColorExtension>()!
+                                            .neutralTextPrimary,
                                       ),
                                 ),
                               ],
@@ -132,13 +177,18 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                               children: [
                                 Icon(
                                   Symbols.delete,
-                                  color: Theme.of(context).extension<AppColorExtension>()!.errorIcon,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<AppColorExtension>()!.errorIcon,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   l10n.delete,
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: Theme.of(context).extension<AppColorExtension>()!.errorText,
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .extension<AppColorExtension>()!
+                                            .errorText,
                                       ),
                                 ),
                               ],
@@ -151,18 +201,24 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                           if (value == 'delete') {
                             _handleDeleteCategory(category, groupType);
                           } else if (value == 'edit') {
-                            _showEditCategoryDrawer(context, groupType, group.name, category);
+                            _showEditCategoryDrawer(
+                              context,
+                              groupType,
+                              localizedGroupName,
+                              category,
+                            );
                           }
                         },
                         child: SingleCategory(
                           icon: _parseIcon(category.icon),
                           name: category.name,
                           iconColor: _parseColor(category.color),
-                          backgroundColor: _parseColor(category.backgroundColor),
+                          backgroundColor: _parseColor(
+                            category.backgroundColor,
+                          ),
                         ),
                       );
                       // --------------------------------
-
                     }).toList(),
                   ),
                 );
@@ -188,7 +244,10 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(context.l10n.delete, style: const TextStyle(color: Colors.red)),
+            child: Text(
+              context.l10n.delete,
+              style: const TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -197,42 +256,84 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
     if (confirm == true) {
       if (!mounted) return;
       final categoryProvider = context.read<CategoryProvider>();
-      
-      final success = await categoryProvider.deleteCategory(category.id, groupType);
-      
+
+      final success = await categoryProvider.deleteCategory(
+        category.id,
+        groupType,
+      );
+
       if (!mounted) return;
-      
+
       if (success) {
         AppFlash.success(context, context.l10n.deleteCategorySuccess);
       } else {
-        AppFlash.error(context, categoryProvider.errorMessage ?? context.l10n.deleteFailed);
+        AppFlash.error(
+          context,
+          categoryProvider.errorMessage ?? context.l10n.deleteFailed,
+        );
       }
     }
   }
 
   // --- CÁC HÀM HELPER KHÁC ---
 
+  String _getLocalizedGroupName(
+    BuildContext context,
+    int groupType,
+    String fallbackName,
+  ) {
+    final l10n = context.l10n;
+    switch (groupType) {
+      case 0:
+        return l10n.groupNecessary;
+      case 1:
+        return l10n.groupSavings;
+      case 2:
+        return l10n.groupSelfDevelopment;
+      case 3:
+        return l10n.groupEntertainment;
+      case 4:
+        return l10n.groupGiving;
+      default:
+        return fallbackName;
+    }
+  }
+
   Color _getGroupChipColor(int groupType) {
     switch (groupType) {
-      case 0: return Theme.of(context).extension<AppColorExtension>()!.successIcon; 
-      case 1: return Theme.of(context).extension<AppColorExtension>()!.primarySubtext; 
-      case 2: return Theme.of(context).extension<AppColorExtension>()!.infoIcon; 
-      case 3: return Theme.of(context).extension<AppColorExtension>()!.infoIcon; 
-      case 4: return Theme.of(context).extension<AppColorExtension>()!.secondaryHover; 
-      case 5: return Theme.of(context).extension<AppColorExtension>()!.primarySubtext; 
-      default: return Theme.of(context).extension<AppColorExtension>()!.primarySubtext;
+      case 0:
+        return Theme.of(context).extension<AppColorExtension>()!.successIcon;
+      case 1:
+        return Theme.of(context).extension<AppColorExtension>()!.primarySubtext;
+      case 2:
+        return Theme.of(context).extension<AppColorExtension>()!.infoIcon;
+      case 3:
+        return Theme.of(context).extension<AppColorExtension>()!.infoIcon;
+      case 4:
+        return Theme.of(context).extension<AppColorExtension>()!.secondaryHover;
+      case 5:
+        return Theme.of(context).extension<AppColorExtension>()!.primarySubtext;
+      default:
+        return Theme.of(context).extension<AppColorExtension>()!.primarySubtext;
     }
   }
 
   IconData _getGroupChipIcon(int groupType) {
     switch (groupType) {
-      case 0: return Symbols.home_filled;
-      case 1: return Symbols.shopping_bag_rounded;
-      case 2: return Symbols.attach_money_rounded;
-      case 3: return Symbols.savings;
-      case 4: return Symbols.trending_up;
-      case 5: return Symbols.category;
-      default: return Symbols.category;
+      case 0:
+        return Symbols.home_filled;
+      case 1:
+        return Symbols.shopping_bag_rounded;
+      case 2:
+        return Symbols.attach_money_rounded;
+      case 3:
+        return Symbols.savings;
+      case 4:
+        return Symbols.trending_up;
+      case 5:
+        return Symbols.category;
+      default:
+        return Symbols.category;
     }
   }
 
@@ -275,7 +376,12 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
     }
   }
 
-  void _showEditCategoryDrawer(BuildContext context, int groupType, String groupName, CategoryModel category) {
+  void _showEditCategoryDrawer(
+    BuildContext context,
+    int groupType,
+    String groupName,
+    CategoryModel category,
+  ) {
     AppDrawer.showAsBottomSheet(
       context: context,
       title: context.l10n.editCategory,
@@ -291,9 +397,9 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
         onSubmit: (data) async {
           print('=== Edit Category Submit ===');
           print('No color data sent in edit mode');
-          
+
           final categoryProvider = context.read<CategoryProvider>();
-          
+
           final success = await categoryProvider.updateCategory(
             id: category.id,
             name: data.name,
@@ -309,9 +415,16 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
           if (context.mounted) {
             Navigator.pop(context);
             if (success) {
-              AppFlash.success(context, context.l10n.categoryUpdatedSuccess(data.name));
+              AppFlash.success(
+                context,
+                context.l10n.categoryUpdatedSuccess(data.name),
+              );
             } else {
-              AppFlash.error(context, categoryProvider.errorMessage ?? context.l10n.categoryUpdateFailed);
+              AppFlash.error(
+                context,
+                categoryProvider.errorMessage ??
+                    context.l10n.categoryUpdateFailed,
+              );
             }
           }
         },
@@ -319,7 +432,11 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
     );
   }
 
-  void _showAddCategoryDrawer(BuildContext context, int groupType, String groupName) {
+  void _showAddCategoryDrawer(
+    BuildContext context,
+    int groupType,
+    String groupName,
+  ) {
     AppDrawer.showAsBottomSheet(
       context: context,
       title: context.l10n.addCategory,
@@ -331,11 +448,11 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
         isEditMode: false,
         onSubmit: (data) async {
           final categoryProvider = context.read<CategoryProvider>();
-          
+
           print('=== Add Category with Random Colors ===');
           print('Icon Color: ${data.color}');
           print('Background Color: ${data.backgroundColor}');
-          
+
           final success = await categoryProvider.addCategory(
             name: data.name,
             icon: data.icon,
@@ -349,9 +466,15 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
           if (context.mounted) {
             Navigator.pop(context);
             if (success) {
-              AppFlash.success(context, context.l10n.categoryAddedSuccess(data.name));
+              AppFlash.success(
+                context,
+                context.l10n.categoryAddedSuccess(data.name),
+              );
             } else {
-              AppFlash.error(context, categoryProvider.errorMessage ?? context.l10n.categoryAddFailed);
+              AppFlash.error(
+                context,
+                categoryProvider.errorMessage ?? context.l10n.categoryAddFailed,
+              );
             }
           }
         },

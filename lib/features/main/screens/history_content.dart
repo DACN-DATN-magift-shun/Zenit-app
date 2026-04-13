@@ -20,9 +20,16 @@ import 'package:zenit/features/transaction/services/transaction_service.dart';
 import 'package:zenit/features/main/widgets/history/transaction_item.dart';
 
 class HistoryContent extends StatefulWidget {
-  const HistoryContent({super.key, this.isActive = false});
+  const HistoryContent({
+    super.key,
+    this.isActive = false,
+    this.initialTransactionId,
+    this.initialTransaction,
+  });
 
   final bool isActive;
+  final String? initialTransactionId;
+  final Map<String, dynamic>? initialTransaction;
 
   @override
   State<HistoryContent> createState() => _HistoryContentState();
@@ -44,6 +51,7 @@ class _HistoryContentState extends State<HistoryContent> {
   int _totalPages = 1;
   final Map<int, List<TransactionModel>> _pageCache = {};
   final Map<int, String?> _beforeIdByPage = {1: null};
+  bool _didOpenInitialTransaction = false;
 
   DateTime? _fromDate;
   DateTime? _toDate;
@@ -96,6 +104,29 @@ class _HistoryContentState extends State<HistoryContent> {
     }
 
     await _goToFirstPage(forceRefresh: true);
+
+    final initialTransaction = widget.initialTransaction;
+    if (initialTransaction != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _didOpenInitialTransaction) {
+          return;
+        }
+        _didOpenInitialTransaction = true;
+        _openTransactionDetail(TransactionModel.fromJson(initialTransaction));
+      });
+      return;
+    }
+
+    final initialTransactionId = widget.initialTransactionId;
+    if (initialTransactionId != null && initialTransactionId.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _didOpenInitialTransaction) {
+          return;
+        }
+        _didOpenInitialTransaction = true;
+        _openTransactionDetailById(initialTransactionId);
+      });
+    }
   }
 
   @override
@@ -488,12 +519,6 @@ class _HistoryContentState extends State<HistoryContent> {
 
   Future<void> _openTransactionDetail(TransactionModel transaction) async {
     final transactionId = transaction.id;
-    if (transactionId == null || transactionId.isEmpty) {
-      if (mounted) {
-        AppFlash.error(context, context.l10n.transactionIdNotFound);
-      }
-      return;
-    }
 
     final formController = ViewEditTranFormController();
 
@@ -582,13 +607,47 @@ class _HistoryContentState extends State<HistoryContent> {
           ),
         ],
         body: ViewEditTranForm(
-          transactionId: transactionId,
+          transactionId: transactionId ?? widget.initialTransactionId ?? '',
+          initialTransaction: transaction,
           controller: formController,
           onTransactionUpdated: _refreshTransactions,
         ),
       );
     } finally {
       formController.dispose();
+    }
+  }
+
+  Future<void> _openTransactionDetailById(String transactionId) async {
+    try {
+      final transaction = await _transactionService.getTransactionById(
+        transactionId,
+      );
+      if (!mounted) {
+        return;
+      }
+      await _openTransactionDetail(transaction);
+    } catch (e) {
+      if (mounted) {
+        AppFlash.warning(
+          context,
+          _isVietnamese
+              ? 'Không thể tải chi tiết trực tiếp từ API, đang dùng dữ liệu danh sách.'
+              : 'Could not load detail directly from API; using list data instead.',
+        );
+
+        final matched = _transactions.where((item) => item.id == transactionId);
+
+        if (matched.isNotEmpty) {
+          await _openTransactionDetail(matched.first);
+          return;
+        }
+
+        AppFlash.error(
+          context,
+          context.l10n.genericErrorWithReason(e.toString()),
+        );
+      }
     }
   }
 
@@ -713,7 +772,7 @@ class _HistoryContentState extends State<HistoryContent> {
                   color: colors.primaryMain,
                 ),
               ),
-              const SizedBox(width: AppSizes.m),
+              const SizedBox(width: AppSizes.l),
               Expanded(
                 child: Text(
                   _textByLocale(
@@ -722,7 +781,7 @@ class _HistoryContentState extends State<HistoryContent> {
                   ),
                   style: Theme.of(
                     context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w400),
                 ),
               ),
               Container(
@@ -791,6 +850,7 @@ class _HistoryContentState extends State<HistoryContent> {
                 icon: Symbols.category_rounded,
                 isActive: _selectedCategory != null,
                 onTap: _showCategoryPicker,
+                showIcon: false,
               ),
               _buildFilterButton(
                 label: fromLabel,
@@ -824,6 +884,7 @@ class _HistoryContentState extends State<HistoryContent> {
     required IconData icon,
     required bool isActive,
     required Future<void> Function() onTap,
+    bool showIcon = true,
     bool isDanger = false,
   }) {
     final colors = Theme.of(context).extension<AppColorExtension>()!;
@@ -832,40 +893,59 @@ class _HistoryContentState extends State<HistoryContent> {
         : colors.primaryMain.withValues(alpha: 0.14);
     final activeForeground = isDanger ? colors.errorIcon : colors.primaryMain;
 
-    return InkWell(
-      onTap: () async {
+    if (!showIcon) {
+      return FilledButton(
+        onPressed: () async {
+          await onTap();
+        },
+        style: FilledButton.styleFrom(
+          backgroundColor: isActive
+              ? activeBackground
+              : colors.neutralBackground,
+          foregroundColor: isActive
+              ? activeForeground
+              : colors.neutralTextPrimary,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSizes.l,
+            vertical: AppSizes.m,
+          ),
+          shape: const StadiumBorder(),
+        ),
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: isActive ? activeForeground : colors.neutralTextPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+
+    return FilledButton.tonalIcon(
+      onPressed: () async {
         await onTap();
       },
-      borderRadius: BorderRadius.circular(999),
-      child: Container(
+      style: FilledButton.styleFrom(
+        backgroundColor: isActive ? activeBackground : colors.neutralBackground,
+        foregroundColor: isActive
+            ? activeForeground
+            : colors.neutralTextPrimary,
+        elevation: 0,
         padding: const EdgeInsets.symmetric(
           horizontal: AppSizes.l,
           vertical: AppSizes.m,
         ),
-        decoration: BoxDecoration(
-          color: isActive ? activeBackground : colors.neutralBackground,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: isActive ? activeForeground : colors.neutralBorder,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: AppSizes.iconS,
-              color: isActive ? activeForeground : colors.neutralTextPrimary,
-            ),
-            const SizedBox(width: AppSizes.s),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: isActive ? activeForeground : colors.neutralTextPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+        shape: const StadiumBorder(),
+      ),
+      icon: showIcon
+          ? Icon(icon, size: AppSizes.iconS)
+          : const SizedBox.shrink(),
+      label: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: isActive ? activeForeground : colors.neutralTextPrimary,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

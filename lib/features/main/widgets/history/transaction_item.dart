@@ -26,7 +26,8 @@ class TransactionItem extends StatelessWidget {
 
     // Parse colors from category
     final iconColor = _parseColor(category?.color) ?? colors.primaryMain;
-    final bgColor = _parseColor(category?.backgroundColor) ?? colors.neutralSurface;
+    final bgColor =
+        _parseColor(category?.backgroundColor) ?? colors.neutralSurface;
 
     // Format amount
     final formattedAmount = _formatCurrency(transaction.amount);
@@ -67,9 +68,9 @@ class TransactionItem extends StatelessWidget {
               child: Text(
                 l10n.delete,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.errorIcon,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: colors.errorIcon,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ),
@@ -89,9 +90,9 @@ class TransactionItem extends StatelessWidget {
               child: Text(
                 l10n.cancel,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.neutralTextSecondary,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: colors.neutralTextSecondary,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ),
@@ -103,34 +104,24 @@ class TransactionItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSizes.m,
-            vertical: AppSizes.m,
+            vertical: AppSizes.l,
           ),
+          constraints: const BoxConstraints(minHeight: 72),
           decoration: BoxDecoration(
             color: colors.neutralBackground,
             border: Border(
-              bottom: BorderSide(
-                color: colors.neutralBorder,
-                width: 0.5,
-              ),
+              bottom: BorderSide(color: colors.neutralBorder, width: 0.5),
             ),
           ),
           child: Row(
             children: [
               // Category icon
-              Material(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
-                child: Container(
-                  padding: const EdgeInsets.all(AppSizes.s),
-                  child: Icon(
-                    _parseIcon(category?.icon ?? ''),
-                    fill: 1.0,
-                    weight: 400,
-                    grade: 0.25,
-                    color: iconColor,
-                    size: AppSizes.textXXL,
-                  ),
-                ),
+              _buildLeadingMedia(
+                context,
+                colors: colors,
+                bgColor: bgColor,
+                iconColor: iconColor,
+                categoryIcon: _parseIcon(category?.icon ?? ''),
               ),
               const SizedBox(width: AppSizes.m),
 
@@ -142,9 +133,9 @@ class TransactionItem extends StatelessWidget {
                     Text(
                       transaction.title,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: colors.neutralTextPrimary,
-                          ),
+                        fontWeight: FontWeight.w600,
+                        color: colors.neutralTextPrimary,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -153,23 +144,20 @@ class TransactionItem extends StatelessWidget {
                       children: [
                         Text(
                           category?.name ?? l10n.unknown,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: colors.neutralTextSecondary,
-                              ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colors.neutralTextSecondary),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '•',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: colors.neutralTextSecondary,
-                              ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colors.neutralTextSecondary),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           formattedDate,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: colors.neutralTextSecondary,
-                              ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colors.neutralTextSecondary),
                         ),
                       ],
                     ),
@@ -182,13 +170,67 @@ class TransactionItem extends StatelessWidget {
                 // '$amountPrefix$formattedAmount',
                 formattedAmount,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      // color: amountColor,
-                      color: colors.neutralTextPrimary,
-                    ),
+                  fontWeight: FontWeight.w700,
+                  // color: amountColor,
+                  color: colors.neutralTextPrimary,
+                ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLeadingMedia(
+    BuildContext context, {
+    required AppColorExtension colors,
+    required Color bgColor,
+    required Color iconColor,
+    required IconData categoryIcon,
+  }) {
+    final photoUrl = transaction.firstPhotoUrl;
+
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
+        child: Container(
+          width: 56,
+          height: 56,
+          color: colors.neutralSurface,
+          child: Image.network(
+            photoUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stack) {
+              return _buildCategoryFallback(bgColor, iconColor, categoryIcon);
+            },
+          ),
+        ),
+      );
+    }
+
+    return _buildCategoryFallback(bgColor, iconColor, categoryIcon);
+  }
+
+  Widget _buildCategoryFallback(
+    Color bgColor,
+    Color iconColor,
+    IconData categoryIcon,
+  ) {
+    return Material(
+      color: bgColor,
+      borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
+      child: Container(
+        width: 56,
+        height: 56,
+        padding: const EdgeInsets.all(AppSizes.m),
+        child: Icon(
+          categoryIcon,
+          fill: 1.0,
+          weight: 400,
+          grade: 0.25,
+          color: iconColor,
+          size: AppSizes.iconL,
         ),
       ),
     );

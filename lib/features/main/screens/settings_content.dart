@@ -10,6 +10,7 @@ import 'package:zenit/core/services/auth_service.dart';
 import 'package:zenit/core/services/navigation_service.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/features/main/widgets/setting/setting_items.dart';
+import 'package:zenit/features/photos/services/photo_service.dart';
 
 class SettingsContent extends StatefulWidget {
   const SettingsContent({super.key});
@@ -20,10 +21,12 @@ class SettingsContent extends StatefulWidget {
 
 class _SettingsContentState extends State<SettingsContent> {
   final AuthService _authService = AuthService();
+  final PhotoService _photoService = PhotoService();
 
   bool _isAuthenticated = false;
   bool _isLoading = true;
   Response? _userInfoResponse;
+  String? _resolvedAvatarUrl;
 
   @override
   void initState() {
@@ -40,9 +43,11 @@ class _SettingsContentState extends State<SettingsContent> {
       final response = await _authService.getUserInfo();
 
       if (response != null && response.statusCode == 200) {
+        final resolvedAvatarUrl = await _resolveAvatarUrl(response.data);
         setState(() {
           _isAuthenticated = true;
           _userInfoResponse = response;
+          _resolvedAvatarUrl = resolvedAvatarUrl;
           _isLoading = false;
         });
       } else {
@@ -53,9 +58,37 @@ class _SettingsContentState extends State<SettingsContent> {
       }
     } else {
       setState(() {
-        _isAuthenticated = false;
         _isLoading = false;
       });
+      // Bắt buộc đăng nhập
+      NavigationService.instance.pushAndRemoveUntil('/login');
+    }
+  }
+
+  Future<String?> _resolveAvatarUrl(dynamic rawData) async {
+    final data = (rawData is Map && rawData['data'] is Map)
+        ? Map<String, dynamic>.from(rawData['data'])
+        : (rawData is Map)
+        ? Map<String, dynamic>.from(rawData)
+        : <String, dynamic>{};
+
+    final directUrl =
+        (data['avatar'] ?? data['avatarUrl'] ?? data['photoUrl'] ?? data['url'])
+            as String?;
+    if (directUrl != null && directUrl.isNotEmpty) {
+      return directUrl;
+    }
+
+    final photoId = (data['photoId'] ?? data['photoID']) as String?;
+    if (photoId == null || photoId.isEmpty) {
+      return null;
+    }
+
+    try {
+      final photo = await _photoService.getPhotoById(photoId);
+      return photo.url;
+    } catch (_) {
+      return null;
     }
   }
 
@@ -74,10 +107,7 @@ class _SettingsContentState extends State<SettingsContent> {
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              l10n.logout,
-              style: const TextStyle(color: Colors.red),
-            ),
+            child: Text(l10n.logout, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -176,7 +206,9 @@ class _SettingsContentState extends State<SettingsContent> {
                               const SizedBox(height: 4),
                               Text(
                                 l10n.usernameLabel(
-                                  (_userInfoResponse!.data['username'] as String?) ?? 'N/A',
+                                  (_userInfoResponse!.data['username']
+                                          as String?) ??
+                                      'N/A',
                                 ),
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
@@ -204,9 +236,9 @@ class _SettingsContentState extends State<SettingsContent> {
                             ),
                             onPressed: () {
                               // Navigate to account details within settings
-                              NavigationService.instance.navigateTo(
-                                '/settings/account_details',
-                              );
+                              NavigationService.instance
+                                  .navigateTo('/settings/account_details')
+                                  ?.then((_) => _loadUserInfo());
                             },
                           ),
                         ),
@@ -234,6 +266,15 @@ class _SettingsContentState extends State<SettingsContent> {
                     },
                   ),
                   SettingItem(
+                    icon: Symbols.account_balance_wallet_rounded,
+                    title: l10n.moneySourceManagement,
+                    onTap: () {
+                      NavigationService.instance.navigateTo(
+                        '/settings/money_source_manage',
+                      );
+                    },
+                  ),
+                  SettingItem(
                     icon: Symbols.notifications_rounded,
                     title: l10n.notifications,
                     onTap: () {
@@ -242,7 +283,10 @@ class _SettingsContentState extends State<SettingsContent> {
                       );
                     },
                   ),
-                  SettingItem(icon: Symbols.shield_toggle, title: l10n.security),
+                  SettingItem(
+                    icon: Symbols.shield_toggle,
+                    title: l10n.security,
+                  ),
                   SettingItem(
                     icon: Symbols.support_agent_rounded,
                     title: l10n.supportCenter,
@@ -284,6 +328,20 @@ class _SettingsContentState extends State<SettingsContent> {
                     l10n.pleaseLogin,
                     style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                   ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      NavigationService.instance.pushAndRemoveUntil('/login');
+                    },
+                    icon: const Icon(Symbols.login),
+                    label: Text(l10n.loginButton),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -323,11 +381,7 @@ class _SettingsContentState extends State<SettingsContent> {
   // }
 
   Widget _buildAvatar() {
-    final data = _userInfoResponse?.data;
-    final avatarUrl =
-        (data != null && (data['avatar'] ?? data['avatarUrl']) != null)
-        ? (data['avatar'] ?? data['avatarUrl']) as String
-        : null;
+    final avatarUrl = _resolvedAvatarUrl;
 
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
       return Image.network(

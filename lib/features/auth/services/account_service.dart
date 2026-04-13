@@ -45,11 +45,14 @@ class AccountService {
   Future<Response> updateMyAccount({
     required String phone,
     required String address,
+    String? photoId,
   }) async {
-    return await _api.patch(
-      ApiEndpoints.accounts,
-      data: {"phone": phone, "address": address},
-    );
+    final data = <String, dynamic>{"phone": phone, "address": address};
+    if (photoId != null && photoId.isNotEmpty) {
+      data['photoId'] = photoId;
+    }
+
+    return await _api.patch(ApiEndpoints.accounts, data: data);
   }
 
   Future<Response> deleteAccount(String id) async {

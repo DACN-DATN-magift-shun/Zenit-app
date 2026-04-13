@@ -1,3 +1,5 @@
+import 'package:zenit/features/photos/models/photo_model.dart';
+
 /// Helper để convert Map an toàn
 Map<String, dynamic> _safeMap(dynamic data) {
   if (data is Map<String, dynamic>) {
@@ -6,6 +8,61 @@ Map<String, dynamic> _safeMap(dynamic data) {
     return Map<String, dynamic>.from(data);
   }
   return {};
+}
+
+Map<String, dynamic> _unwrapTransactionPayload(dynamic rawJson) {
+  final json = _safeMap(rawJson);
+  final nestedData = _safeMap(json['data']);
+  if (nestedData.isNotEmpty) {
+    return nestedData;
+  }
+
+  final nestedResult = _safeMap(json['result']);
+  if (nestedResult.isNotEmpty) {
+    return nestedResult;
+  }
+
+  final nestedTransaction = _safeMap(json['transaction']);
+  if (nestedTransaction.isNotEmpty) {
+    return nestedTransaction;
+  }
+
+  final nestedItem = _safeMap(json['item']);
+  if (nestedItem.isNotEmpty) {
+    return nestedItem;
+  }
+
+  final nestedRecord = _safeMap(json['record']);
+  if (nestedRecord.isNotEmpty) {
+    return nestedRecord;
+  }
+
+  final nestedEntity = _safeMap(json['entity']);
+  if (nestedEntity.isNotEmpty) {
+    return nestedEntity;
+  }
+
+  return json;
+}
+
+String? _findStringByKeys(Map<String, dynamic> json, List<String> keys) {
+  for (final key in keys) {
+    final value = json[key];
+    if (value != null && value.toString().trim().isNotEmpty) {
+      return value.toString();
+    }
+  }
+
+  for (final value in json.values) {
+    if (value is Map) {
+      final nested = _findStringByKeys(Map<String, dynamic>.from(value), keys);
+      if (nested != null && nested.isNotEmpty) {
+        return nested;
+      }
+    }
+  }
+
+  return null;
 }
 
 /// Model cho thông tin Category trong Transaction
@@ -47,6 +104,7 @@ class TransactionModel {
   final int amount;
   final DateTime transactionDate;
   final String categoryId;
+  final String walletId;
   final TransactionCategoryModel? category;
   final String? accountId;
   final String? createdById;
@@ -56,6 +114,7 @@ class TransactionModel {
   final DateTime? deletedAt;
   final String? modifiedById;
   final DateTime? lastModifiedAt;
+  final List<PhotoModel> photos;
 
   TransactionModel({
     this.id,
@@ -64,6 +123,7 @@ class TransactionModel {
     required this.amount,
     required this.transactionDate,
     required this.categoryId,
+    required this.walletId,
     this.category,
     this.accountId,
     this.createdById,
@@ -73,18 +133,30 @@ class TransactionModel {
     this.deletedAt,
     this.modifiedById,
     this.lastModifiedAt,
+    this.photos = const [],
   });
 
   /// Parse từ JSON response
   factory TransactionModel.fromJson(dynamic rawJson) {
-    final json = _safeMap(rawJson);
+    final json = _unwrapTransactionPayload(rawJson);
     return TransactionModel(
-      id: json['id']?.toString(),
+      id: _findStringByKeys(json, const [
+        'id',
+        'transactionId',
+        'transactionID',
+      ]),
       title: json['title']?.toString() ?? '',
       note: json['note']?.toString(),
       amount: _parseInt(json['amount']),
-      transactionDate: _parseDateTime(json['transactionDate']) ?? DateTime.now(),
+      transactionDate:
+          _parseDateTime(json['transactionDate']) ?? DateTime.now(),
       categoryId: json['categoryId']?.toString() ?? '',
+      walletId:
+          json['walletId']?.toString() ??
+          json['walletID']?.toString() ??
+          json['wallet_id']?.toString() ??
+          _safeMap(json['wallet'])['id']?.toString() ??
+          '',
       category: json['category'] != null
           ? TransactionCategoryModel.fromJson(json['category'])
           : null,
@@ -96,7 +168,29 @@ class TransactionModel {
       deletedAt: _parseDateTime(json['deletedAt']),
       modifiedById: json['modifiedById']?.toString(),
       lastModifiedAt: _parseDateTime(json['lastModifiedAt']),
+      photos: _parsePhotos(json['photos']),
     );
+  }
+
+  static List<PhotoModel> _parsePhotos(dynamic value) {
+    if (value is List) {
+      return value.map((item) => PhotoModel.fromJson(item)).toList();
+    }
+
+    if (value is Map) {
+      return [PhotoModel.fromJson(value)];
+    }
+
+    return [];
+  }
+
+  String? get firstPhotoUrl {
+    for (final photo in photos) {
+      if (photo.url != null && photo.url!.isNotEmpty) {
+        return photo.url;
+      }
+    }
+    return null;
   }
 
   static int _parseInt(dynamic value) {
@@ -128,6 +222,7 @@ class TransactionModel {
       'amount': amount,
       'transactionDate': transactionDate.toUtc().toIso8601String(),
       'categoryId': categoryId,
+      'walletId': walletId,
     };
   }
 
@@ -140,6 +235,48 @@ class TransactionModel {
       'amount': amount,
       'transactionDate': transactionDate.toUtc().toIso8601String(),
       'categoryId': categoryId,
+      'walletId': walletId,
+    };
+  }
+
+  Map<String, dynamic> toJsonForDetail() {
+    return {
+      'id': id,
+      'title': title,
+      'note': note ?? '',
+      'amount': amount,
+      'transactionDate': transactionDate.toUtc().toIso8601String(),
+      'categoryId': categoryId,
+      'walletId': walletId,
+      if (category != null)
+        'category': {
+          'id': category!.id,
+          'name': category!.name,
+          'icon': category!.icon,
+          'color': category!.color,
+          'backgroundColor': category!.backgroundColor,
+          'groupType': category!.groupType,
+        },
+      if (accountId != null) 'accountId': accountId,
+      if (createdById != null) 'createdById': createdById,
+      if (createdAt != null) 'createdAt': createdAt!.toUtc().toIso8601String(),
+      'isDeleted': isDeleted,
+      if (deletedById != null) 'deletedById': deletedById,
+      if (deletedAt != null) 'deletedAt': deletedAt!.toUtc().toIso8601String(),
+      if (modifiedById != null) 'modifiedById': modifiedById,
+      if (lastModifiedAt != null)
+        'lastModifiedAt': lastModifiedAt!.toUtc().toIso8601String(),
+      if (photos.isNotEmpty)
+        'photos': photos
+            .map(
+              (photo) => {
+                'id': photo.id,
+                'name': photo.name,
+                'filePath': photo.url,
+                'url': photo.url,
+              },
+            )
+            .toList(),
     };
   }
 
@@ -151,6 +288,7 @@ class TransactionModel {
     int? amount,
     DateTime? transactionDate,
     String? categoryId,
+    String? walletId,
     TransactionCategoryModel? category,
     String? accountId,
     String? createdById,
@@ -160,6 +298,7 @@ class TransactionModel {
     DateTime? deletedAt,
     String? modifiedById,
     DateTime? lastModifiedAt,
+    List<PhotoModel>? photos,
   }) {
     return TransactionModel(
       id: id ?? this.id,
@@ -168,6 +307,7 @@ class TransactionModel {
       amount: amount ?? this.amount,
       transactionDate: transactionDate ?? this.transactionDate,
       categoryId: categoryId ?? this.categoryId,
+      walletId: walletId ?? this.walletId,
       category: category ?? this.category,
       accountId: accountId ?? this.accountId,
       createdById: createdById ?? this.createdById,
@@ -177,12 +317,13 @@ class TransactionModel {
       deletedAt: deletedAt ?? this.deletedAt,
       modifiedById: modifiedById ?? this.modifiedById,
       lastModifiedAt: lastModifiedAt ?? this.lastModifiedAt,
+      photos: photos ?? this.photos,
     );
   }
 
   @override
   String toString() {
-    return 'TransactionModel(id: $id, title: $title, amount: $amount, transactionDate: $transactionDate, categoryId: $categoryId)';
+    return 'TransactionModel(id: $id, title: $title, amount: $amount, transactionDate: $transactionDate, categoryId: $categoryId, walletId: $walletId)';
   }
 }
 
@@ -216,13 +357,10 @@ class TransactionListResponse {
   final List<TransactionModel> items;
   final TransactionMetaModel meta;
 
-  TransactionListResponse({
-    required this.items,
-    required this.meta,
-  });
+  TransactionListResponse({required this.items, required this.meta});
 
   factory TransactionListResponse.fromJson(dynamic rawJson) {
-    final json = _safeMap(rawJson);
+    final json = _unwrapTransactionPayload(rawJson);
     final itemsList = json['items'] as List<dynamic>? ?? [];
     return TransactionListResponse(
       items: itemsList.map((item) => TransactionModel.fromJson(item)).toList(),

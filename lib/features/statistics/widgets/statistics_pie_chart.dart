@@ -250,59 +250,67 @@ class _StatisticsPieChartState extends State<StatisticsPieChart> {
       top: callout.labelRect.top,
       width: callout.labelRect.width,
       height: callout.labelRect.height,
-      child: Column(
-        crossAxisAlignment:
-            callout.isRightSide ? CrossAxisAlignment.start : CrossAxisAlignment.end,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: const Color(0xFFD7E2E9),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: callout.color.withValues(alpha: 0.22),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    _iconForGroup(callout.group.groupType),
-                    size: 11,
-                    color: callout.color,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: callout.isRightSide ? Alignment.topLeft : Alignment.topRight,
+        child: SizedBox(
+          width: callout.labelRect.width,
+          child: Column(
+            crossAxisAlignment:
+                callout.isRightSide ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFFD7E2E9),
+                    width: 1,
                   ),
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  '$percentage%',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: textColor,
-                        fontWeight: FontWeight.w700,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: callout.color.withValues(alpha: 0.22),
+                        shape: BoxShape.circle,
                       ),
+                      child: Icon(
+                        _iconForGroup(callout.group.groupType),
+                        size: 11,
+                        color: callout.color,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$percentage%',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: textColor,
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                _groupLabel(context, callout.group.groupType),
+                maxLines: 2,
+                textAlign: callout.isRightSide ? TextAlign.left : TextAlign.right,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: const Color(0xFF7A8892),
+                      fontWeight: FontWeight.w500,
+                  height: 1.15,
+                    ),
+              ),
+            ],
           ),
-          const SizedBox(height: 3),
-          Text(
-            _groupLabel(context, callout.group.groupType),
-            maxLines: 2,
-            textAlign: callout.isRightSide ? TextAlign.left : TextAlign.right,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: const Color(0xFF7A8892),
-                  fontWeight: FontWeight.w500,
-              height: 1.15,
-                ),
-          ),
-        ],
+        ),
       ),
     );
   }

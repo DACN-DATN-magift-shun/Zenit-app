@@ -182,6 +182,12 @@ abstract class AppLocalizations {
   /// **'Category management'**
   String get categoryManagement;
 
+  /// No description provided for @moneySourceManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Money source management'**
+  String get moneySourceManagement;
+
   /// No description provided for @notifications.
   ///
   /// In en, this message translates to:
@@ -644,6 +650,24 @@ abstract class AppLocalizations {
   /// **'Quick import'**
   String get actionQuickImport;
 
+  /// No description provided for @actionLoans.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans'**
+  String get actionLoans;
+
+  /// No description provided for @actionTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get actionTransfer;
+
+  /// No description provided for @actionMoneySource.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallets'**
+  String get actionMoneySource;
+
   /// No description provided for @actionGoals.
   ///
   /// In en, this message translates to:
@@ -655,6 +679,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More actions'**
   String get actionMoreActions;
+
+  /// No description provided for @loansTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Loans'**
+  String get loansTitle;
+
+  /// No description provided for @transferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get transferTitle;
 
   /// No description provided for @addTransaction.
   ///

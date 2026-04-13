@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zenit/core/services/auth_service.dart';
 
 class OpeningSplashScreen extends StatefulWidget {
   const OpeningSplashScreen({super.key});
@@ -9,17 +10,24 @@ class OpeningSplashScreen extends StatefulWidget {
 
 class _OpeningSplashScreenState extends State<OpeningSplashScreen> {
   static const _displayDuration = Duration(milliseconds: 1200);
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
-    _goToLoginAfterDelay();
+    _resolveStartRoute();
   }
 
-  Future<void> _goToLoginAfterDelay() async {
+  Future<void> _resolveStartRoute() async {
     await Future.delayed(_displayDuration);
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed('/login');
+
+    final isAuthenticated = await _authService.isAuthenticated();
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacementNamed(
+      isAuthenticated ? '/home' : '/login',
+    );
   }
 
   @override

@@ -85,6 +85,7 @@ class TransactionService {
     required int amount,
     required DateTime transactionDate,
     required String categoryId,
+    required String walletId,
   }) async {
     try {
       final requestData = {
@@ -93,6 +94,7 @@ class TransactionService {
         'amount': amount,
         'transactionDate': transactionDate.toUtc().toIso8601String(),
         'categoryId': categoryId,
+        'walletId': walletId,
       };
 
       print('=== Create Transaction Request ===');

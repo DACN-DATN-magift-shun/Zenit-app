@@ -4,7 +4,7 @@ import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 
 /// A reusable drawer widget with customizable header and body.
-/// 
+///
 /// Use [AppDrawer.show] to display the drawer as a modal bottom sheet
 /// or side sheet depending on your needs.
 class AppDrawer extends StatelessWidget {
@@ -94,7 +94,7 @@ class AppDrawer extends StatelessWidget {
       isScrollControlled: isScrollControlled,
       isDismissible: isDismissible,
       enableDrag: enableDrag,
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.transparent, // Fix nested background artifacts
       builder: (context) => AppDrawer(
         title: title,
         body: body,
@@ -107,9 +107,11 @@ class AppDrawer extends StatelessWidget {
         headerPadding: headerPadding,
         bodyPadding: bodyPadding,
         backgroundColor: backgroundColor,
-        borderRadius: borderRadius ?? const BorderRadius.vertical(
-          top: Radius.circular(AppSizes.borderRadiusXLarge),
-        ),
+        borderRadius:
+            borderRadius ??
+            const BorderRadius.vertical(
+              top: Radius.circular(AppSizes.borderRadiusXLarge),
+            ),
         showDragHandle: showDragHandle,
       ),
     );
@@ -153,21 +155,20 @@ class AppDrawer extends StatelessWidget {
             headerPadding: headerPadding,
             bodyPadding: bodyPadding,
             backgroundColor: backgroundColor,
-            borderRadius: borderRadius ?? const BorderRadius.horizontal(
-              left: Radius.circular(AppSizes.borderRadiusXLarge),
-            ),
+            borderRadius:
+                borderRadius ??
+                const BorderRadius.horizontal(
+                  left: Radius.circular(AppSizes.borderRadiusXLarge),
+                ),
           ),
         );
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1, 0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          )),
+          position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
+              .animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              ),
           child: child,
         );
       },
@@ -177,15 +178,23 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColorExtension>()!;
+    final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
     final effectiveBackgroundColor = backgroundColor ?? Colors.white;
-    final effectiveBorderRadius = borderRadius ?? BorderRadius.circular(AppSizes.borderRadiusLarge);
+    final effectiveBorderRadius =
+        borderRadius ?? BorderRadius.circular(AppSizes.borderRadiusLarge);
     final effectivePadding = padding ?? const EdgeInsets.all(AppSizes.l);
-    final effectiveHeaderPadding = headerPadding ?? const EdgeInsets.only(bottom: AppSizes.l);
+    final effectiveHeaderPadding =
+        headerPadding ?? const EdgeInsets.only(bottom: AppSizes.l);
     final effectiveBodyPadding = bodyPadding ?? EdgeInsets.zero;
 
+    final double maxContentHeight = (MediaQuery.of(context).size.height * 0.85) - keyboardInset;
+    
     Widget content = Container(
       width: width,
       height: height,
+      constraints: (height == null && width == null)
+          ? BoxConstraints(maxHeight: maxContentHeight > 0 ? maxContentHeight : 100.0)
+          : null,
       decoration: BoxDecoration(
         color: effectiveBackgroundColor,
         borderRadius: effectiveBorderRadius,
@@ -199,13 +208,13 @@ class AppDrawer extends StatelessWidget {
             children: [
               // Drag handle (for bottom sheets)
               if (showDragHandle) _buildDragHandle(context),
-              
+
               // Header
               Padding(
                 padding: effectiveHeaderPadding,
                 child: _buildHeader(context, colors),
               ),
-              
+
               // Body
               height != null
                   ? Expanded(
@@ -214,9 +223,11 @@ class AppDrawer extends StatelessWidget {
                         child: body,
                       ),
                     )
-                  : Padding(
-                      padding: effectiveBodyPadding,
-                      child: body,
+                  : Flexible(
+                      child: Padding(
+                        padding: effectiveBodyPadding,
+                        child: body,
+                      ),
                     ),
             ],
           ),
@@ -226,13 +237,15 @@ class AppDrawer extends StatelessWidget {
 
     // Wrap with Material for side sheet to handle touch events properly
     if (width != null) {
-      content = Material(
-        color: Colors.transparent,
-        child: content,
-      );
+      content = Material(color: Colors.transparent, child: content);
     }
 
-    return content;
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+      padding: EdgeInsets.only(bottom: keyboardInset),
+      child: content,
+    );
   }
 
   Widget _buildDragHandle(BuildContext context) {
@@ -242,7 +255,9 @@ class AppDrawer extends StatelessWidget {
         width: 40,
         height: 4,
         decoration: BoxDecoration(
-          color: Theme.of(context).extension<AppColorExtension>()!.neutralBorder,
+          color: Theme.of(
+            context,
+          ).extension<AppColorExtension>()!.neutralBorder,
           borderRadius: BorderRadius.circular(2),
         ),
       ),
@@ -257,15 +272,17 @@ class AppDrawer extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: titleStyle ?? TextStyle(
-              fontSize: AppSizes.textL,
-              fontWeight: FontWeight.w600,
-              color: colors.neutralTextPrimary,
-            ),
+            style:
+                titleStyle ??
+                TextStyle(
+                  fontSize: AppSizes.textL,
+                  fontWeight: FontWeight.w600,
+                  color: colors.neutralTextPrimary,
+                ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        
+
         // Actions (right side)
         Row(
           mainAxisSize: MainAxisSize.min,

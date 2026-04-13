@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:zenit/core/l10n/l10n.dart';
-import 'package:zenit/core/services/navigation_service.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
 import 'package:zenit/features/setting_childs/category_manage/providers/category_provider.dart';
+import 'package:zenit/features/setting_childs/category_manage/widgets/group_category.dart';
+import 'package:zenit/features/setting_childs/category_manage/widgets/single_category.dart';
 
 class CategorySelectorDrawer extends StatefulWidget {
   final CategoryModel? selectedCategory;
@@ -29,7 +30,6 @@ class _CategorySelectorDrawerState extends State<CategorySelectorDrawer> {
   @override
   void initState() {
     super.initState();
-    // Load categories nếu chưa có
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final categoryProvider = context.read<CategoryProvider>();
       if (!categoryProvider.hasData) {
@@ -45,235 +45,215 @@ class _CategorySelectorDrawerState extends State<CategorySelectorDrawer> {
   }
 
   List<CategoryModel> _filterCategories(List<CategoryModel> categories) {
-    if (_searchQuery.isEmpty) return categories;
-    return categories
-        .where((cat) => cat.name.toLowerCase().contains(_searchQuery.toLowerCase()))
-        .toList();
+    final query = _searchQuery.trim().toLowerCase();
+    if (query.isEmpty) {
+      return categories;
+    }
+
+    return categories.where((item) {
+      return item.name.toLowerCase().contains(query);
+    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColorExtension>()!;
     final l10n = context.l10n;
 
     return Consumer<CategoryProvider>(
       builder: (context, categoryProvider, child) {
         if (categoryProvider.isLoading) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(AppSizes.xl),
-              child: CircularProgressIndicator(),
+          return const Center(child: CircularProgressIndicator.adaptive());
+        }
+
+        if (categoryProvider.errorMessage != null) {
+          return Center(
+            child: Card(
+              elevation: 0,
+              color: Theme.of(context).colorScheme.errorContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSizes.l),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Symbols.error_rounded,
+                      size: 28,
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.errorOccurred,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      categoryProvider.errorMessage!,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.tonalIcon(
+                      onPressed: () => categoryProvider.loadAllCategories(),
+                      icon: const Icon(Symbols.refresh_rounded),
+                      label: Text(l10n.retry),
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
         }
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: AppSizes.l),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: AppSizes.l),
-              
-              Row(
-                children: [
-                  // Search 
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: colors.secondaryMain,
-                        borderRadius: BorderRadius.circular(AppSizes.borderRadiusXSmall),
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: (value) {
+        if (!categoryProvider.hasData) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Symbols.category_rounded,
+                  size: 32,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.noData,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+          );
+        }
+
+        final groups = categoryProvider.categoryGroups.entries.toList();
+
+        return ListView(
+          padding: const EdgeInsets.symmetric(horizontal: AppSizes.s),
+          children: [
+            const SizedBox(height: AppSizes.s),
+            TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: l10n.searchForTag,
+                prefixIcon: const Icon(Symbols.search_rounded),
+                suffixIcon: _searchQuery.trim().isEmpty
+                    ? null
+                    : IconButton(
+                        onPressed: () {
+                          _searchController.clear();
                           setState(() {
-                            _searchQuery = value;
+                            _searchQuery = '';
                           });
                         },
-                        decoration: InputDecoration(
-                          hintText: l10n.searchForTag,
-                          hintStyle: TextStyle(color: colors.neutralTextDisable),
-                          prefixIcon: Icon(
-                            Symbols.search_rounded,
-                            color: colors.neutralTextSecondary,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: AppSizes.l,
-                            vertical: AppSizes.m,
-                          ),
-                        ),
+                        icon: const Icon(Symbols.close_rounded),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSizes.m),
-                  
-                  // Tag Manage
-                  TextButton.icon(
-                    onPressed: () {
-                      // Navigate to tag manage screen
-                      NavigationService.instance.navigateTo('/settings/category_manage');
-                    },
-                    icon: Icon(
-                      Symbols.add_rounded,
-                      color: colors.primaryMain,
-                    ),
-                    label: Text(
-                      l10n.tagManage,
-                      style: TextStyle(
-                        color: colors.primaryMain,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
+                filled: true,
+                fillColor: const Color(0xFFEBE4F0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(28),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(28),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(28),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.l,
+                  vertical: AppSizes.m,
+                ),
               ),
-              const SizedBox(height: AppSizes.xl),
+            ),
+            const SizedBox(height: AppSizes.l),
+            ...groups.map((entry) {
+              final groupType = entry.key;
+              final group = entry.value;
+              final categories = _filterCategories(group.categories);
 
-              // Category Groups
-              ...categoryProvider.categoryGroups.entries.map((entry) {
-                final groupType = entry.key;
-                final group = entry.value;
-                final filteredCategories = _filterCategories(group.categories);
+              if (categories.isEmpty) {
+                return const SizedBox.shrink();
+              }
 
-                if (filteredCategories.isEmpty) {
-                  return const SizedBox.shrink();
-                }
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: GroupCategory(
+                  title: _getLocalizedGroupName(context, groupType, group.name),
+                  titleChipColor: _getGroupChipColor(context, groupType),
+                  chipIcon: _getGroupChipIcon(groupType),
+                  showAddButton: false,
+                  items: categories.map((category) {
+                    final isSelected =
+                        widget.selectedCategory?.id == category.id;
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: AppSizes.l),
-                  child: _buildCategoryGroup(
-                    context,
-                    title: group.name,
-                    categories: filteredCategories,
-                    chipColor: _getGroupChipColor(groupType, colors),
-                    chipIcon: _getGroupChipIcon(groupType),
-                  ),
-                );
-              }),
-              const SizedBox(height: AppSizes.xl),
-            ],
-          ),
+                    return InkWell(
+                      onTap: () => widget.onCategorySelected(category),
+                      borderRadius: BorderRadius.circular(
+                        AppSizes.borderRadiusXSmall,
+                      ),
+                      child: SingleCategory(
+                        icon: _parseIcon(category.icon),
+                        name: category.name,
+                        iconColor: _parseColor(category.color),
+                        backgroundColor: _parseColor(category.backgroundColor),
+                        isSelected: isSelected,
+                      ),
+                    );
+                  }).toList(),
+                ),
+              );
+            }),
+          ],
         );
       },
     );
   }
 
-  Widget _buildCategoryGroup(
-    BuildContext context, {
-    required String title,
-    required List<CategoryModel> categories,
-    required Color chipColor,
-    required IconData chipIcon,
-  }) {
-    final colors = Theme.of(context).extension<AppColorExtension>()!;
-
-    return Container(
-      padding: const EdgeInsets.all(AppSizes.l),
-      decoration: BoxDecoration(
-        color: colors.neutralBackground,
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMedium),
-        boxShadow: [
-          BoxShadow(
-            color: colors.neutralBorder.withOpacity(0.5),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Group Title Chip
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: chipColor,
-              borderRadius: BorderRadius.circular(AppSizes.borderRadiusXSmall),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  chipIcon,
-                  size: AppSizes.textXL,
-                  color: Colors.white,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSizes.l),
-
-          // Category Items Grid
-          Wrap(
-            spacing: AppSizes.l,
-            runSpacing: AppSizes.m,
-            children: categories.map((category) {
-              final isSelected = widget.selectedCategory?.id == category.id;
-              return _buildCategoryItem(context, category, isSelected);
-            }).toList(),
-          ),
-        ],
-      ),
-    );
+  String _getLocalizedGroupName(
+    BuildContext context,
+    int groupType,
+    String fallbackName,
+  ) {
+    final l10n = context.l10n;
+    switch (groupType) {
+      case 0:
+        return l10n.groupNecessary;
+      case 1:
+        return l10n.groupSavings;
+      case 2:
+        return l10n.groupSelfDevelopment;
+      case 3:
+        return l10n.groupEntertainment;
+      case 4:
+        return l10n.groupGiving;
+      default:
+        return fallbackName;
+    }
   }
 
-  Widget _buildCategoryItem(BuildContext context, CategoryModel category, bool isSelected) {
+  Color _getGroupChipColor(BuildContext context, int groupType) {
     final colors = Theme.of(context).extension<AppColorExtension>()!;
-    final bgColor = _parseColor(category.backgroundColor);
-    final iconColor = _parseColor(category.color);
-
-    return InkWell(
-      onTap: () => widget.onCategorySelected(category),
-      borderRadius: BorderRadius.circular(AppSizes.borderRadiusXSmall),
-      child: Container(
-        padding: const EdgeInsets.all(AppSizes.s),
-        decoration: BoxDecoration(
-          border: isSelected
-              ? Border.all(color: colors.primaryMain, width: 2)
-              : null,
-          borderRadius: BorderRadius.circular(AppSizes.borderRadiusXSmall),
-        ),
-        child: Material(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(AppSizes.borderRadiusXSmall),
-          child: Container(
-            padding: const EdgeInsets.all(AppSizes.s),
-            child: Icon(
-              _parseIcon(category.icon),
-              fill: 1.0,
-              weight: 400,
-              grade: 0.25,
-              color: iconColor,
-              size: AppSizes.textXXXL,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Color _getGroupChipColor(int groupType, AppColorExtension colors) {
     switch (groupType) {
       case 0:
         return colors.successIcon;
       case 1:
-        return colors.primaryMain;
+        return colors.primarySubtext;
       case 2:
-        return colors.warningIcon;
-      case 3:
-        return colors.errorIcon;
-      case 4:
         return colors.infoIcon;
+      case 3:
+        return colors.infoIcon;
+      case 4:
+        return colors.secondaryHover;
       default:
         return colors.neutralTextSecondary;
     }
@@ -282,17 +262,17 @@ class _CategorySelectorDrawerState extends State<CategorySelectorDrawer> {
   IconData _getGroupChipIcon(int groupType) {
     switch (groupType) {
       case 0:
-        return Symbols.receipt_long_rounded;
+        return Symbols.home_filled;
       case 1:
-        return Symbols.payments_rounded;
+        return Symbols.shopping_bag_rounded;
       case 2:
-        return Symbols.savings_rounded;
+        return Symbols.attach_money_rounded;
       case 3:
-        return Symbols.account_balance_rounded;
+        return Symbols.savings;
       case 4:
-        return Symbols.category_rounded;
+        return Symbols.trending_up;
       default:
-        return Symbols.category_rounded;
+        return Symbols.category;
     }
   }
 

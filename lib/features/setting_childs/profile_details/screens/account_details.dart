@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/base_layout.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/features/auth/services/account_service.dart';
+import 'package:zenit/features/photos/services/photo_service.dart';
 import 'package:zenit/features/setting_childs/profile_details/widgets/profile_form.dart';
 
 class AccountDetails extends StatefulWidget {
@@ -15,13 +17,25 @@ class AccountDetails extends StatefulWidget {
 
 class _AccountDetailsState extends State<AccountDetails> {
   final AccountService _accountService = AccountService();
+  final PhotoService _photoService = PhotoService();
 
-  Future<void> _handleSubmit(String phone, String address) async {
+  Future<void> _handleSubmit(
+    String phone,
+    String address,
+    XFile? avatarFile,
+  ) async {
     final l10n = context.l10n;
     try {
+      String? photoId;
+      if (avatarFile != null) {
+        final uploadResult = await _photoService.uploadPhoto(file: avatarFile);
+        photoId = uploadResult.photoId;
+      }
+
       final response = await _accountService.updateMyAccount(
         phone: phone,
         address: address,
+        photoId: photoId,
       );
 
       if (!mounted) return;
@@ -52,4 +66,4 @@ class _AccountDetailsState extends State<AccountDetails> {
       child: ProfileForm(onSubmit: _handleSubmit),
     );
   }
-} 
+}

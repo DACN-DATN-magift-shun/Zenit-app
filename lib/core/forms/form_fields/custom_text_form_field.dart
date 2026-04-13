@@ -12,6 +12,7 @@ class CustomTextFormField extends StatelessWidget {
   final Color? fillColor;
   final AutovalidateMode autovalidateMode;
   final bool enabled;
+  final int maxLines;
 
   const CustomTextFormField({
     super.key,
@@ -25,14 +26,20 @@ class CustomTextFormField extends StatelessWidget {
     this.fillColor,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
     this.enabled = true,
+    this.maxLines = 1,
   });
 
   @override
   Widget build(BuildContext context) {
     final appColors = Theme.of(context).extension<AppColorExtension>()!;
+    final theme = Theme.of(context);
     final textColor = (!enabled && !filled)
-        ? Theme.of(context).colorScheme.onSurface
-        : appColors.primaryText;
+        ? theme.colorScheme.onSurface
+        : appColors.neutralTextPrimary;
+    final effectiveFillColor =
+        fillColor ??
+        theme.inputDecorationTheme.fillColor ??
+        appColors.primaryMain;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,6 +66,7 @@ class CustomTextFormField extends StatelessWidget {
           controller: controller,
           validator: validator,
           keyboardType: keyboardType,
+          maxLines: maxLines,
           autovalidateMode: autovalidateMode,
           enabled: enabled,
           style: TextStyle(color: textColor),
@@ -66,7 +74,7 @@ class CustomTextFormField extends StatelessWidget {
             hintText: hintText,
             filled: filled,
             hintStyle: TextStyle(color: appColors.primarySubtext),
-            fillColor: fillColor ?? appColors.primaryMain,
+            fillColor: effectiveFillColor,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.0),
               borderSide: BorderSide.none,
