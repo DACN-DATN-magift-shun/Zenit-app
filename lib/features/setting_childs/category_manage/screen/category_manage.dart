@@ -6,6 +6,7 @@ import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/base_layout.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/core/widgets/app_confirm_dialog.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/core/widgets/custom_long_press_menu.dart';
@@ -49,7 +50,9 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
             return const Center(child: CircularProgressIndicator.adaptive());
           }
 
-          if (categoryProvider.errorMessage != null) {
+          // Chỉ hiển thị lỗi toàn màn hình khi load thất bại và không có dữ liệu.
+          // Lỗi từ các thao tác CRUD (update/add/delete) sẽ hiển thị bằng flash.
+          if (categoryProvider.errorMessage != null && !categoryProvider.hasData) {
             return Center(
               child: Card(
                 elevation: 0,
@@ -118,7 +121,12 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
           return RefreshIndicator(
             onRefresh: () => categoryProvider.refreshCategories(),
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: AppSizes.s),
+              padding: EdgeInsets.fromLTRB(
+                AppSizes.s,
+                0,
+                AppSizes.s,
+                AppSizes.xl + MediaQuery.of(context).padding.bottom,
+              ),
               itemCount: categoryProvider.categoryGroups.length,
               itemBuilder: (context, index) {
                 final groupType = categoryProvider.categoryGroups.keys
@@ -129,10 +137,6 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
                   groupType,
                   group.name,
                 );
-
-                if (group.categories.isEmpty) {
-                  return const SizedBox.shrink();
-                }
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
@@ -232,28 +236,15 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
 
   // --- HÀM XỬ LÝ XÓA  ---
   Future<void> _handleDeleteCategory(dynamic category, int groupType) async {
-    final confirm = await showDialog<bool>(
+    final confirm = await AppConfirmDialog.show(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.confirmAction),
-        content: Text(context.l10n.deleteCategoryConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(context.l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              context.l10n.delete,
-              style: const TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
+      title: context.l10n.confirmAction,
+      message: context.l10n.deleteCategoryConfirm,
+      confirmText: context.l10n.delete,
+      isDestructive: true,
     );
 
-    if (confirm == true) {
+    if (confirm) {
       if (!mounted) return;
       final categoryProvider = context.read<CategoryProvider>();
 
@@ -269,13 +260,45 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
       } else {
         AppFlash.error(
           context,
-          categoryProvider.errorMessage ?? context.l10n.deleteFailed,
+          _localizeCategoryErrorMessage(
+            context,
+            categoryProvider.errorMessage,
+            context.l10n.deleteFailed,
+          ),
         );
       }
     }
   }
 
   // --- CÁC HÀM HELPER KHÁC ---
+
+  String _localizeCategoryErrorMessage(
+    BuildContext context,
+    String? raw,
+    String fallback,
+  ) {
+    if (raw == null || raw.trim().isEmpty) {
+      return fallback;
+    }
+
+    final isVi = Localizations.localeOf(context).languageCode.toLowerCase() ==
+        'vi';
+    final normalized = raw.toLowerCase();
+
+    if (normalized.contains('cannot update default category name or icon')) {
+      return isVi
+          ? 'Không thể sửa tên hoặc biểu tượng của danh mục mặc định.'
+          : 'Cannot update the name or icon of a default category.';
+    }
+
+    if (normalized.contains('internal server error')) {
+      return isVi
+          ? 'Hệ thống đang gặp sự cố. Vui lòng thử lại sau.'
+          : 'The server is having issues. Please try again later.';
+    }
+
+    return raw;
+  }
 
   String _getLocalizedGroupName(
     BuildContext context,
@@ -287,13 +310,18 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
       case 0:
         return l10n.groupNecessary;
       case 1:
-        return l10n.groupSavings;
+        return 'Assets';
       case 2:
         return l10n.groupSelfDevelopment;
       case 3:
         return l10n.groupEntertainment;
       case 4:
         return l10n.groupGiving;
+      case 5:
+        return Localizations.localeOf(context).languageCode.toLowerCase() ==
+                'vi'
+            ? 'Thu nhập'
+            : 'Income';
       default:
         return fallbackName;
     }
@@ -331,7 +359,7 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
       case 4:
         return Symbols.trending_up;
       case 5:
-        return Symbols.category;
+        return Symbols.account_balance_wallet_rounded;
       default:
         return Symbols.category;
     }
@@ -413,18 +441,24 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
           );
 
           if (context.mounted) {
-            Navigator.pop(context);
             if (success) {
+              Navigator.pop(context);
               AppFlash.success(
                 context,
                 context.l10n.categoryUpdatedSuccess(data.name),
               );
             } else {
-              AppFlash.error(
+              Navigator.pop(context);
+              AppFlash.warning(
                 context,
-                categoryProvider.errorMessage ??
-                    context.l10n.categoryUpdateFailed,
+                _localizeCategoryErrorMessage(
+                  context,
+                  categoryProvider.errorMessage,
+                  context.l10n.categoryUpdateFailed,
+                ),
               );
+              // Tránh để error message tồn tại và kích hoạt UI lỗi toàn màn hình.
+              categoryProvider.clearError();
             }
           }
         },
@@ -473,7 +507,11 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
             } else {
               AppFlash.error(
                 context,
-                categoryProvider.errorMessage ?? context.l10n.categoryAddFailed,
+                _localizeCategoryErrorMessage(
+                  context,
+                  categoryProvider.errorMessage,
+                  context.l10n.categoryAddFailed,
+                ),
               );
             }
           }

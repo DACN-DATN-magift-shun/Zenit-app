@@ -88,7 +88,7 @@ class DarkPalette {
 
   final Color errorBackground = const Color(0xFF2A0A0A);
   final Color errorText = const Color(0xFFFFB4B4);
-  final Color errorIcon = const Color(0xFFFF4D4F);
+  final Color errorIcon = const Color.fromARGB(255, 255, 153, 155);
 
   final Color warningBackground = const Color(0xFF2A1A00);
   final Color warningText = const Color(0xFFFFD599);

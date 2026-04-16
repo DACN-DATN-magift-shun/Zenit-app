@@ -13,6 +13,7 @@ import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/features/transaction/forms/add_transaction_form.dart';
 import 'package:zenit/features/transaction/models/transaction_model.dart';
 import 'package:zenit/features/transaction/services/transaction_service.dart';
+import 'package:zenit/features/loans/services/loans_service.dart';
 import 'package:zenit/features/photos/services/photo_service.dart';
 import 'package:zenit/features/main/models/action_item.dart';
 import 'package:zenit/features/main/models/home_action_item.dart';
@@ -28,6 +29,7 @@ class HomeContent extends StatefulWidget {
 class _HomeContentState extends State<HomeContent> {
   final AuthService _authService = AuthService();
   final TransactionService _transactionService = TransactionService();
+  final LoansService _loansService = LoansService();
   final PhotoService _photoService = PhotoService();
   static const int _recentTransactionsLimit = 3;
 
@@ -284,44 +286,93 @@ class _HomeContentState extends State<HomeContent> {
     final formData = getFormData();
     if (formData == null) return; // Validation failed
 
+    String? createdTransactionId;
+
     try {
+      final shouldCreateLoan = formData.collectLaterEnabled;
+      final savedTransactionAmount = shouldCreateLoan
+          ? formData.amount - (formData.loanAmount ?? 0)
+          : formData.amount;
+
       final createdTransaction = await _transactionService.createTransaction(
         title: formData.title,
         note: formData.note,
-        amount: formData.amount,
+        amount: savedTransactionAmount,
         transactionDate: formData.transactionDate,
         categoryId: formData.categoryId,
         walletId: formData.walletId,
       );
+      createdTransactionId = createdTransaction.id;
 
-      String? photoUploadError;
-      final createdTransactionId = createdTransaction.id;
+      String? nonBlockingPhotoError;
       if (formData.photoFile != null &&
           createdTransactionId != null &&
           createdTransactionId.isNotEmpty) {
-        try {
+        if (shouldCreateLoan) {
           await _photoService.uploadPhoto(
             file: formData.photoFile!,
             transactionId: createdTransactionId,
           );
-        } catch (e) {
-          photoUploadError = e.toString();
+        } else {
+          try {
+            await _photoService.uploadPhoto(
+              file: formData.photoFile!,
+              transactionId: createdTransactionId,
+            );
+          } catch (e) {
+            nonBlockingPhotoError = e.toString();
+          }
         }
+      }
+
+      if (shouldCreateLoan) {
+        await _loansService.createLoan(
+          name: formData.title,
+          type: 0,
+          amount: formData.loanAmount ?? 0,
+          date: formData.transactionDate,
+          dueDate: formData.loanDueDate ?? formData.transactionDate,
+          note: formData.note,
+        );
       }
 
       if (mounted) {
         Navigator.of(context).pop(); // Close drawer
         _prependRecentTransaction(createdTransaction);
         _loadRecentTransactions(showLoading: false);
-        AppFlash.success(context, context.l10n.transactionAddedSuccess);
-        if (photoUploadError != null) {
+        AppFlash.success(
+          context,
+          shouldCreateLoan
+              ? (_isVietnamese(context)
+                    ? 'Giao dịch và khoản vay đã được thêm thành công'
+                    : 'Transaction and loan added successfully')
+              : context.l10n.transactionAddedSuccess,
+        );
+        if (nonBlockingPhotoError != null) {
           AppFlash.warning(
             context,
-            context.l10n.genericErrorWithReason(photoUploadError),
+            context.l10n.genericErrorWithReason(nonBlockingPhotoError),
           );
         }
       }
     } catch (e) {
+      if (formData.collectLaterEnabled &&
+          createdTransactionId != null &&
+          createdTransactionId.isNotEmpty) {
+        try {
+          await _transactionService.deleteTransaction(createdTransactionId);
+        } catch (rollbackError) {
+          if (mounted) {
+            AppFlash.error(
+              context,
+              context.l10n.genericErrorWithReason(
+                '${e.toString()} / rollback failed: ${rollbackError.toString()}',
+              ),
+            );
+          }
+          return;
+        }
+      }
       if (mounted) {
         AppFlash.error(
           context,
@@ -329,6 +380,10 @@ class _HomeContentState extends State<HomeContent> {
         );
       }
     }
+  }
+
+  bool _isVietnamese(BuildContext context) {
+    return Localizations.localeOf(context).languageCode.toLowerCase() == 'vi';
   }
 
   Future<void> _openTransactionInHistory(TransactionModel transaction) async {

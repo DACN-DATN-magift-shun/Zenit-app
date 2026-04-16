@@ -68,7 +68,7 @@ class CategoryModel {
       lastModifiedAt: _parseDateTime(json['lastModifiedAt']),
     );
   }
-  
+
   static double _parseDouble(dynamic value) {
     if (value == null) return 0;
     if (value is double) return value;
@@ -76,7 +76,7 @@ class CategoryModel {
     if (value is String) return double.tryParse(value) ?? 0;
     return 0;
   }
-  
+
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
     if (value is DateTime) return value;
@@ -143,7 +143,8 @@ class CategoryModel {
       color: color ?? this.color,
       backgroundColor: backgroundColor ?? this.backgroundColor,
       expenseLimit: expenseLimit ?? this.expenseLimit,
-      expenseAlertThreshold: expenseAlertThreshold ?? this.expenseAlertThreshold,
+      expenseAlertThreshold:
+          expenseAlertThreshold ?? this.expenseAlertThreshold,
       groupType: groupType ?? this.groupType,
       accountId: accountId ?? this.accountId,
       createdById: createdById ?? this.createdById,
@@ -177,17 +178,17 @@ class CategoryGroup {
   /// Parse từ JSON response của API get categories by groupType
   factory CategoryGroup.fromJson(dynamic rawJson) {
     final json = _safeMap(rawJson);
-    
+
     // Parse categories list safely
     List<CategoryModel> categoryList = [];
     final categoriesData = json['categories'];
-    
+
     if (categoriesData != null && categoriesData is List) {
       categoryList = categoriesData
           .map((e) => CategoryModel.fromJson(e))
           .toList();
     }
-    
+
     // Parse type safely - could be int or String
     int typeValue = 0;
     final typeData = json['type'];
@@ -196,7 +197,7 @@ class CategoryGroup {
     } else if (typeData is String) {
       typeValue = int.tryParse(typeData) ?? 0;
     }
-    
+
     return CategoryGroup(
       name: json['name']?.toString() ?? '',
       type: typeValue,
@@ -223,13 +224,14 @@ class CategoryGroup {
   }
 }
 
-/// Enum cho các loại GroupType (0-4)
+/// Enum cho các loại GroupType (0-5)
 enum GroupType {
   necessary(0, 'Necessary'),
-  savings(1, 'Savings'),
+  assets(1, 'Assets'),
   selfDevelopment(2, 'Self Development'),
   entertainment(3, 'Entertainment'),
-  giving(4, 'Giving');
+  giving(4, 'Giving'),
+  income(5, 'Income');
 
   final int value;
   final String displayName;

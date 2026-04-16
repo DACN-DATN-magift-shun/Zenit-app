@@ -15,6 +15,14 @@ class CategoryProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isActionLoading = false; // Loading cho các action CRUD
   String? _errorMessage;
+  
+  String _normalizeErrorMessage(Object error) {
+    final raw = error.toString().trim();
+    if (raw.startsWith('Exception: ')) {
+      return raw.replaceFirst('Exception: ', '').trim();
+    }
+    return raw;
+  }
 
   // Getters
   Map<int, CategoryGroup> get categoryGroups => _categoryGroups;
@@ -69,7 +77,7 @@ class CategoryProvider extends ChangeNotifier {
       }
       _errorMessage = null;
     } catch (e, stackTrace) {
-      _errorMessage = e.toString();
+      _errorMessage = _normalizeErrorMessage(e);
       debugPrint('Error loading categories: $e');
       debugPrint('Stack trace: $stackTrace');
     } finally {
@@ -89,7 +97,7 @@ class CategoryProvider extends ChangeNotifier {
       _categoryGroups[groupType] = categoryGroup;
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _normalizeErrorMessage(e);
       debugPrint('Error loading categories for group $groupType: $e');
     } finally {
       _isLoading = false;
@@ -127,13 +135,20 @@ class CategoryProvider extends ChangeNotifier {
         expenseAlertThreshold: expenseAlertThreshold,
       );
 
+      // Kiểm tra xem category có id hợp lệ không (tránh thêm category rác)
+      if (newCategory.id.isEmpty) {
+        _errorMessage = 'Failed to create category: Invalid response';
+        debugPrint('Error: Category ID is empty');
+        return false;
+      }
+
       // Cập nhật local state: thêm category vào group tương ứng
       _addCategoryToLocalState(newCategory, groupType);
       
       _errorMessage = null;
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _normalizeErrorMessage(e);
       debugPrint('Error adding category: $e');
       return false;
     } finally {
@@ -175,13 +190,26 @@ class CategoryProvider extends ChangeNotifier {
 
       debugPrint('=== Category Updated Successfully ===');
 
+      // Nếu API không trả về color/background, giữ lại màu cũ từ local state
+      CategoryModel categoryToUpdate = updatedCategory;
+      final existingCategory = findCategoryById(id);
+      if (existingCategory != null && updatedCategory.color.isEmpty) {
+        categoryToUpdate = updatedCategory.copyWith(
+          color: existingCategory.color,
+          backgroundColor: existingCategory.backgroundColor,
+        );
+        debugPrint('=== Preserved existing colors ===');
+        debugPrint('Color: ${existingCategory.color}');
+        debugPrint('Background: ${existingCategory.backgroundColor}');
+      }
+
       // Cập nhật local state
-      _updateCategoryInLocalState(updatedCategory, groupType, oldGroupType);
+      _updateCategoryInLocalState(categoryToUpdate, groupType, oldGroupType);
       
       _errorMessage = null;
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _normalizeErrorMessage(e);
       debugPrint('Error updating category: $e');
       return false;
     } finally {
@@ -207,7 +235,7 @@ class CategoryProvider extends ChangeNotifier {
       _errorMessage = null;
       return success;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _normalizeErrorMessage(e);
       debugPrint('Error deleting category: $e');
       return false;
     } finally {
@@ -235,7 +263,7 @@ class CategoryProvider extends ChangeNotifier {
       _errorMessage = null;
       return success;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _normalizeErrorMessage(e);
       debugPrint('Error deleting categories: $e');
       return false;
     } finally {
@@ -267,7 +295,7 @@ class CategoryProvider extends ChangeNotifier {
       _errorMessage = null;
       return success;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _normalizeErrorMessage(e);
       debugPrint('Error deleting categories: $e');
       return false;
     } finally {

@@ -4,11 +4,13 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/core/widgets/app_confirm_dialog.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/main_layout.dart';
 import 'package:zenit/core/services/auth_service.dart';
 import 'package:zenit/core/services/navigation_service.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
+import 'package:zenit/core/widgets/authenticated_network_image.dart';
 import 'package:zenit/features/main/widgets/setting/setting_items.dart';
 import 'package:zenit/features/photos/services/photo_service.dart';
 
@@ -95,25 +97,15 @@ class _SettingsContentState extends State<SettingsContent> {
   Future<void> _handleLogout() async {
     final l10n = context.l10n;
 
-    final confirm = await showDialog<bool>(
+    final confirm = await AppConfirmDialog.show(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.logoutConfirmTitle),
-        content: Text(l10n.logoutConfirmMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.logout, style: const TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+      title: l10n.logoutConfirmTitle,
+      message: l10n.logoutConfirmMessage,
+      confirmText: l10n.logout,
+      isDestructive: true,
     );
 
-    if (confirm != true || !mounted) return;
+    if (!confirm || !mounted) return;
 
     try {
       await _authService.logout();
@@ -384,8 +376,8 @@ class _SettingsContentState extends State<SettingsContent> {
     final avatarUrl = _resolvedAvatarUrl;
 
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
-      return Image.network(
-        avatarUrl,
+      return AuthenticatedNetworkImage(
+        imageUrl: avatarUrl,
         fit: BoxFit.cover,
         width: 64,
         height: 64,

@@ -28,7 +28,7 @@ class CategoryService {
       print('=== Calling API ===');
       print('URL: ${ApiEndpoints.categories}');
       print('Query params: {groupType: $groupType}');
-      
+
       final response = await _api.get(
         ApiEndpoints.categories,
         queryParameters: {'groupType': groupType},
@@ -41,7 +41,7 @@ class CategoryService {
 
       if (response.statusCode == 200) {
         final rawData = response.data;
-        
+
         // Handle case when API returns a List
         if (rawData is List) {
           return CategoryGroup(
@@ -52,10 +52,31 @@ class CategoryService {
                 .toList(),
           );
         }
-        
-        // Handle case when API returns an Object
+
+        // Handle object payloads where categories can be nested under
+        // different keys depending on backend response shape.
         final data = _convertToMap(rawData);
-        return CategoryGroup.fromJson(data);
+        final nestedCategories =
+            data['categories'] ?? data['data'] ?? data['items'];
+        if (nestedCategories is List) {
+          return CategoryGroup(
+            name: GroupType.fromValue(groupType).displayName,
+            type: groupType,
+            categories: nestedCategories
+                .map((e) => CategoryModel.fromJson(_convertToMap(e)))
+                .toList(),
+          );
+        }
+
+        // Fallback to generic parser but enforce queried groupType to keep
+        // keys stable for UI filtering (expense/income mode).
+        final parsedGroup = CategoryGroup.fromJson(data);
+        return parsedGroup.copyWith(
+          name: parsedGroup.name.isEmpty
+              ? GroupType.fromValue(groupType).displayName
+              : parsedGroup.name,
+          type: groupType,
+        );
       } else {
         // Return empty group for non-200 responses
         return CategoryGroup(
@@ -77,25 +98,25 @@ class CategoryService {
     }
   }
 
-  /// Lấy tất cả categories của tất cả groupType (0-4)
-  /// Gọi song song 5 API để lấy nhanh hơn
+  /// Lấy tất cả categories của tất cả groupType (0-5)
+  /// Gọi song song 6 API để lấy nhanh hơn
   Future<Map<int, CategoryGroup>> getAllCategoriesByAllGroups() async {
     try {
       final futures = <Future<CategoryGroup>>[];
-      
-      // Tạo 5 request song song cho groupType 0-4
-      for (int i = 0; i <= 4; i++) {
+
+      // Tạo 6 request song song cho groupType 0-5
+      for (int i = 0; i <= 5; i++) {
         futures.add(getCategoriesByGroupType(i));
       }
 
       final results = await Future.wait(futures);
-      
+
       // Convert thành Map<groupType, CategoryGroup>
       final Map<int, CategoryGroup> groupMap = {};
       for (var group in results) {
         groupMap[group.type] = group;
       }
-      
+
       return groupMap;
     } catch (e) {
       rethrow;
@@ -140,11 +161,11 @@ class CategoryService {
         'expenseAlertThreshold': expenseAlertThreshold.toInt(),
         'groupType': groupType,
       };
-      
+
       print('=== Create Category Request ===');
       print('URL: ${ApiEndpoints.createCategory}');
       print('Request data: $requestData');
-      
+
       final response = await _api.post(
         ApiEndpoints.createCategory,
         data: requestData,
@@ -190,11 +211,11 @@ class CategoryService {
         'expenseAlertThreshold': expenseAlertThreshold.toInt(),
         'groupType': groupType,
       };
-      
+
       print('=== Update Category Request ===');
       print('URL: ${ApiEndpoints.updateCategoryUrl(id)}');
       print('Request data: $requestData');
-      
+
       final response = await _api.patch(
         ApiEndpoints.updateCategoryUrl(id),
         data: requestData,
@@ -205,7 +226,23 @@ class CategoryService {
       print('Response data: ${response.data}');
 
       if (response.statusCode == 200) {
-        return CategoryModel.fromJson(_convertToMap(response.data));
+        final data = _convertToMap(response.data);
+        // Kiểm tra xem response có chứa error hay không (BE có thể trả 200 với error message)
+        if (data.containsKey('code') && data['code'] != null) {
+          final errorCode = data['code'];
+          final details = data['details']?.toString().trim();
+          final message = data['message']?.toString().trim();
+          final errorMessage = (details != null && details.isNotEmpty)
+              ? details
+              : ((message != null && message.isNotEmpty)
+                    ? message
+                    : 'Unknown error');
+          print('=== Error in 200 Response ===');
+          print('Error code: $errorCode');
+          print('Error message: $errorMessage');
+          throw Exception(errorMessage);
+        }
+        return CategoryModel.fromJson(data);
       } else {
         throw Exception('Failed to update category: ${response.statusCode}');
       }
@@ -245,7 +282,9 @@ class CategoryService {
   Exception _handleDioError(DioException e) {
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
-        return Exception('Connection timeout. Please check your internet connection.');
+        return Exception(
+          'Connection timeout. Please check your internet connection.',
+        );
       case DioExceptionType.receiveTimeout:
         return Exception('Server is taking too long to respond.');
       case DioExceptionType.badResponse:

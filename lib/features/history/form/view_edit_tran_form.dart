@@ -3,14 +3,17 @@ import 'package:image_picker/image_picker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:zenit/core/l10n/l10n.dart';
+import 'package:zenit/core/services/navigation_service.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/core/widgets/authenticated_network_image.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
 import 'package:zenit/features/setting_childs/category_manage/providers/category_provider.dart';
 import 'package:zenit/features/setting_childs/money_source_manage/models/money_source_model.dart';
 import 'package:zenit/features/setting_childs/money_source_manage/providers/money_source_provider.dart';
+import 'package:zenit/features/setting_childs/money_source_manage/widgets/money_source_selector_drawer.dart';
 import 'package:zenit/features/transaction/models/transaction_model.dart';
 import 'package:zenit/features/transaction/services/transaction_service.dart';
 import 'package:zenit/features/transaction/widgets/category_selector_drawer.dart';
@@ -85,6 +88,7 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
   CategoryModel? _selectedCategory;
   MoneySourceModel? _selectedWallet;
   XFile? _selectedPhoto;
+  bool _isIncomeTransaction = false;
 
   @override
   void initState() {
@@ -174,6 +178,13 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
         _findCategoryById(transaction.categoryId) ??
         _mapCategoryFromTransaction(transaction);
     _selectedWallet = _findWalletById(transaction.walletId);
+
+    // Determine if this is an income transaction based on category
+    final category = _selectedCategory;
+    if (category != null) {
+      final groupType = int.tryParse(category.groupType) ?? 0;
+      _isIncomeTransaction = groupType == GroupType.income.value;
+    }
   }
 
   void _setEditing(bool value) {
@@ -415,14 +426,43 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
   }
 
   void _showCategorySelector() {
+    final colors = Theme.of(context).extension<AppColorExtension>()!;
+    final allowedGroupTypes = _isIncomeTransaction
+        ? <int>{GroupType.income.value}
+        : <int>{
+            GroupType.necessary.value,
+            GroupType.assets.value,
+            GroupType.selfDevelopment.value,
+            GroupType.entertainment.value,
+            GroupType.giving.value,
+          };
+
     AppDrawer.showAsBottomSheet(
       context: context,
       title: context.l10n.chooseTagForTransaction,
       showCloseButton: false,
       showDragHandle: true,
       height: MediaQuery.of(context).size.height * 0.85,
+      headerActions: [
+        IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            NavigationService.instance
+                .navigateTo('/settings/category_manage')
+                ?.then((_) {
+                  if (!mounted) return;
+                  context.read<CategoryProvider>().refreshCategories();
+                });
+          },
+          icon: Icon(Symbols.settings_rounded, color: colors.primaryMain),
+          tooltip: _isVietnamese(context)
+              ? 'Quan ly danh muc'
+              : 'Manage categories',
+        ),
+      ],
       body: CategorySelectorDrawer(
         selectedCategory: _selectedCategory,
+        allowedGroupTypes: allowedGroupTypes,
         onCategorySelected: (category) {
           setState(() {
             _selectedCategory = category;
@@ -766,6 +806,71 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
 
             _buildFieldRow(
               context,
+              label: _typeFieldLabel(context),
+              child: _isEditing
+                  ? SegmentedButton<int>(
+                      segments: [
+                        ButtonSegment<int>(
+                          value: 0,
+                          label: Text(_expenseLabel(context)),
+                        ),
+                        ButtonSegment<int>(
+                          value: 1,
+                          label: Text(_incomeLabel(context)),
+                        ),
+                      ],
+                      selected: {_isIncomeTransaction ? 1 : 0},
+                      style: ButtonStyle(
+                        side: const MaterialStatePropertyAll(BorderSide.none),
+                        backgroundColor: MaterialStateProperty.resolveWith((
+                          states,
+                        ) {
+                          final isSelected = states.contains(
+                            MaterialState.selected,
+                          );
+                          return isSelected
+                              ? const Color(0xFFD2E4FF)
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHigh;
+                        }),
+                        foregroundColor: MaterialStateProperty.resolveWith((
+                          states,
+                        ) {
+                          return Theme.of(context).colorScheme.onSurface;
+                        }),
+                        shape: MaterialStatePropertyAll(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                        ),
+                      ),
+                      onSelectionChanged: (selection) {
+                        final nextIsIncome = selection.first == 1;
+                        setState(() {
+                          _isIncomeTransaction = nextIsIncome;
+                          if (_selectedCategory != null &&
+                              !_isCategoryCompatibleWithCurrentType(
+                                _selectedCategory!,
+                              )) {
+                            _selectedCategory = null;
+                          }
+                        });
+                      },
+                    )
+                  : Text(
+                      _isIncomeTransaction
+                          ? _incomeLabel(context)
+                          : _expenseLabel(context),
+                      style: TextStyle(
+                        color: colors.neutralTextSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+            ),
+
+            _buildFieldRow(
+              context,
               label: l10n.category,
               child: InkWell(
                 onTap: _isEditing ? _showCategorySelector : null,
@@ -996,8 +1101,8 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
-              child: Image.network(
-                photoUrl,
+              child: AuthenticatedNetworkImage(
+                imageUrl: photoUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stack) {
                   return Icon(
@@ -1072,8 +1177,8 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
                         borderRadius: BorderRadius.circular(
                           AppSizes.borderRadiusMedium,
                         ),
-                        child: Image.network(
-                          photoUrl,
+                        child: AuthenticatedNetworkImage(
+                          imageUrl: photoUrl,
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stack) {
                             return SizedBox(
@@ -1147,6 +1252,28 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
     return Localizations.localeOf(context).languageCode.toLowerCase() == 'vi';
   }
 
+  String _typeFieldLabel(BuildContext context) {
+    return _isVietnamese(context) ? 'Phân loại' : 'Type';
+  }
+
+  String _incomeLabel(BuildContext context) {
+    return _isVietnamese(context) ? 'Thu' : 'Income';
+  }
+
+  String _expenseLabel(BuildContext context) {
+    return _isVietnamese(context) ? 'Chi' : 'Expense';
+  }
+
+  String _walletFieldLabel(BuildContext context) {
+    return _isVietnamese(context) ? 'Ví' : 'Wallet';
+  }
+
+  bool _isCategoryCompatibleWithCurrentType(CategoryModel category) {
+    final groupType = int.tryParse(category.groupType) ?? 0;
+    final isIncomeCategory = groupType == GroupType.income.value;
+    return _isIncomeTransaction ? isIncomeCategory : !isIncomeCategory;
+  }
+
   MoneySourceModel? _findWalletById(String walletId) {
     final wallets = context.read<MoneySourceProvider>().moneySources;
     for (final wallet in wallets) {
@@ -1162,49 +1289,34 @@ class _ViewEditTranFormState extends State<ViewEditTranForm> {
 
     AppDrawer.showAsBottomSheet(
       context: context,
-      title: _isVietnamese(context) ? 'Ví' : 'Wallet',
+      title: _walletFieldLabel(context),
       showCloseButton: false,
       showDragHandle: true,
-      height: MediaQuery.of(context).size.height * 0.6,
-      body: Consumer<MoneySourceProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading && provider.moneySources.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (provider.moneySources.isEmpty) {
-            return Center(
-              child: Text(
-                _isVietnamese(context) ? 'Chưa có ví nào' : 'No wallet found.',
-              ),
-            );
-          }
-
-          return ListView.separated(
-            padding: const EdgeInsets.all(AppSizes.l),
-            itemCount: provider.moneySources.length,
-            separatorBuilder: (_, __) => const SizedBox(height: AppSizes.s),
-            itemBuilder: (context, index) {
-              final wallet = provider.moneySources[index];
-              return ListTile(
-                leading: Icon(wallet.iconData, color: wallet.iconColor),
-                tileColor: wallet.backgroundColor.withValues(alpha: 0.2),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    AppSizes.borderRadiusSmall,
-                  ),
-                ),
-                title: Text(
-                  wallet.name,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                trailing: Text('${wallet.amount}'),
-                onTap: () {
-                  setState(() => _selectedWallet = wallet);
-                  Navigator.pop(context);
-                },
-              );
-            },
-          );
+      height: MediaQuery.of(context).size.height * 0.75,
+      headerActions: [
+        IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            NavigationService.instance
+                .navigateTo('/settings/money_source_manage')
+                ?.then((_) {
+                  if (!mounted) return;
+                  context.read<MoneySourceProvider>().refreshMoneySources();
+                });
+          },
+          icon: Icon(Symbols.settings_rounded, color: colors.primaryMain),
+          tooltip: _isVietnamese(context)
+              ? 'Quan ly nguon tien'
+              : 'Manage wallets',
+        ),
+      ],
+      body: MoneySourceSelectorDrawer(
+        selectedWallet: _selectedWallet,
+        onWalletSelected: (wallet) {
+          setState(() {
+            _selectedWallet = wallet;
+          });
+          Navigator.of(context).pop();
         },
       ),
     );

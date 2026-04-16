@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 
 class CustomTextFormField extends StatelessWidget {
@@ -13,6 +14,8 @@ class CustomTextFormField extends StatelessWidget {
   final AutovalidateMode autovalidateMode;
   final bool enabled;
   final int maxLines;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextAlign? textAlign;
 
   const CustomTextFormField({
     super.key,
@@ -27,6 +30,8 @@ class CustomTextFormField extends StatelessWidget {
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
     this.enabled = true,
     this.maxLines = 1,
+    this.inputFormatters,
+    this.textAlign,
   });
 
   @override
@@ -66,6 +71,8 @@ class CustomTextFormField extends StatelessWidget {
           controller: controller,
           validator: validator,
           keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
+          textAlign: textAlign ?? TextAlign.start,
           maxLines: maxLines,
           autovalidateMode: autovalidateMode,
           enabled: enabled,

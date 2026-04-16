@@ -1,50 +1,44 @@
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
-import 'package:zenit/core/widgets/authenticated_network_image.dart';
-import 'package:zenit/features/transaction/models/transaction_model.dart';
+import 'package:zenit/features/setting_childs/money_source_manage/models/money_source_model.dart';
+import 'package:zenit/features/transfer/models/money_transfer_model.dart';
 
-class TransactionItem extends StatelessWidget {
-  const TransactionItem({
+class TransferListItem extends StatelessWidget {
+  const TransferListItem({
     super.key,
-    required this.transaction,
+    required this.transfer,
     this.onTap,
     this.onDelete,
   });
 
-  final TransactionModel transaction;
+  final MoneyTransferModel transfer;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     final colors = Theme.of(context).extension<AppColorExtension>()!;
-    final category = transaction.category;
+    final isVietnamese = Localizations.localeOf(context).languageCode == 'vi';
 
-    // Parse colors from category
-    final iconColor = _parseColor(category?.color) ?? colors.primaryMain;
-    final bgColor =
-        _parseColor(category?.backgroundColor) ?? colors.neutralSurface;
+    final fromWalletName = transfer.fromWallet?.name.trim().isNotEmpty == true
+        ? transfer.fromWallet!.name
+        : (isVietnamese ? 'Ví nguồn' : 'From wallet');
 
-    // Format amount
-    final formattedAmount = _formatCurrency(transaction.amount);
+    final toWalletName = transfer.toWallet?.name.trim().isNotEmpty == true
+        ? transfer.toWallet!.name
+        : (isVietnamese ? 'Ví đích' : 'To wallet');
 
-    // Format date
-    final formattedDate = _formatDate(transaction.transactionDate);
-
-    // Determine if expense or income based on groupType
-    // final isExpense = category?.groupType != 2; // groupType 2 is income
-    // final amountColor = isExpense ? colors.errorText : colors.successText;
-    // final amountPrefix = isExpense ? '-' : '+';
+    final formattedAmount = _formatCurrency(transfer.amount);
+    final formattedDate = _formatDate(transfer.transferDate);
 
     return Slidable(
       key: ValueKey(
-        transaction.id ??
-            '${transaction.title}-${transaction.transactionDate.millisecondsSinceEpoch}',
+        transfer.id.isEmpty
+            ? '${transfer.fromWalletId}-${transfer.toWalletId}-${transfer.transferDate.millisecondsSinceEpoch}'
+            : transfer.id,
       ),
       endActionPane: ActionPane(
         motion: const ScrollMotion(),
@@ -67,7 +61,7 @@ class TransactionItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
               ),
               child: Text(
-                l10n.delete,
+                isVietnamese ? 'Xoá' : 'Delete',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colors.errorIcon,
                   fontWeight: FontWeight.w700,
@@ -89,7 +83,7 @@ class TransactionItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
               ),
               child: Text(
-                l10n.cancel,
+                isVietnamese ? 'Huỷ' : 'Cancel',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colors.neutralTextSecondary,
                   fontWeight: FontWeight.w700,
@@ -116,23 +110,17 @@ class TransactionItem extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Category icon
               _buildLeadingMedia(
-                context,
-                colors: colors,
-                bgColor: bgColor,
-                iconColor: iconColor,
-                categoryIcon: _parseIcon(category?.icon ?? ''),
+                fromWallet: transfer.fromWallet,
+                toWallet: transfer.toWallet,
               ),
               const SizedBox(width: AppSizes.m),
-
-              // Transaction info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      transaction.title,
+                      '$fromWalletName → $toWalletName',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: colors.neutralTextPrimary,
@@ -143,10 +131,18 @@ class TransactionItem extends StatelessWidget {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Text(
-                          category?.name ?? l10n.unknown,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: colors.neutralTextSecondary),
+                        Expanded(
+                          child: Text(
+                            transfer.note.trim().isEmpty
+                                ? (isVietnamese
+                                      ? 'Chuyển giữa 2 ví'
+                                      : 'Wallet to wallet transfer')
+                                : transfer.note,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colors.neutralTextSecondary),
+                          ),
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -165,14 +161,10 @@ class TransactionItem extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // Amount
               Text(
-                // '$amountPrefix$formattedAmount',
                 formattedAmount,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w700,
-                  // color: amountColor,
                   color: colors.neutralTextPrimary,
                 ),
               ),
@@ -183,89 +175,69 @@ class TransactionItem extends StatelessWidget {
     );
   }
 
-  Widget _buildLeadingMedia(
-    BuildContext context, {
-    required AppColorExtension colors,
-    required Color bgColor,
-    required Color iconColor,
-    required IconData categoryIcon,
+  Widget _buildLeadingMedia({
+    required TransferWalletModel? fromWallet,
+    required TransferWalletModel? toWallet,
   }) {
-    final photoUrl = transaction.firstPhotoUrl;
+    final fromBg =
+        _parseColor(fromWallet?.backgroundColor) ?? const Color(0xFFE8EEF9);
+    final toBg =
+        _parseColor(toWallet?.backgroundColor) ?? const Color(0xFFDDF3EA);
 
-    if (photoUrl != null && photoUrl.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
-        child: Container(
-          width: 56,
-          height: 56,
-          color: colors.neutralSurface,
-          child: AuthenticatedNetworkImage(
-            imageUrl: photoUrl,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stack) {
-              return _buildCategoryFallback(bgColor, iconColor, categoryIcon);
-            },
+    final fromIcon = MoneySourceIconMapper.fromName(
+      fromWallet?.icon ?? 'account_balance_wallet_rounded',
+    );
+    final toIcon = MoneySourceIconMapper.fromName(
+      toWallet?.icon ?? 'account_balance_wallet_rounded',
+    );
+
+    return SizedBox(
+      width: 56,
+      height: 56,
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            top: 12,
+            child: _buildWalletBubble(fromBg, fromIcon),
           ),
-        ),
-      );
-    }
-
-    return _buildCategoryFallback(bgColor, iconColor, categoryIcon);
-  }
-
-  Widget _buildCategoryFallback(
-    Color bgColor,
-    Color iconColor,
-    IconData categoryIcon,
-  ) {
-    return Material(
-      color: bgColor,
-      borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
-      child: Container(
-        width: 56,
-        height: 56,
-        padding: const EdgeInsets.all(AppSizes.m),
-        child: Icon(
-          categoryIcon,
-          fill: 1.0,
-          weight: 400,
-          grade: 0.25,
-          color: iconColor,
-          size: AppSizes.iconL,
-        ),
+          Positioned(right: 0, top: 0, child: _buildWalletBubble(toBg, toIcon)),
+          Positioned(
+            left: 18,
+            top: 20,
+            child: Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Symbols.arrow_forward_rounded,
+                size: 13,
+                color: Color(0xFF465260),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  IconData _parseIcon(String iconName) {
-    final iconMap = <String, IconData>{
-      'home': Symbols.home,
-      'shopping_cart': Symbols.shopping_cart,
-      'restaurant': Symbols.restaurant,
-      'directions_car': Symbols.directions_car,
-      'directions_bus': Symbols.directions_bus,
-      'local_hospital': Symbols.local_hospital,
-      'school': Symbols.school,
-      'work': Symbols.work,
-      'attach_money': Symbols.attach_money,
-      'savings': Symbols.savings,
-      'trending_up': Symbols.trending_up,
-      'spa': Symbols.spa,
-      'sports_esports': Symbols.sports_esports,
-      'flight': Symbols.flight,
-      'pets': Symbols.pets,
-      'child_care': Symbols.child_care,
-      'shopping_cart_rounded': Symbols.shopping_cart_rounded,
-      'restaurant_rounded': Symbols.restaurant_rounded,
-      'account_balance_rounded': Symbols.account_balance_rounded,
-      'trending_up_rounded': Symbols.trending_up_rounded,
-      'school_rounded': Symbols.school_rounded,
-      'menu_book_rounded': Symbols.menu_book_rounded,
-      'movie_rounded': Symbols.movie_rounded,
-      'fitness_center_rounded': Symbols.fitness_center_rounded,
-    };
+  Widget _buildWalletBubble(Color bgColor, IconData icon) {
+    final iconColor = bgColor.computeLuminance() > 0.55
+        ? const Color(0xFF111111)
+        : Colors.white;
 
-    return iconMap[iconName] ?? Symbols.category;
+    return Material(
+      color: bgColor,
+      borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
+      child: SizedBox(
+        width: 34,
+        height: 34,
+        child: Icon(icon, size: 18, color: iconColor),
+      ),
+    );
   }
 
   Color? _parseColor(String? colorHex) {
@@ -276,7 +248,7 @@ class TransactionItem extends StatelessWidget {
         hex = 'FF$hex';
       }
       return Color(int.parse(hex, radix: 16));
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
@@ -289,7 +261,6 @@ class TransactionItem extends StatelessWidget {
   }
 
   String _formatCurrency(int amount) {
-    // Simple Vietnamese currency format
     final amountStr = amount.toString();
     final buffer = StringBuffer();
     int count = 0;

@@ -12,11 +12,13 @@ import 'package:zenit/features/setting_childs/category_manage/widgets/single_cat
 class CategorySelectorDrawer extends StatefulWidget {
   final CategoryModel? selectedCategory;
   final Function(CategoryModel) onCategorySelected;
+  final Set<int>? allowedGroupTypes;
 
   const CategorySelectorDrawer({
     super.key,
     this.selectedCategory,
     required this.onCategorySelected,
+    this.allowedGroupTypes,
   });
 
   @override
@@ -34,6 +36,18 @@ class _CategorySelectorDrawerState extends State<CategorySelectorDrawer> {
       final categoryProvider = context.read<CategoryProvider>();
       if (!categoryProvider.hasData) {
         categoryProvider.loadAllCategories();
+        return;
+      }
+
+      final allowed = widget.allowedGroupTypes;
+      if (allowed == null || allowed.isEmpty) {
+        return;
+      }
+
+      for (final groupType in allowed) {
+        if (categoryProvider.getCategoryGroup(groupType) == null) {
+          categoryProvider.loadCategoriesByGroupType(groupType);
+        }
       }
     });
   }
@@ -128,7 +142,13 @@ class _CategorySelectorDrawerState extends State<CategorySelectorDrawer> {
           );
         }
 
-        final groups = categoryProvider.categoryGroups.entries.toList();
+        final groups = categoryProvider.categoryGroups.entries.where((entry) {
+          final allowed = widget.allowedGroupTypes;
+          if (allowed == null || allowed.isEmpty) {
+            return true;
+          }
+          return allowed.contains(entry.key);
+        }).toList();
 
         return ListView(
           padding: const EdgeInsets.symmetric(horizontal: AppSizes.s),
@@ -229,13 +249,15 @@ class _CategorySelectorDrawerState extends State<CategorySelectorDrawer> {
       case 0:
         return l10n.groupNecessary;
       case 1:
-        return l10n.groupSavings;
+        return 'Assets';
       case 2:
         return l10n.groupSelfDevelopment;
       case 3:
         return l10n.groupEntertainment;
       case 4:
         return l10n.groupGiving;
+      case 5:
+        return _isVietnamese(context) ? 'Thu nhập' : 'Income';
       default:
         return fallbackName;
     }
@@ -254,6 +276,8 @@ class _CategorySelectorDrawerState extends State<CategorySelectorDrawer> {
         return colors.infoIcon;
       case 4:
         return colors.secondaryHover;
+      case 5:
+        return colors.successIcon;
       default:
         return colors.neutralTextSecondary;
     }
@@ -271,9 +295,15 @@ class _CategorySelectorDrawerState extends State<CategorySelectorDrawer> {
         return Symbols.savings;
       case 4:
         return Symbols.trending_up;
+      case 5:
+        return Symbols.account_balance_wallet_rounded;
       default:
         return Symbols.category;
     }
+  }
+
+  bool _isVietnamese(BuildContext context) {
+    return Localizations.localeOf(context).languageCode.toLowerCase() == 'vi';
   }
 
   IconData _parseIcon(String iconName) {

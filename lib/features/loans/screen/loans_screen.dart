@@ -7,6 +7,7 @@ import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/base_layout.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/core/widgets/app_confirm_dialog.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/features/loans/forms/add_edit_loan_form.dart';
@@ -367,7 +368,7 @@ class _LoansScreenState extends State<LoansScreen> {
               labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: selectedType == null
-                  ? colors.neutralTextPrimary
+                    ? colors.neutralTextPrimary
                     : colors.neutralTextPrimary,
               ),
               labelPadding: const EdgeInsets.symmetric(horizontal: 10),
@@ -389,7 +390,7 @@ class _LoansScreenState extends State<LoansScreen> {
               labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: selectedType == 0
-                  ? colors.neutralTextPrimary
+                    ? colors.neutralTextPrimary
                     : colors.neutralTextPrimary,
               ),
               labelPadding: const EdgeInsets.symmetric(horizontal: 10),
@@ -411,7 +412,7 @@ class _LoansScreenState extends State<LoansScreen> {
               labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: selectedType == 1
-                  ? colors.neutralTextPrimary
+                    ? colors.neutralTextPrimary
                     : colors.neutralTextPrimary,
               ),
               labelPadding: const EdgeInsets.symmetric(horizontal: 10),
@@ -537,37 +538,18 @@ class _LoansScreenState extends State<LoansScreen> {
 
   Future<void> _handleDelete(LoanModel loan) async {
     final isVietnamese = _isVietnamese(context);
-    final cancelText = context.l10n.cancel;
-    final deleteText = context.l10n.delete;
 
-    final confirm = await showDialog<bool>(
+    final confirm = await AppConfirmDialog.show(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(isVietnamese ? 'Xác nhận' : 'Confirmation'),
-          content: Text(
-            isVietnamese
-                ? 'Bạn có chắc muốn xoá khoản này không?'
-                : 'Are you sure you want to delete this item?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(cancelText),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text(
-                deleteText,
-                style: const TextStyle(color: Colors.red),
-              ),
-            ),
-          ],
-        );
-      },
+      title: isVietnamese ? 'Xác nhận' : 'Confirmation',
+      message: isVietnamese
+          ? 'Bạn có chắc muốn xoá khoản này không?'
+          : 'Are you sure you want to delete this item?',
+      confirmText: context.l10n.delete,
+      isDestructive: true,
     );
 
-    if (confirm != true) {
+    if (!confirm) {
       return;
     }
 

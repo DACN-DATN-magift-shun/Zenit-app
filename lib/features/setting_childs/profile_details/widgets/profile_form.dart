@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:image_picker/image_picker.dart';
 import 'package:zenit/core/l10n/l10n.dart';
+import 'package:zenit/core/widgets/authenticated_network_image.dart';
 import 'package:zenit/core/widgets/button.dart';
 import 'package:zenit/core/forms/form_fields/custom_text_form_field.dart';
 import 'package:zenit/core/services/auth_service.dart';
@@ -134,16 +135,21 @@ class _ProfileFormState extends State<ProfileForm> {
     }
   }
 
-  ImageProvider _buildAvatarProvider() {
+  Widget _buildAvatarContent() {
     if (_selectedAvatarFile != null) {
-      return FileImage(File(_selectedAvatarFile!.path));
+      return Image.file(File(_selectedAvatarFile!.path), fit: BoxFit.cover);
     }
 
     if (_avatarUrl != null && _avatarUrl!.isNotEmpty) {
-      return NetworkImage(_avatarUrl!);
+      return AuthenticatedNetworkImage(
+        imageUrl: _avatarUrl!,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) =>
+            Image.asset('assets/user.png', fit: BoxFit.cover),
+      );
     }
 
-    return const AssetImage('assets/user.png');
+    return Image.asset('assets/user.png', fit: BoxFit.cover);
   }
 
   @override
@@ -169,7 +175,14 @@ class _ProfileFormState extends State<ProfileForm> {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage: _buildAvatarProvider(),
+                    backgroundColor: Colors.transparent,
+                    child: ClipOval(
+                      child: SizedBox(
+                        width: 100,
+                        height: 100,
+                        child: _buildAvatarContent(),
+                      ),
+                    ),
                   ),
                   Positioned(
                     bottom: 0,

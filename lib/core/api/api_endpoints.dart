@@ -59,6 +59,15 @@ class ApiEndpoints {
   static const String createLoan = "${transactionBaseUrl}Loans";
   static const String createManyLoans = "${transactionBaseUrl}Loans/many";
 
+  // Money transfer endpoints (using transactionBaseUrl)
+  static const String moneyTransfers = "${transactionBaseUrl}MoneyTransfers";
+  static String moneyTransferById(String id) =>
+      "${transactionBaseUrl}MoneyTransfers/$id";
+  static String updateMoneyTransferUrl(String id) => moneyTransferById(id);
+  static String deleteMoneyTransferUrl(String id) => moneyTransferById(id);
+  static const String createMoneyTransfer =
+      "${transactionBaseUrl}MoneyTransfers";
+
   // Statistics Endpoints (using statisticsBaseUrl)
   static const String statistics = "${statisticsBaseUrl}Statistics";
 

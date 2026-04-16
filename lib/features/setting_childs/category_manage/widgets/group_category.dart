@@ -123,7 +123,7 @@ class GroupCategory extends StatelessWidget {
                 crossAxisCount: 4,
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 16,
-                childAspectRatio: 0.74,
+                mainAxisExtent: 108,
               ),
               itemBuilder: (context, index) => Center(child: gridItems[index]),
             ),

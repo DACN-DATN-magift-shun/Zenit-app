@@ -254,6 +254,18 @@ final ThemeData lightTheme = ThemeData(
     ),
     hintStyle: TextStyle(color: AppColors.light.neutralTextSecondary),
   ),
+  dialogTheme: DialogThemeData(
+    backgroundColor: Colors.white,
+    surfaceTintColor: Colors.white,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+    titleTextStyle: AppTypography.textThemeLight.titleLarge?.copyWith(
+      color: AppColors.light.neutralTextPrimary,
+      fontWeight: FontWeight.w700,
+    ),
+    contentTextStyle: AppTypography.textThemeLight.bodyMedium?.copyWith(
+      color: AppColors.light.neutralTextPrimary,
+    ),
+  ),
   extensions: [
     AppColorExtension(
       primaryMain: AppColors.light.primaryMain,
@@ -332,6 +344,18 @@ final ThemeData darkTheme = ThemeData(
       borderSide: BorderSide(color: AppColors.dark.primaryMain, width: 2),
     ),
     hintStyle: TextStyle(color: AppColors.dark.neutralTextSecondary),
+  ),
+  dialogTheme: DialogThemeData(
+    backgroundColor: Colors.white,
+    surfaceTintColor: Colors.white,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+    titleTextStyle: AppTypography.textThemeDark.titleLarge?.copyWith(
+      color: AppColors.light.neutralTextPrimary,
+      fontWeight: FontWeight.w700,
+    ),
+    contentTextStyle: AppTypography.textThemeDark.bodyMedium?.copyWith(
+      color: AppColors.light.neutralTextPrimary,
+    ),
   ),
   extensions: [
     AppColorExtension(

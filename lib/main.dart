@@ -21,6 +21,7 @@ import 'package:zenit/features/main/screens/notification.dart';
 import 'package:zenit/features/main/screens/opening_splash_screen.dart';
 import 'package:zenit/features/loans/screen/loans_screen.dart';
 import 'package:zenit/features/loans/providers/loans_provider.dart';
+import 'package:zenit/features/transfer/providers/money_transfer_provider.dart';
 import 'package:zenit/features/transfer/screen/transfer_screen.dart';
 import 'package:zenit/l10n/app_localizations.dart';
 
@@ -68,6 +69,7 @@ class MainApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProvider(create: (_) => MoneySourceProvider()),
         ChangeNotifierProvider(create: (_) => LoansProvider()),
+        ChangeNotifierProvider(create: (_) => MoneyTransferProvider()),
         ChangeNotifierProvider(
           create: (_) => LocaleProvider()..loadSavedLocale(),
         ),

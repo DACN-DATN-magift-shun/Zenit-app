@@ -7,6 +7,7 @@ import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/layout/base_layout.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/core/widgets/app_confirm_dialog.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/features/setting_childs/money_source_manage/forms/add_edit_money_source_form.dart';
@@ -91,85 +92,55 @@ class _MoneySourceManageScreenState extends State<MoneySourceManageScreen> {
     BuildContext context,
     List<MoneySourceModel> sources,
   ) {
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(
-        AppSizes.l,
-        AppSizes.m,
-        AppSizes.l,
-        AppSizes.l,
-      ),
+    return Stack(
       children: [
-        _buildAddWalletButton(context),
-        const SizedBox(height: AppSizes.l),
-        if (sources.isEmpty)
-          _buildEmptyState(context)
-        else
-          ...List.generate(sources.length, (index) {
-            final source = sources[index];
-            final animationDelayMs = index < 8 ? index * 40 : 320;
-
-            return Animate(
-              delay: Duration(milliseconds: animationDelayMs),
-              effects: [
-                FadeEffect(duration: 280.ms, curve: Curves.easeOut),
-                SlideEffect(
-                  begin: const Offset(0, 0.08),
-                  end: const Offset(0, 0),
-                  duration: 340.ms,
-                  curve: Curves.easeOutCubic,
-                ),
-              ],
-              child: MoneySourceListItem(
-                moneySource: source,
-                onTap: () => _openMoneySourceDetail(source),
-                onDelete: () => _handleDelete(source),
-              ),
-            );
-          }),
-      ],
-    );
-  }
-
-  Widget _buildAddWalletButton(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColorExtension>()!;
-
-    return GestureDetector(
-      onTap: _showAddMoneySourceDrawer,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSizes.m,
-          vertical: AppSizes.m,
-        ),
-        decoration: BoxDecoration(
-          color: colors.warningBackground,
-          borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
-          border: Border.all(
-            color: colors.neutralBorder.withValues(alpha: 0.6),
+        ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(
+            AppSizes.l,
+            AppSizes.m,
+            AppSizes.l,
+            96,
           ),
-        ),
-        child: Row(
           children: [
-            Icon(
-              Symbols.add_circle_rounded,
-              size: AppSizes.iconL,
-              color: colors.neutralTextPrimary,
-            ),
-            const SizedBox(width: AppSizes.m),
-            Expanded(
-              child: Text(
-                _isVietnamese(context)
-                    ? 'Thêm nguồn tiền mới'
-                    : 'Add new wallet',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colors.neutralTextPrimary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
+            if (sources.isEmpty)
+              _buildEmptyState(context)
+            else
+              ...List.generate(sources.length, (index) {
+                final source = sources[index];
+                final animationDelayMs = index < 8 ? index * 40 : 320;
+
+                return Animate(
+                  delay: Duration(milliseconds: animationDelayMs),
+                  effects: [
+                    FadeEffect(duration: 280.ms, curve: Curves.easeOut),
+                    SlideEffect(
+                      begin: const Offset(0, 0.08),
+                      end: const Offset(0, 0),
+                      duration: 340.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
+                  ],
+                  child: MoneySourceListItem(
+                    moneySource: source,
+                    onTap: () => _openMoneySourceDetail(source),
+                    onDelete: () => _handleDelete(source),
+                  ),
+                );
+              }),
           ],
         ),
-      ),
+        Positioned(
+          right: AppSizes.l,
+          bottom: AppSizes.l,
+          child: FloatingActionButton(
+            onPressed: _showAddMoneySourceDrawer,
+            elevation: 4,
+            shape: const CircleBorder(),
+            child: const Icon(Icons.add, size: 30, weight: 900, fill: 1),
+          ),
+        ),
+      ],
     );
   }
 
@@ -295,34 +266,17 @@ class _MoneySourceManageScreenState extends State<MoneySourceManageScreen> {
   }
 
   Future<void> _handleDelete(MoneySourceModel source) async {
-    final confirm = await showDialog<bool>(
+    final confirm = await AppConfirmDialog.show(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(context.l10n.confirmAction),
-          content: Text(
-            _isVietnamese(context)
-                ? 'Bạn có chắc muốn xóa nguồn tiền này?'
-                : 'Are you sure you want to delete this money source?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(context.l10n.cancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text(
-                context.l10n.delete,
-                style: const TextStyle(color: Colors.red),
-              ),
-            ),
-          ],
-        );
-      },
+      title: context.l10n.confirmAction,
+      message: _isVietnamese(context)
+          ? 'Bạn có chắc muốn xóa nguồn tiền này?'
+          : 'Are you sure you want to delete this money source?',
+      confirmText: context.l10n.delete,
+      isDestructive: true,
     );
 
-    if (confirm != true) {
+    if (!confirm) {
       return;
     }
 
