@@ -11,14 +11,13 @@ import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
 import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/features/transaction/forms/add_transaction_form_helpers.dart';
+import 'package:zenit/features/transaction/forms/add_transaction_form_prefill_helper.dart';
 import 'package:zenit/features/transaction/forms/add_transaction_form_validators.dart';
 import 'package:zenit/features/transaction/widgets/category_selector_drawer.dart';
-import 'package:zenit/features/transaction/services/transaction_service.dart';
 import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
 import 'package:zenit/features/setting_childs/category_manage/providers/category_provider.dart';
 import 'package:zenit/features/setting_childs/money_source_manage/models/money_source_model.dart';
 import 'package:zenit/features/setting_childs/money_source_manage/providers/money_source_provider.dart';
-import 'package:zenit/features/setting_childs/money_source_manage/widgets/money_source_selector_drawer.dart';
 
 class TransactionFormData {
   final String title;
@@ -55,9 +54,9 @@ class AddTransactionForm extends StatefulWidget {
   State<AddTransactionForm> createState() => _AddTransactionFormState();
 }
 
-class _AddTransactionFormState extends State<AddTransactionForm> {
+class _AddTransactionFormState extends State<AddTransactionForm>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  final TransactionService _transactionService = TransactionService();
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   final _loanAmountController = TextEditingController();
@@ -71,52 +70,57 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   XFile? _selectedPhoto;
   bool _isIncomeTransaction = false;
   bool _collectLaterEnabled = false;
+  bool _isUpdatingAmountField = false;
+  late AnimationController _walletSwitchController;
+  int _currentWalletIndex = -1;
 
   @override
   void initState() {
     super.initState();
+    _walletSwitchController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final categoryProvider = context.read<CategoryProvider>();
-      if (!categoryProvider.hasData) {
-        categoryProvider.loadAllCategories();
-      }
-      _autoSelectRecentlyUsedWallet();
-      widget.onFormReady?.call(_getFormData);
+      _prefillFormFromRecentTransaction();
     });
   }
 
-  Future<void> _autoSelectRecentlyUsedWallet() async {
+  Future<void> _prefillFormFromRecentTransaction() async {
     final moneySourceProvider = context.read<MoneySourceProvider>();
-    if (!moneySourceProvider.hasData) {
-      await moneySourceProvider.loadAllMoneySources();
-    }
+    final categoryProvider = context.read<CategoryProvider>();
+
+    final prefill =
+        await AddTransactionFormPrefillHelper.loadFromRecentTransaction(
+          moneySourceProvider: moneySourceProvider,
+          categoryProvider: categoryProvider,
+        );
+
     if (!mounted || moneySourceProvider.moneySources.isEmpty) return;
-    if (_selectedWallet != null) return;
 
-    MoneySourceModel? walletToSelect;
-    try {
-      final response = await _transactionService.getAllTransactions(
-        pageSize: 1,
-        useCountTotal: false,
-      );
-      if (response.items.isNotEmpty) {
-        final latestWalletId = response.items.first.walletId;
-        for (final wallet in moneySourceProvider.moneySources) {
-          if (wallet.id == latestWalletId) {
-            walletToSelect = wallet;
-            break;
-          }
-        }
+    final selectedWallet =
+        prefill.wallet ?? moneySourceProvider.moneySources.first;
+    final index = moneySourceProvider.moneySources.indexWhere(
+      (w) => w.id == selectedWallet.id,
+    );
+
+    setState(() {
+      _selectedWallet = selectedWallet;
+      if (prefill.category != null) {
+        _selectedCategory = prefill.category;
       }
-    } catch (_) {}
+      if (prefill.isIncomeTransaction != null) {
+        _isIncomeTransaction = prefill.isIncomeTransaction!;
+      }
+      _currentWalletIndex = index >= 0 ? index : 0;
+    });
 
-    walletToSelect ??= moneySourceProvider.moneySources.first;
-    if (!mounted) return;
-    setState(() => _selectedWallet = walletToSelect);
+    widget.onFormReady?.call(_getFormData);
   }
 
   @override
   void dispose() {
+    _walletSwitchController.dispose();
     _titleController.dispose();
     _amountController.dispose();
     _loanAmountController.dispose();
@@ -216,37 +220,13 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   }
 
   void _showWalletSelector() {
-    final colors = Theme.of(context).extension<AppColorExtension>()!;
-    AppDrawer.showAsBottomSheet(
+    AddTransactionFormHelpers.showWalletSelector(
       context: context,
-      title: _walletFieldLabel(context),
-      showCloseButton: false,
-      showDragHandle: true,
-      height: MediaQuery.of(context).size.height * 0.75,
-      headerActions: [
-        IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-            NavigationService.instance
-                .navigateTo('/settings/money_source_manage')
-                ?.then((_) {
-                  if (!mounted) return;
-                  context.read<MoneySourceProvider>().refreshMoneySources();
-                });
-          },
-          icon: Icon(Symbols.settings_rounded, color: colors.primaryMain),
-          tooltip: _isVietnamese(context)
-              ? 'Quản lý nguồn tiền'
-              : 'Manage wallets',
-        ),
-      ],
-      body: MoneySourceSelectorDrawer(
-        selectedWallet: _selectedWallet,
-        onWalletSelected: (wallet) {
-          setState(() => _selectedWallet = wallet);
-          Navigator.of(context).pop();
-        },
-      ),
+      selectedWallet: _selectedWallet,
+      onWalletSelected: (wallet) {
+        setState(() => _selectedWallet = wallet);
+        Navigator.of(context).pop();
+      },
     );
   }
 
@@ -342,12 +322,178 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   String? _validateAmount(String? value) =>
       AddTransactionFormValidators.validateAmount(context, value);
 
+  void _setAmountText(String text) {
+    _isUpdatingAmountField = true;
+    _amountController.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+    _isUpdatingAmountField = false;
+    if (mounted) setState(() {});
+  }
+
+  String _formatNumberWithCommas(int value) {
+    final raw = value.toString();
+    final buffer = StringBuffer();
+    for (int i = 0; i < raw.length; i++) {
+      final indexFromRight = raw.length - i;
+      buffer.write(raw[i]);
+      if (indexFromRight > 1 && indexFromRight % 3 == 1) {
+        buffer.write(',');
+      }
+    }
+    return buffer.toString();
+  }
+
+  bool _isOperator(String char) =>
+      char == '+' || char == '-' || char == '*' || char == '/';
+
+  int _precedence(String op) {
+    if (op == '+' || op == '-') return 1;
+    if (op == '*' || op == '/') return 2;
+    return 0;
+  }
+
+  int? _applyOperator(int left, int right, String op) {
+    switch (op) {
+      case '+':
+        return left + right;
+      case '-':
+        return left - right;
+      case '*':
+        return left * right;
+      case '/':
+        if (right == 0) return null;
+        return left ~/ right;
+      default:
+        return null;
+    }
+  }
+
+  int? _evaluateExpression(String expression) {
+    final normalized = expression.replaceAll(',', '').replaceAll(' ', '');
+    if (normalized.isEmpty) return null;
+
+    if (normalized.startsWith('-') || _isOperator(normalized[0])) {
+      return null;
+    }
+    if (_isOperator(normalized[normalized.length - 1])) {
+      return null;
+    }
+
+    final values = <int>[];
+    final operators = <String>[];
+    int i = 0;
+
+    while (i < normalized.length) {
+      final char = normalized[i];
+
+      if (_isOperator(char)) {
+        while (operators.isNotEmpty &&
+            _precedence(operators.last) >= _precedence(char)) {
+          if (values.length < 2) return null;
+          final right = values.removeLast();
+          final left = values.removeLast();
+          final result = _applyOperator(left, right, operators.removeLast());
+          if (result == null) return null;
+          values.add(result);
+        }
+        operators.add(char);
+        i++;
+        continue;
+      }
+
+      if (RegExp(r'\d').hasMatch(char)) {
+        int j = i;
+        while (j < normalized.length && RegExp(r'\d').hasMatch(normalized[j])) {
+          j++;
+        }
+        final value = int.tryParse(normalized.substring(i, j));
+        if (value == null) return null;
+        values.add(value);
+        i = j;
+        continue;
+      }
+
+      return null;
+    }
+
+    while (operators.isNotEmpty) {
+      if (values.length < 2) return null;
+      final right = values.removeLast();
+      final left = values.removeLast();
+      final result = _applyOperator(left, right, operators.removeLast());
+      if (result == null) return null;
+      values.add(result);
+    }
+
+    return values.length == 1 ? values.first : null;
+  }
+
+  void _cycleWallet(bool isNextWallet) {
+    final moneySourceProvider = context.read<MoneySourceProvider>();
+    if (moneySourceProvider.moneySources.isEmpty) return;
+
+    final nextIndex = isNextWallet
+        ? (_currentWalletIndex + 1) % moneySourceProvider.moneySources.length
+        : (_currentWalletIndex - 1 + moneySourceProvider.moneySources.length) %
+              moneySourceProvider.moneySources.length;
+
+    setState(() {
+      _currentWalletIndex = nextIndex;
+      _selectedWallet = moneySourceProvider.moneySources[nextIndex];
+    });
+
+    _walletSwitchController.forward(from: 0.0);
+  }
+
+  void _handleAmountChanged(String value) {
+    if (_isUpdatingAmountField) return;
+
+    final normalized = value.replaceAll(' ', '');
+
+    if (normalized.contains('=')) {
+      final expression = normalized.replaceAll('=', '');
+      final result = _evaluateExpression(expression);
+      if (result != null) {
+        _setAmountText(_formatNumberWithCommas(result));
+      } else if (mounted) {
+        AppFlash.warning(
+          context,
+          _isVietnamese(context)
+              ? 'Biểu thức không hợp lệ hoặc chia cho 0'
+              : 'Invalid expression or division by zero',
+        );
+      }
+      return;
+    }
+
+    if (RegExp(r'[+\-*/]').hasMatch(normalized)) {
+      if (mounted) setState(() {});
+      return;
+    }
+
+    if (normalized.isEmpty) {
+      if (mounted) setState(() {});
+      return;
+    }
+
+    final parsed = int.tryParse(normalized.replaceAll(',', ''));
+    if (parsed == null) {
+      if (mounted) setState(() {});
+      return;
+    }
+
+    _setAmountText(_formatNumberWithCommas(parsed));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final colors = Theme.of(context).extension<AppColorExtension>()!;
 
     return Container(
+      width: double.infinity,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppSizes.l)),
@@ -359,59 +505,98 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // --- Amount (moved to top, larger) ---
               Center(
-                child: TextFormField(
-                  controller: _titleController,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
-                  ),
-                  decoration: InputDecoration(
-                    filled: false,
-                    hintText: l10n.transactionName,
-                    hintStyle: TextStyle(
-                      color: colors.neutralTextDisable.withOpacity(0.5),
-                      fontWeight: FontWeight.w700,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.78,
+                      child: TextFormField(
+                        controller: _amountController,
+                        keyboardType: TextInputType.text,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'[0-9+\-*/,= ]'),
+                          ),
+                        ],
+                        textAlign: TextAlign.center,
+                        onChanged: _handleAmountChanged,
+                        decoration: InputDecoration(
+                          filled: false,
+                          hintText: '0',
+                          hintStyle: TextStyle(
+                            color: colors.neutralTextDisable,
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        style: TextStyle(
+                          fontSize: 34,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black,
+                        ),
+                        validator: _validateAmount,
+                      ),
                     ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    focusedErrorBorder: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  validator: _validateTitle,
+                    const SizedBox(height: AppSizes.xs),
+                    Text(
+                      'VND',
+                      style: TextStyle(
+                        color: colors.neutralTextSecondary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: AppSizes.xl),
 
-              // --- Amount Field ---
-              _buildFieldRow(
-                context,
-                label: l10n.amount,
-                child: Expanded(
-                  child: TextFormField(
-                    controller: _amountController,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.end,
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      filled: false,
-                      hintText: '0',
-                      hintStyle: TextStyle(color: colors.neutralTextDisable),
-                      suffixText: ' VND',
-                      suffixStyle: TextStyle(
-                        color: colors.neutralTextSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
+              const SizedBox(height: AppSizes.l),
+
+              // --- Title with leading icon ---
+              Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.receipt_long,
+                      color: colors.primaryMain,
+                      size: 26,
                     ),
-                    style: Theme.of(context).textTheme.bodyLarge,
-                    validator: _validateAmount,
-                  ),
+                    const SizedBox(width: AppSizes.s),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.55,
+                      child: TextFormField(
+                        controller: _titleController,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black,
+                        ),
+                        decoration: InputDecoration(
+                          filled: false,
+                          hintText: l10n.transactionName,
+                          hintStyle: TextStyle(
+                            color: colors.neutralTextDisable.withOpacity(0.5),
+                            fontWeight: FontWeight.w700,
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        validator: _validateTitle,
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
@@ -451,6 +636,8 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                     _isVietnamese(context)
                         ? 'Chi hộ - thu hồi sau'
                         : 'Pay on behalf - collect later',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: colors.neutralTextPrimary,
                       fontWeight: FontWeight.w600,
@@ -556,30 +743,29 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               _buildFieldRow(
                 context,
                 label: l10n.time,
-                child: Expanded(
-                  child: InkWell(
-                    onTap: _selectDate,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          _selectedDate.day == DateTime.now().day &&
-                                  _selectedDate.month == DateTime.now().month &&
-                                  _selectedDate.year == DateTime.now().year
-                              ? l10n.today
-                              : AddTransactionFormHelpers.formatDate(
-                                  _selectedDate,
-                                ),
-                          style: TextStyle(color: colors.neutralTextDisable),
-                        ),
-                        const SizedBox(width: AppSizes.s),
-                        Icon(
-                          Symbols.calendar_month_rounded,
-                          color: colors.neutralTextPrimary,
-                          size: 20,
-                        ),
-                      ],
-                    ),
+                leadingIcon: Icons.schedule_rounded,
+                child: InkWell(
+                  onTap: _selectDate,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        _selectedDate.day == DateTime.now().day &&
+                                _selectedDate.month == DateTime.now().month &&
+                                _selectedDate.year == DateTime.now().year
+                            ? l10n.today
+                            : AddTransactionFormHelpers.formatDate(
+                                _selectedDate,
+                              ),
+                        style: TextStyle(color: colors.neutralTextDisable),
+                      ),
+                      const SizedBox(width: AppSizes.s),
+                      Icon(
+                        Symbols.calendar_month_rounded,
+                        color: colors.primaryMain,
+                        size: 20,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -587,6 +773,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               _buildFieldRow(
                 context,
                 label: _typeFieldLabel(context),
+                leadingIcon: Icons.compare_arrows_rounded,
                 child: SegmentedButton<int>(
                   segments: [
                     ButtonSegment<int>(
@@ -632,6 +819,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               _buildFieldRow(
                 context,
                 label: l10n.singleCategory,
+                leadingIcon: Icons.sell_rounded,
                 child: InkWell(
                   onTap: _showCategorySelector,
                   child: _selectedCategory != null
@@ -681,7 +869,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                             ),
                             Icon(
                               Icons.chevron_right,
-                              color: colors.neutralTextDisable,
+                              color: colors.primaryMain,
                             ),
                           ],
                         ),
@@ -691,42 +879,112 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               _buildFieldRow(
                 context,
                 label: _walletFieldLabel(context),
-                child: InkWell(
-                  onTap: _showWalletSelector,
-                  child: _selectedWallet != null
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSizes.m,
-                            vertical: AppSizes.s,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _selectedWallet!.backgroundColor.withOpacity(
-                              0.2,
-                            ),
-                            borderRadius: BorderRadius.circular(
-                              AppSizes.borderRadiusXSmall,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _selectedWallet!.iconData,
-                                size: 16,
-                                color: _selectedWallet!.iconColor,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _selectedWallet!.name,
-                                style: TextStyle(
-                                  color: colors.neutralTextPrimary,
-                                  fontWeight: FontWeight.w600,
+                leadingIcon: Icons.account_balance_wallet_rounded,
+                child: _selectedWallet != null
+                    ? GestureDetector(
+                        onHorizontalDragEnd: (details) {
+                          const swipeThreshold = 50.0;
+                          if (details.primaryVelocity == null) return;
+                          if (details.primaryVelocity! > swipeThreshold) {
+                            _cycleWallet(false);
+                          } else if (details.primaryVelocity! <
+                              -swipeThreshold) {
+                            _cycleWallet(true);
+                          }
+                        },
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 500),
+                          transitionBuilder: (child, animation) {
+                            final slide =
+                                Tween<Offset>(
+                                  begin: const Offset(0.12, 0),
+                                  end: Offset.zero,
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeOutCubic,
+                                    reverseCurve: Curves.easeInCubic,
+                                  ),
+                                );
+                            final scale = Tween<double>(begin: 0.96, end: 1.0)
+                                .animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeOut,
+                                    reverseCurve: Curves.easeIn,
+                                  ),
+                                );
+                            final fade = Tween<double>(begin: 0.0, end: 1.0)
+                                .animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeOut,
+                                    reverseCurve: Curves.easeIn,
+                                  ),
+                                );
+                            final rotate = Tween<double>(begin: 0.08, end: 0.0)
+                                .animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.easeOutCubic,
+                                    reverseCurve: Curves.easeInCubic,
+                                  ),
+                                );
+
+                            return FadeTransition(
+                              opacity: fade,
+                              child: SlideTransition(
+                                position: slide,
+                                child: ScaleTransition(
+                                  scale: scale,
+                                  child: RotationTransition(
+                                    turns: rotate,
+                                    child: child,
+                                  ),
                                 ),
                               ),
-                            ],
+                            );
+                          },
+                          child: InkWell(
+                            key: ValueKey(_selectedWallet!.id),
+                            onTap: _showWalletSelector,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSizes.m,
+                                vertical: AppSizes.s,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _selectedWallet!.backgroundColor
+                                    .withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(
+                                  AppSizes.borderRadiusXSmall,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _selectedWallet!.iconData,
+                                    size: 16,
+                                    color: _selectedWallet!.iconColor,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    _selectedWallet!.name,
+                                    style: TextStyle(
+                                      color: colors.neutralTextPrimary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        )
-                      : Row(
+                        ),
+                      )
+                    : InkWell(
+                        onTap: _showWalletSelector,
+                        child: Row(
                           children: [
                             Text(
                               l10n.select,
@@ -736,16 +994,17 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                             ),
                             Icon(
                               Icons.chevron_right,
-                              color: colors.neutralTextDisable,
+                              color: colors.primaryMain,
                             ),
                           ],
                         ),
-                ),
+                      ),
               ),
 
               _buildFieldRow(
                 context,
                 label: _photoFieldLabel(context),
+                leadingIcon: Icons.photo_library_rounded,
                 child: InkWell(
                   onTap: _pickPhoto,
                   child: Row(
@@ -754,7 +1013,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                         _selectedPhoto != null
                             ? Symbols.image_rounded
                             : Symbols.add_photo_alternate_rounded,
-                        color: colors.neutralTextSecondary,
+                        color: colors.primaryMain,
                         size: 18,
                       ),
                       const SizedBox(width: AppSizes.xs),
@@ -773,7 +1032,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                           child: Icon(
                             Symbols.close_rounded,
                             size: 16,
-                            color: colors.neutralTextDisable,
+                            color: colors.primaryMain,
                           ),
                         ),
                       ],
@@ -788,13 +1047,23 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    l10n.note,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: colors.neutralTextPrimary,
-                    ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.sticky_note_2_rounded,
+                        size: 18,
+                        color: colors.primaryMain,
+                      ),
+                      const SizedBox(width: AppSizes.s),
+                      Text(
+                        l10n.note,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: colors.neutralTextPrimary,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: AppSizes.s),
                   TextFormField(
@@ -831,6 +1100,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
   Widget _buildFieldRow(
     BuildContext context, {
     required String label,
+    required IconData leadingIcon,
     required Widget child,
   }) {
     final colors = Theme.of(context).extension<AppColorExtension>()!;
@@ -839,13 +1109,20 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-              color: colors.neutralTextPrimary,
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(leadingIcon, size: 18, color: colors.primaryMain),
+              const SizedBox(width: AppSizes.s),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  color: colors.neutralTextPrimary,
+                ),
+              ),
+            ],
           ),
           const SizedBox(width: AppSizes.l),
           child,

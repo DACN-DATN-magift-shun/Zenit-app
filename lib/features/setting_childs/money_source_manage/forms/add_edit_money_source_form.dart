@@ -89,7 +89,7 @@ class _AddEditMoneySourceFormState extends State<AddEditMoneySourceForm> {
 
     final amountText = _amountController.text.trim();
     final parsedAmount = amountText.isEmpty ? 0 : int.tryParse(amountText);
-    if (parsedAmount == null || parsedAmount < 0) {
+    if (parsedAmount == null) {
       AppFlash.warning(context, context.l10n.enterValidAmount);
       return;
     }
@@ -129,6 +129,11 @@ class _AddEditMoneySourceFormState extends State<AddEditMoneySourceForm> {
                       ? 'Vui lòng nhập tên nguồn tiền'
                       : 'Please enter money source name';
                 }
+                if (value.trim().length > 25) {
+                  return isVietnamese
+                      ? 'Tên nguồn tiền không được vượt quá 25 ký tự'
+                      : 'Money source name must not exceed 25 characters';
+                }
                 return null;
               },
             ),
@@ -144,7 +149,7 @@ class _AddEditMoneySourceFormState extends State<AddEditMoneySourceForm> {
                   return null;
                 }
                 final amount = int.tryParse(text);
-                if (amount == null || amount < 0) {
+                if (amount == null) {
                   return l10n.enterValidAmount;
                 }
                 return null;

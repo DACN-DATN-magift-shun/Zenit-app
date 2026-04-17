@@ -166,7 +166,7 @@ class MoneySourceListItem extends StatelessWidget {
     for (int i = amountStr.length - 1; i >= 0; i--) {
       buffer.write(amountStr[i]);
       count++;
-      if (count % 3 == 0 && i > 0) {
+      if (count % 3 == 0 && i > 0 && amountStr[i - 1] != '-') {
         buffer.write('.');
       }
     }

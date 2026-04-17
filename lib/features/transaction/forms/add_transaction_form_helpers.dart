@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:zenit/core/layout/app_bar.dart';
+import 'package:zenit/core/services/navigation_service.dart';
+import 'package:zenit/core/theme/app_sizes.dart';
+import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/core/widgets/app_drawer.dart';
 import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
+import 'package:zenit/features/setting_childs/money_source_manage/models/money_source_model.dart';
+import 'package:zenit/features/setting_childs/money_source_manage/providers/money_source_provider.dart';
+import 'package:zenit/features/setting_childs/money_source_manage/widgets/money_source_selector_drawer.dart';
 
 class AddTransactionFormHelpers {
   static bool isVietnamese(BuildContext context) {
@@ -30,6 +39,43 @@ class AddTransactionFormHelpers {
     return isVietnamese(context)
         ? 'Vui lòng chọn ví cho giao dịch'
         : 'Please select a wallet for this transaction';
+  }
+
+  static void showWalletSelector({
+    required BuildContext context,
+    required MoneySourceModel? selectedWallet,
+    required ValueChanged<MoneySourceModel> onWalletSelected,
+  }) {
+    final colors = Theme.of(context).extension<AppColorExtension>()!;
+
+    AppDrawer.showAsBottomSheet(
+      context: context,
+      title: walletFieldLabel(context),
+      showCloseButton: false,
+      showDragHandle: true,
+      height: MediaQuery.of(context).size.height * 0.75,
+      headerActions: [
+        IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            NavigationService.instance
+                .navigateTo('/settings/money_source_manage')
+                ?.then((_) {
+                  if (!context.mounted) return;
+                  context.read<MoneySourceProvider>().refreshMoneySources();
+                });
+          },
+          icon: Icon(Icons.settings_rounded, color: colors.primaryMain),
+          tooltip: isVietnamese(context)
+              ? 'Quản lý nguồn tiền'
+              : 'Manage wallets',
+        ),
+      ],
+      body: MoneySourceSelectorDrawer(
+        selectedWallet: selectedWallet,
+        onWalletSelected: onWalletSelected,
+      ),
+    );
   }
 
   static bool isCategoryCompatibleWithCurrentType(
@@ -149,5 +195,105 @@ class AddTransactionFormHelpers {
     return isVietnamese(context)
         ? 'Số tiền giao dịch còn lại: ${formatWalletCurrency(remainingAmount)}'
         : 'Remaining transaction amount: ${formatWalletCurrency(remainingAmount)}';
+  }
+
+  // --- Amount Expression Calculation ---
+  static bool isOperator(String char) =>
+      char == '+' || char == '-' || char == '*' || char == '/';
+
+  static int precedenceOfOperator(String op) {
+    if (op == '+' || op == '-') return 1;
+    if (op == '*' || op == '/') return 2;
+    return 0;
+  }
+
+  static int? applyOperator(int left, int right, String op) {
+    switch (op) {
+      case '+':
+        return left + right;
+      case '-':
+        return left - right;
+      case '*':
+        return left * right;
+      case '/':
+        if (right == 0) return null;
+        return left ~/ right;
+      default:
+        return null;
+    }
+  }
+
+  static int? evaluateExpression(String expression) {
+    final normalized = expression.replaceAll(',', '').replaceAll(' ', '');
+    if (normalized.isEmpty) return null;
+
+    if (normalized.startsWith('-') || isOperator(normalized[0])) {
+      return null;
+    }
+    if (isOperator(normalized[normalized.length - 1])) {
+      return null;
+    }
+
+    final values = <int>[];
+    final operators = <String>[];
+    int i = 0;
+
+    while (i < normalized.length) {
+      final char = normalized[i];
+
+      if (isOperator(char)) {
+        while (operators.isNotEmpty &&
+            precedenceOfOperator(operators.last) >=
+                precedenceOfOperator(char)) {
+          if (values.length < 2) return null;
+          final right = values.removeLast();
+          final left = values.removeLast();
+          final result = applyOperator(left, right, operators.removeLast());
+          if (result == null) return null;
+          values.add(result);
+        }
+        operators.add(char);
+        i++;
+        continue;
+      }
+
+      if (RegExp(r'\d').hasMatch(char)) {
+        int j = i;
+        while (j < normalized.length && RegExp(r'\d').hasMatch(normalized[j])) {
+          j++;
+        }
+        final value = int.tryParse(normalized.substring(i, j));
+        if (value == null) return null;
+        values.add(value);
+        i = j;
+        continue;
+      }
+
+      return null;
+    }
+
+    while (operators.isNotEmpty) {
+      if (values.length < 2) return null;
+      final right = values.removeLast();
+      final left = values.removeLast();
+      final result = applyOperator(left, right, operators.removeLast());
+      if (result == null) return null;
+      values.add(result);
+    }
+
+    return values.length == 1 ? values.first : null;
+  }
+
+  static String formatNumberWithCommas(int value) {
+    final raw = value.toString();
+    final buffer = StringBuffer();
+    for (int i = 0; i < raw.length; i++) {
+      final indexFromRight = raw.length - i;
+      buffer.write(raw[i]);
+      if (indexFromRight > 1 && indexFromRight % 3 == 1) {
+        buffer.write(',');
+      }
+    }
+    return buffer.toString();
   }
 }
