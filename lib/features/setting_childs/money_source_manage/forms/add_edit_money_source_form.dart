@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:zenit/core/forms/form_fields/custom_text_form_field.dart';
 import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
+import 'package:zenit/core/utils/validators/money_source_manage_form_validator.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
-import 'package:zenit/core/widgets/button.dart';
 import 'package:zenit/features/setting_childs/money_source_manage/models/money_source_model.dart';
 
 class AddEditMoneySourceData {
@@ -24,6 +23,24 @@ class AddEditMoneySourceData {
   });
 }
 
+class AddEditMoneySourceFormController {
+  _AddEditMoneySourceFormState? _state;
+
+  void submit() {
+    _state?._handleSubmit();
+  }
+
+  void _attach(_AddEditMoneySourceFormState state) {
+    _state = state;
+  }
+
+  void _detach(_AddEditMoneySourceFormState state) {
+    if (_state == state) {
+      _state = null;
+    }
+  }
+}
+
 class AddEditMoneySourceForm extends StatefulWidget {
   const AddEditMoneySourceForm({
     super.key,
@@ -34,6 +51,7 @@ class AddEditMoneySourceForm extends StatefulWidget {
     this.initialIsIncludeInTotalBalance = true,
     this.isEditMode = false,
     this.onSubmit,
+    this.controller,
   });
 
   final String? initialName;
@@ -43,6 +61,7 @@ class AddEditMoneySourceForm extends StatefulWidget {
   final bool initialIsIncludeInTotalBalance;
   final bool isEditMode;
   final void Function(AddEditMoneySourceData data)? onSubmit;
+  final AddEditMoneySourceFormController? controller;
 
   @override
   State<AddEditMoneySourceForm> createState() => _AddEditMoneySourceFormState();
@@ -60,6 +79,7 @@ class _AddEditMoneySourceFormState extends State<AddEditMoneySourceForm> {
   @override
   void initState() {
     super.initState();
+    widget.controller?._attach(this);
     _nameController.text = widget.initialName ?? '';
     _amountController.text = widget.initialAmount?.toString() ?? '';
     _noteController.text = widget.initialNote ?? '';
@@ -68,7 +88,17 @@ class _AddEditMoneySourceFormState extends State<AddEditMoneySourceForm> {
   }
 
   @override
+  void didUpdateWidget(covariant AddEditMoneySourceForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?._detach(this);
+      widget.controller?._attach(this);
+    }
+  }
+
+  @override
   void dispose() {
+    widget.controller?._detach(this);
     _nameController.dispose();
     _amountController.dispose();
     _noteController.dispose();
@@ -123,19 +153,11 @@ class _AddEditMoneySourceFormState extends State<AddEditMoneySourceForm> {
                   ? 'Nhập tên nguồn tiền'
                   : 'Enter money source name',
               controller: _nameController,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return isVietnamese
-                      ? 'Vui lòng nhập tên nguồn tiền'
-                      : 'Please enter money source name';
-                }
-                if (value.trim().length > 25) {
-                  return isVietnamese
-                      ? 'Tên nguồn tiền không được vượt quá 25 ký tự'
-                      : 'Money source name must not exceed 25 characters';
-                }
-                return null;
-              },
+              validator: (value) =>
+                  MoneySourceManageFormValidator.moneySourceName(
+                    value,
+                    isVietnamese: isVietnamese,
+                  ),
             ),
             const SizedBox(height: AppSizes.l),
             CustomTextFormField(
@@ -143,17 +165,10 @@ class _AddEditMoneySourceFormState extends State<AddEditMoneySourceForm> {
               hintText: l10n.enterAmount,
               controller: _amountController,
               keyboardType: TextInputType.number,
-              validator: (value) {
-                final text = value?.trim() ?? '';
-                if (text.isEmpty) {
-                  return null;
-                }
-                final amount = int.tryParse(text);
-                if (amount == null) {
-                  return l10n.enterValidAmount;
-                }
-                return null;
-              },
+              validator: (value) => MoneySourceManageFormValidator.amount(
+                value,
+                invalidAmountMessage: l10n.enterValidAmount,
+              ),
             ),
             const SizedBox(height: AppSizes.l),
             CustomTextFormField(
@@ -189,15 +204,6 @@ class _AddEditMoneySourceFormState extends State<AddEditMoneySourceForm> {
             ),
             const SizedBox(height: AppSizes.m),
             _buildIconGrid(colors),
-            const SizedBox(height: AppSizes.xl),
-            Center(
-              child: AppButton(
-                text: l10n.done,
-                icon: Symbols.check_circle_rounded,
-                onPressed: _handleSubmit,
-                width: 160,
-              ),
-            ),
             const SizedBox(height: 64),
           ],
         ),

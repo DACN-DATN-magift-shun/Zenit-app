@@ -252,7 +252,10 @@ final ThemeData lightTheme = ThemeData(
       borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
       borderSide: BorderSide(color: AppColors.light.primaryMain, width: 2),
     ),
-    hintStyle: TextStyle(color: AppColors.light.neutralTextSecondary),
+    hintStyle: TextStyle(
+      color: AppColors.light.neutralTextSecondary,
+      fontWeight: FontWeight.w400,
+    ),
   ),
   dialogTheme: DialogThemeData(
     backgroundColor: Colors.white,
@@ -343,7 +346,10 @@ final ThemeData darkTheme = ThemeData(
       borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
       borderSide: BorderSide(color: AppColors.dark.primaryMain, width: 2),
     ),
-    hintStyle: TextStyle(color: AppColors.dark.neutralTextSecondary),
+    hintStyle: TextStyle(
+      color: AppColors.dark.neutralTextSecondary,
+      fontWeight: FontWeight.w400,
+    ),
   ),
   dialogTheme: DialogThemeData(
     backgroundColor: Colors.white,

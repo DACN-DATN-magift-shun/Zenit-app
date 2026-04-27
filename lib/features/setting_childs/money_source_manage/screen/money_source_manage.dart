@@ -219,11 +219,33 @@ class _MoneySourceManageScreenState extends State<MoneySourceManageScreen> {
   }
 
   void _showAddMoneySourceDrawer() {
+    final formController = AddEditMoneySourceFormController();
+
     AppDrawer.showAsBottomSheet(
       context: context,
       title: _isVietnamese(context) ? 'Thêm nguồn tiền' : 'Add money source',
       showDragHandle: true,
+      headerActions: [
+        GestureDetector(
+          onTap: () {
+            formController.submit();
+          },
+          child: Container(
+            padding: const EdgeInsets.all(AppSizes.s),
+            decoration: BoxDecoration(
+              color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
+            ),
+            child: Icon(
+              Symbols.check_rounded,
+              size: AppSizes.iconL,
+              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
+            ),
+          ),
+        ),
+      ],
       body: AddEditMoneySourceForm(
+        controller: formController,
         onSubmit: (data) async {
           final moneySourceProvider = context.read<MoneySourceProvider>();
           try {

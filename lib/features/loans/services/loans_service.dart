@@ -6,7 +6,9 @@ import 'package:zenit/data/network/api_client.dart';
 import 'package:zenit/features/loans/models/loan_model.dart';
 
 class LoansService {
-  final _api = ApiClient();
+  LoansService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
+
+  final ApiClient _api;
 
   bool _isSuccessStatus(int? statusCode) {
     return statusCode == 200 ||

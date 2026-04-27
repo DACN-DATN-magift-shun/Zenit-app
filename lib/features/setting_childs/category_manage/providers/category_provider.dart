@@ -5,7 +5,10 @@ import 'package:zenit/features/setting_childs/category_manage/services/category_
 /// Provider quản lý state và CRUD cho Categories
 /// Dữ liệu được tổ chức theo groupType (0-5) để dễ hiển thị trên UI
 class CategoryProvider extends ChangeNotifier {
-  final CategoryService _categoryService = CategoryService();
+  CategoryProvider({CategoryService? categoryService})
+    : _categoryService = categoryService ?? CategoryService();
+
+  final CategoryService _categoryService;
 
   // State: Map lưu CategoryGroup theo groupType
   // Key: groupType (0-5), Value: CategoryGroup chứa danh sách categories
@@ -47,12 +50,17 @@ class CategoryProvider extends ChangeNotifier {
 
   /// Lấy tên của group theo groupType
   String getGroupName(int groupType) {
-    return _categoryGroups[groupType]?.name ?? GroupType.fromValue(groupType).displayName;
+    return
+        _categoryGroups[groupType]?.name ??
+        GroupType.fromValue(groupType).displayName;
   }
 
   /// Lấy tổng số categories của tất cả groups
   int get totalCategories {
-    return _categoryGroups.values.fold(0, (sum, group) => sum + group.categories.length);
+    return _categoryGroups.values.fold(
+      0,
+      (sum, group) => sum + group.categories.length,
+    );
   }
 
   /// Kiểm tra xem đã load data chưa
@@ -63,23 +71,15 @@ class CategoryProvider extends ChangeNotifier {
   /// Load tất cả categories của tất cả groupType (0-5)
   /// Gọi hàm này khi khởi tạo màn hình quản lý category
   Future<void> loadAllCategories() async {
-    debugPrint('=== loadAllCategories called ===');
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      debugPrint('Calling getAllCategoriesByAllGroups...');
       _categoryGroups = await _categoryService.getAllCategoriesByAllGroups();
-      debugPrint('Loaded ${_categoryGroups.length} groups');
-      for (var entry in _categoryGroups.entries) {
-        debugPrint('Group ${entry.key}: ${entry.value.categories.length} categories');
-      }
       _errorMessage = null;
-    } catch (e, stackTrace) {
+    } catch (e) {
       _errorMessage = _normalizeErrorMessage(e);
-      debugPrint('Error loading categories: $e');
-      debugPrint('Stack trace: $stackTrace');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -93,12 +93,13 @@ class CategoryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final categoryGroup = await _categoryService.getCategoriesByGroupType(groupType);
+      final categoryGroup = await _categoryService.getCategoriesByGroupType(
+        groupType,
+      );
       _categoryGroups[groupType] = categoryGroup;
       _errorMessage = null;
     } catch (e) {
       _errorMessage = _normalizeErrorMessage(e);
-      debugPrint('Error loading categories for group $groupType: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -138,7 +139,6 @@ class CategoryProvider extends ChangeNotifier {
       // Kiểm tra xem category có id hợp lệ không (tránh thêm category rác)
       if (newCategory.id.isEmpty) {
         _errorMessage = 'Failed to create category: Invalid response';
-        debugPrint('Error: Category ID is empty');
         return false;
       }
 
@@ -149,7 +149,6 @@ class CategoryProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _errorMessage = _normalizeErrorMessage(e);
-      debugPrint('Error adding category: $e');
       return false;
     } finally {
       _isActionLoading = false;
@@ -174,9 +173,6 @@ class CategoryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      debugPrint('=== Provider Update Category ===');
-      debugPrint('Updating category: $name');
-      
       final updatedCategory = await _categoryService.updateCategory(
         id: id,
         name: name,
@@ -188,8 +184,6 @@ class CategoryProvider extends ChangeNotifier {
         expenseAlertThreshold: expenseAlertThreshold,
       );
 
-      debugPrint('=== Category Updated Successfully ===');
-
       // Nếu API không trả về color/background, giữ lại màu cũ từ local state
       CategoryModel categoryToUpdate = updatedCategory;
       final existingCategory = findCategoryById(id);
@@ -198,9 +192,6 @@ class CategoryProvider extends ChangeNotifier {
           color: existingCategory.color,
           backgroundColor: existingCategory.backgroundColor,
         );
-        debugPrint('=== Preserved existing colors ===');
-        debugPrint('Color: ${existingCategory.color}');
-        debugPrint('Background: ${existingCategory.backgroundColor}');
       }
 
       // Cập nhật local state
@@ -210,7 +201,6 @@ class CategoryProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _errorMessage = _normalizeErrorMessage(e);
-      debugPrint('Error updating category: $e');
       return false;
     } finally {
       _isActionLoading = false;
@@ -236,7 +226,6 @@ class CategoryProvider extends ChangeNotifier {
       return success;
     } catch (e) {
       _errorMessage = _normalizeErrorMessage(e);
-      debugPrint('Error deleting category: $e');
       return false;
     } finally {
       _isActionLoading = false;
@@ -264,7 +253,6 @@ class CategoryProvider extends ChangeNotifier {
       return success;
     } catch (e) {
       _errorMessage = _normalizeErrorMessage(e);
-      debugPrint('Error deleting categories: $e');
       return false;
     } finally {
       _isActionLoading = false;
@@ -296,7 +284,6 @@ class CategoryProvider extends ChangeNotifier {
       return success;
     } catch (e) {
       _errorMessage = _normalizeErrorMessage(e);
-      debugPrint('Error deleting categories: $e');
       return false;
     } finally {
       _isActionLoading = false;
@@ -323,7 +310,11 @@ class CategoryProvider extends ChangeNotifier {
   }
 
   /// Cập nhật category trong local state
-  void _updateCategoryInLocalState(CategoryModel updatedCategory, int newGroupType, int? oldGroupType) {
+  void _updateCategoryInLocalState(
+    CategoryModel updatedCategory,
+    int newGroupType,
+    int? oldGroupType,
+  ) {
     // Nếu groupType thay đổi, xóa khỏi group cũ
     if (oldGroupType != null && oldGroupType != newGroupType) {
       _removeCategoryFromLocalState(updatedCategory.id, oldGroupType);
@@ -331,8 +322,10 @@ class CategoryProvider extends ChangeNotifier {
 
     if (_categoryGroups.containsKey(newGroupType)) {
       final currentGroup = _categoryGroups[newGroupType]!;
-      final categoryIndex = currentGroup.categories.indexWhere((c) => c.id == updatedCategory.id);
-      
+      final categoryIndex = currentGroup.categories.indexWhere(
+        (c) => c.id == updatedCategory.id,
+      );
+
       if (categoryIndex != -1) {
         // Category đã tồn tại trong group -> update
         final updatedCategories = [...currentGroup.categories];
@@ -341,7 +334,9 @@ class CategoryProvider extends ChangeNotifier {
       } else {
         // Category chưa tồn tại trong group (do đổi groupType) -> thêm mới
         final updatedCategories = [...currentGroup.categories, updatedCategory];
-        _categoryGroups[newGroupType] = currentGroup.copyWith(categories: updatedCategories);
+        _categoryGroups[newGroupType] = currentGroup.copyWith(
+          categories: updatedCategories,
+        );
       }
     } else {
       // Group chưa tồn tại -> tạo mới
@@ -357,8 +352,12 @@ class CategoryProvider extends ChangeNotifier {
   void _removeCategoryFromLocalState(String categoryId, int groupType) {
     if (_categoryGroups.containsKey(groupType)) {
       final currentGroup = _categoryGroups[groupType]!;
-      final updatedCategories = currentGroup.categories.where((c) => c.id != categoryId).toList();
-      _categoryGroups[groupType] = currentGroup.copyWith(categories: updatedCategories);
+      final updatedCategories = currentGroup.categories
+          .where((c) => c.id != categoryId)
+          .toList();
+      _categoryGroups[groupType] = currentGroup.copyWith(
+        categories: updatedCategories,
+      );
     }
   }
 

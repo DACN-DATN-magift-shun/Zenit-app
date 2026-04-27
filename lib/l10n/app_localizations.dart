@@ -476,6 +476,84 @@ abstract class AppLocalizations {
   /// **'Send'**
   String get send;
 
+  /// No description provided for @chatbotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Zenos AI'**
+  String get chatbotTitle;
+
+  /// No description provided for @chatHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation history'**
+  String get chatHistoryTitle;
+
+  /// No description provided for @chatHistoryTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation history'**
+  String get chatHistoryTooltip;
+
+  /// No description provided for @chatNewConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'New conversation'**
+  String get chatNewConversation;
+
+  /// No description provided for @chatNewConversationTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'New conversation'**
+  String get chatNewConversationTooltip;
+
+  /// No description provided for @chatNoConversations.
+  ///
+  /// In en, this message translates to:
+  /// **'No conversations yet'**
+  String get chatNoConversations;
+
+  /// No description provided for @chatRenameConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename conversation'**
+  String get chatRenameConversation;
+
+  /// No description provided for @chatConversationTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation title'**
+  String get chatConversationTitleHint;
+
+  /// No description provided for @chatSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get chatSave;
+
+  /// No description provided for @chatStartConversationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a conversation. Messages are sent to the backend and AI replies are fetched from message history.'**
+  String get chatStartConversationHint;
+
+  /// No description provided for @chatInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask anything...'**
+  String get chatInputHint;
+
+  /// No description provided for @chatUpdatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {date}'**
+  String chatUpdatedAt(String date);
+
+  /// No description provided for @chatConfirmDeleteConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete conversation \"{title}\"?'**
+  String chatConfirmDeleteConversation(String title);
+
   /// No description provided for @registeredEmailOrUsername.
   ///
   /// In en, this message translates to:

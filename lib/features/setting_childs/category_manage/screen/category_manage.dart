@@ -410,12 +410,34 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
     String groupName,
     CategoryModel category,
   ) {
+    final formController = AddCategoryFormController();
+
     AppDrawer.showAsBottomSheet(
       context: context,
       title: context.l10n.editCategory,
       showDragHandle: true,
       height: MediaQuery.of(context).size.height * 0.85,
+      headerActions: [
+        GestureDetector(
+          onTap: () {
+            formController.submit();
+          },
+          child: Container(
+            padding: const EdgeInsets.all(AppSizes.s),
+            decoration: BoxDecoration(
+              color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
+            ),
+            child: Icon(
+              Symbols.check_rounded,
+              size: AppSizes.iconL,
+              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
+            ),
+          ),
+        ),
+      ],
       body: AddCategoryForm(
+        controller: formController,
         groupType: groupType,
         groupName: groupName,
         initialName: category.name,
@@ -471,12 +493,34 @@ class _CategoryManageScreenState extends State<CategoryManageScreen> {
     int groupType,
     String groupName,
   ) {
+    final formController = AddCategoryFormController();
+
     AppDrawer.showAsBottomSheet(
       context: context,
       title: context.l10n.addCategory,
       showDragHandle: true,
       height: MediaQuery.of(context).size.height * 0.85,
+      headerActions: [
+        GestureDetector(
+          onTap: () {
+            formController.submit();
+          },
+          child: Container(
+            padding: const EdgeInsets.all(AppSizes.s),
+            decoration: BoxDecoration(
+              color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
+            ),
+            child: Icon(
+              Symbols.check_rounded,
+              size: AppSizes.iconL,
+              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
+            ),
+          ),
+        ),
+      ],
       body: AddCategoryForm(
+        controller: formController,
         groupType: groupType,
         groupName: groupName,
         isEditMode: false,

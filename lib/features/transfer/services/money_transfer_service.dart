@@ -6,7 +6,10 @@ import 'package:zenit/data/network/api_client.dart';
 import 'package:zenit/features/transfer/models/money_transfer_model.dart';
 
 class MoneyTransferService {
-  final _api = ApiClient();
+  MoneyTransferService({ApiClient? apiClient})
+    : _api = apiClient ?? ApiClient();
+
+  final ApiClient _api;
 
   bool _isSuccessStatus(int? statusCode) {
     return statusCode == 200 ||

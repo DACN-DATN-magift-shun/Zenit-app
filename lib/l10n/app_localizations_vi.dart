@@ -201,6 +201,50 @@ class AppLocalizationsVi extends AppLocalizations {
   String get send => 'Gửi';
 
   @override
+  String get chatbotTitle => 'Zenos AI';
+
+  @override
+  String get chatHistoryTitle => 'Lịch sử hội thoại';
+
+  @override
+  String get chatHistoryTooltip => 'Lịch sử hội thoại';
+
+  @override
+  String get chatNewConversation => 'Đoạn chat mới';
+
+  @override
+  String get chatNewConversationTooltip => 'Đoạn chat mới';
+
+  @override
+  String get chatNoConversations => 'Chưa có hội thoại nào';
+
+  @override
+  String get chatRenameConversation => 'Đổi tên hội thoại';
+
+  @override
+  String get chatConversationTitleHint => 'Tên hội thoại';
+
+  @override
+  String get chatSave => 'Lưu';
+
+  @override
+  String get chatStartConversationHint =>
+      'Hãy bắt đầu một cuộc trò chuyện. Tin nhắn sẽ được gửi đến backend và phản hồi AI sẽ được lấy từ lịch sử tin nhắn.';
+
+  @override
+  String get chatInputHint => 'Hỏi bất cứ điều gì...';
+
+  @override
+  String chatUpdatedAt(String date) {
+    return 'Cập nhật $date';
+  }
+
+  @override
+  String chatConfirmDeleteConversation(String title) {
+    return 'Bạn có chắc muốn xóa hội thoại \"$title\"?';
+  }
+
+  @override
   String get registeredEmailOrUsername => 'Email hoặc tên đăng nhập đã đăng ký';
 
   @override

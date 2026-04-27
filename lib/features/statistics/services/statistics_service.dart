@@ -7,7 +7,9 @@ import 'package:zenit/features/statistics/models/statistics_model.dart';
 
 /// Service để gọi API liên quan đến Statistics
 class StatisticsService {
-  final _api = ApiClient();
+  StatisticsService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
+
+  final ApiClient _api;
 
   DateTime _startOfDay(DateTime date) {
     return DateTime(date.year, date.month, date.day);

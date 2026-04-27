@@ -6,7 +6,9 @@ import 'package:zenit/data/network/api_client.dart';
 import 'package:zenit/features/setting_childs/money_source_manage/models/money_source_model.dart';
 
 class MoneySourceService {
-  final _api = ApiClient();
+  MoneySourceService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
+
+  final ApiClient _api;
 
   bool _isSuccessStatus(int? statusCode) {
     return statusCode == 200 || statusCode == 202 || statusCode == 204;

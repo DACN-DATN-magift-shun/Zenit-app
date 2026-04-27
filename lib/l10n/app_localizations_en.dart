@@ -202,6 +202,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get send => 'Send';
 
   @override
+  String get chatbotTitle => 'Zenos AI';
+
+  @override
+  String get chatHistoryTitle => 'Conversation history';
+
+  @override
+  String get chatHistoryTooltip => 'Conversation history';
+
+  @override
+  String get chatNewConversation => 'New conversation';
+
+  @override
+  String get chatNewConversationTooltip => 'New conversation';
+
+  @override
+  String get chatNoConversations => 'No conversations yet';
+
+  @override
+  String get chatRenameConversation => 'Rename conversation';
+
+  @override
+  String get chatConversationTitleHint => 'Conversation title';
+
+  @override
+  String get chatSave => 'Save';
+
+  @override
+  String get chatStartConversationHint =>
+      'Start a conversation. Messages are sent to the backend and AI replies are fetched from message history.';
+
+  @override
+  String get chatInputHint => 'Ask anything...';
+
+  @override
+  String chatUpdatedAt(String date) {
+    return 'Updated $date';
+  }
+
+  @override
+  String chatConfirmDeleteConversation(String title) {
+    return 'Are you sure you want to delete conversation \"$title\"?';
+  }
+
+  @override
   String get registeredEmailOrUsername => 'Registered email or username';
 
   @override

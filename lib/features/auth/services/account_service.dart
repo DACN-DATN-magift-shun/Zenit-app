@@ -3,7 +3,9 @@ import 'package:zenit/core/api/api_endpoints.dart';
 import 'package:zenit/data/network/api_client.dart';
 
 class AccountService {
-  final _api = ApiClient();
+  AccountService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
+
+  final ApiClient _api;
 
   Future<Response> register({
     required String username,

@@ -10,8 +10,12 @@ import 'package:zenit/data/network/api_client.dart';
 import 'package:zenit/features/photos/models/photo_model.dart';
 
 class PhotoService {
-  final _api = ApiClient();
-  final _storageService = StorageService();
+  PhotoService({ApiClient? apiClient, StorageService? storageService})
+    : _api = apiClient ?? ApiClient(),
+      _storageService = storageService ?? StorageService();
+
+  final ApiClient _api;
+  final StorageService _storageService;
 
   static const List<String> _fileFieldCandidates = <String>[
     'File',

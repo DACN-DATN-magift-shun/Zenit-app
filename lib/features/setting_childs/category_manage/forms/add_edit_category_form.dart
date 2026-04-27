@@ -5,7 +5,6 @@ import 'package:zenit/core/forms/form_fields/custom_text_form_field.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
-import 'package:zenit/core/widgets/button.dart';
 
 import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
 import 'package:zenit/features/setting_childs/category_manage/utils/category_color_palette.dart';
@@ -29,6 +28,24 @@ class AddCategoryData {
   });
 }
 
+class AddCategoryFormController {
+  _AddCategoryFormState? _state;
+
+  void submit() {
+    _state?._handleSubmit();
+  }
+
+  void _attach(_AddCategoryFormState state) {
+    _state = state;
+  }
+
+  void _detach(_AddCategoryFormState state) {
+    if (_state == state) {
+      _state = null;
+    }
+  }
+}
+
 class AddCategoryForm extends StatefulWidget {
   const AddCategoryForm({
     super.key,
@@ -39,6 +56,7 @@ class AddCategoryForm extends StatefulWidget {
     this.initialExpenseLimit,
     this.initialIcon,
     this.isEditMode = false,
+    this.controller,
   });
 
   /// Loại group (0-5)
@@ -57,6 +75,7 @@ class AddCategoryForm extends StatefulWidget {
   
   /// Có phải đang ở chế độ edit không (true = edit, false = add new)
   final bool isEditMode;
+  final AddCategoryFormController? controller;
 
   @override
   State<AddCategoryForm> createState() => _AddCategoryFormState();
@@ -73,6 +92,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
   @override
   void initState() {
     super.initState();
+    widget.controller?._attach(this);
     _selectedGroupType = widget.groupType;
     if (widget.initialName != null) {
       _nameController.text = widget.initialName!;
@@ -107,7 +127,17 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
   // REMOVED - Không còn cho phép người dùng chọn màu
 
   @override
+  void didUpdateWidget(covariant AddCategoryForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?._detach(this);
+      widget.controller?._attach(this);
+    }
+  }
+
+  @override
   void dispose() {
+    widget.controller?._detach(this);
     _nameController.dispose();
     _expenseLimitController.dispose();
     super.dispose();
@@ -241,18 +271,6 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
             Text(l10n.selectIcon, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: AppSizes.m),
             _buildIconGrid(colors),
-
-            const SizedBox(height: AppSizes.xl),
-
-            // Done button
-            Center(
-              child: AppButton(
-                text: l10n.done,
-                icon: Symbols.check_circle_rounded,
-                onPressed: _handleSubmit,
-                width: 140,
-              ),
-            ),
 
             const SizedBox(height: 60),
           ],

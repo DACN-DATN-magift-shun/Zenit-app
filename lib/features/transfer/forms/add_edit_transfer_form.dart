@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:zenit/core/forms/form_fields/custom_text_form_field.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
-import 'package:zenit/core/widgets/button.dart';
 import 'package:zenit/features/setting_childs/money_source_manage/models/money_source_model.dart';
 import 'package:zenit/features/setting_childs/money_source_manage/services/money_source_service.dart';
 import 'package:zenit/features/transfer/models/money_transfer_model.dart';
@@ -25,15 +24,35 @@ class TransferFormData {
   final String note;
 }
 
+class AddEditTransferFormController {
+  _AddEditTransferFormState? _state;
+
+  Future<void> submit() async {
+    await _state?._submit();
+  }
+
+  void _attach(_AddEditTransferFormState state) {
+    _state = state;
+  }
+
+  void _detach(_AddEditTransferFormState state) {
+    if (_state == state) {
+      _state = null;
+    }
+  }
+}
+
 class AddEditTransferForm extends StatefulWidget {
   const AddEditTransferForm({
     super.key,
     required this.onSubmit,
     this.initialTransfer,
+    this.controller,
   });
 
   final MoneyTransferModel? initialTransfer;
   final Future<void> Function(TransferFormData data) onSubmit;
+  final AddEditTransferFormController? controller;
 
   @override
   State<AddEditTransferForm> createState() => _AddEditTransferFormState();
@@ -49,13 +68,13 @@ class _AddEditTransferFormState extends State<AddEditTransferForm> {
   String? _selectedFromWalletId;
   String? _selectedToWalletId;
   DateTime _transferDate = DateTime.now();
-  bool _isSubmitting = false;
   bool _isLoadingWallets = true;
   String? _walletError;
 
   @override
   void initState() {
     super.initState();
+    widget.controller?._attach(this);
 
     final initial = widget.initialTransfer;
     _amountController.text = initial?.amount.toString() ?? '';
@@ -68,7 +87,17 @@ class _AddEditTransferFormState extends State<AddEditTransferForm> {
   }
 
   @override
+  void didUpdateWidget(covariant AddEditTransferForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?._detach(this);
+      widget.controller?._attach(this);
+    }
+  }
+
+  @override
   void dispose() {
+    widget.controller?._detach(this);
     _amountController.dispose();
     _noteController.dispose();
     super.dispose();
@@ -245,18 +274,6 @@ class _AddEditTransferFormState extends State<AddEditTransferForm> {
               controller: _noteController,
               maxLines: 3,
             ),
-            const SizedBox(height: AppSizes.xl),
-            Center(
-              child: AppButton(
-                text: isVietnamese ? 'Lưu' : 'Save',
-                icon: Icons.check_circle_rounded,
-                onPressed: _isSubmitting ? null : _submit,
-                isEnabled: !_isSubmitting,
-                width: 160,
-                backgroundColor: colors.primaryMain,
-                foregroundColor: colors.primaryText,
-              ),
-            ),
             const SizedBox(height: AppSizes.l),
           ],
         ),
@@ -381,26 +398,14 @@ class _AddEditTransferFormState extends State<AddEditTransferForm> {
       return;
     }
 
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    try {
-      await widget.onSubmit(
-        TransferFormData(
-          fromWalletId: fromWalletId,
-          toWalletId: toWalletId,
-          amount: amount,
-          transferDate: _transferDate,
-          note: _noteController.text.trim(),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
-    }
+    await widget.onSubmit(
+      TransferFormData(
+        fromWalletId: fromWalletId,
+        toWalletId: toWalletId,
+        amount: amount,
+        transferDate: _transferDate,
+        note: _noteController.text.trim(),
+      ),
+    );
   }
 }

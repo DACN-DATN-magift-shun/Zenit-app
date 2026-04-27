@@ -7,7 +7,9 @@ import 'package:zenit/features/transaction/models/transaction_model.dart';
 
 /// Service để gọi API liên quan đến Transaction
 class TransactionService {
-  final _api = ApiClient();
+  TransactionService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
+
+  final ApiClient _api;
 
   /// Helper để convert response data sang Map<String, dynamic> an toàn
   Map<String, dynamic> _convertToMap(dynamic data) {

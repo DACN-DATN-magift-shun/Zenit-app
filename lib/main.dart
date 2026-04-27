@@ -21,8 +21,12 @@ import 'package:zenit/features/main/screens/notification.dart';
 import 'package:zenit/features/main/screens/opening_splash_screen.dart';
 import 'package:zenit/features/loans/screen/loans_screen.dart';
 import 'package:zenit/features/loans/providers/loans_provider.dart';
+import 'package:zenit/features/goals/providers/goals_provider.dart';
+import 'package:zenit/features/goals/screen/goals_screen.dart';
 import 'package:zenit/features/transfer/providers/money_transfer_provider.dart';
 import 'package:zenit/features/transfer/screen/transfer_screen.dart';
+import 'package:zenit/features/chatbot/providers/chatbot_provider.dart';
+import 'package:zenit/features/chatbot/screen/chatbot_screen.dart';
 import 'package:zenit/l10n/app_localizations.dart';
 
 void main() {
@@ -69,7 +73,9 @@ class MainApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProvider(create: (_) => MoneySourceProvider()),
         ChangeNotifierProvider(create: (_) => LoansProvider()),
+        ChangeNotifierProvider(create: (_) => GoalsProvider()),
         ChangeNotifierProvider(create: (_) => MoneyTransferProvider()),
+        ChangeNotifierProvider(create: (_) => ChatbotProvider()),
         ChangeNotifierProvider(
           create: (_) => LocaleProvider()..loadSavedLocale(),
         ),
@@ -98,7 +104,9 @@ class MainApp extends StatelessWidget {
               '/login': (c) => const LoginScreen(),
               '/home': (c) => _buildMainShell(c),
               '/loans': (c) => const LoansScreen(),
+              '/goals': (c) => const GoalsScreen(),
               '/transfer': (c) => const TransferScreen(),
+              '/chatbot': (c) => const ChatbotScreen(),
               '/signup': (c) => const SignupScreen(),
               '/reset-password': (c) => const ResetPasswordsScreen(),
               '/settings/account_details': (c) => const AccountDetails(),

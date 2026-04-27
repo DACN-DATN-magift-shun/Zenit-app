@@ -66,6 +66,33 @@
   "addressTooShort": "Địa chỉ quá ngắn",
 
   "send": "Gửi",
+  "chatbotTitle": "Zenos AI",
+  "chatHistoryTitle": "Lịch sử hội thoại",
+  "chatHistoryTooltip": "Lịch sử hội thoại",
+  "chatNewConversation": "Đoạn chat mới",
+  "chatNewConversationTooltip": "Đoạn chat mới",
+  "chatNoConversations": "Chưa có hội thoại nào",
+  "chatRenameConversation": "Đổi tên hội thoại",
+  "chatConversationTitleHint": "Tên hội thoại",
+  "chatSave": "Lưu",
+  "chatStartConversationHint": "Hãy bắt đầu một cuộc trò chuyện. Tin nhắn sẽ được gửi đến backend và phản hồi AI sẽ được lấy từ lịch sử tin nhắn.",
+  "chatInputHint": "Hỏi bất cứ điều gì...",
+  "chatUpdatedAt": "Cập nhật {date}",
+  "@chatUpdatedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "chatConfirmDeleteConversation": "Bạn có chắc muốn xóa hội thoại \"{title}\"?",
+  "@chatConfirmDeleteConversation": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "registeredEmailOrUsername": "Email hoặc tên đăng nhập đã đăng ký",
   "otp": "OTP",
   "otpHint": "OTP",

@@ -450,13 +450,16 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   void _navigateToGoals() {
-    // TODO: Navigate to Goals screen
-    AppFlash.info(context, context.l10n.navigateGoals);
+    NavigationService.instance.navigateTo('/goals');
   }
 
   void _showMoreActions() {
     // TODO: Show more actions bottom sheet or screen
     AppFlash.info(context, context.l10n.showMoreActions);
+  }
+
+  void _navigateToChatbot() {
+    NavigationService.instance.navigateTo('/chatbot');
   }
 
   String _formatCurrency(int amount) {
@@ -661,22 +664,38 @@ class _HomeContentState extends State<HomeContent> {
         showSecondaryText: _isAuthenticated,
         secondaryText: _isAuthenticated ? l10n.haveNiceDay : null,
       ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: AppSizes.l),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: AppSizes.l),
-            // Action Grid Section
-            _buildRecentTransactionsSection(context),
-            const SizedBox(height: AppSizes.l),
-            HomeActionGrid(
-              items: _buildActionItems(context),
-              onItemTap: _handleActionTap,
+      child: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: AppSizes.l),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: AppSizes.l),
+                // Action Grid Section
+                _buildRecentTransactionsSection(context),
+                const SizedBox(height: AppSizes.l),
+                HomeActionGrid(
+                  items: _buildActionItems(context),
+                  onItemTap: _handleActionTap,
+                ),
+                const SizedBox(height: 96),
+              ],
             ),
-            const SizedBox(height: AppSizes.xl),
-          ],
-        ),
+          ),
+          Positioned(
+            right: AppSizes.l,
+            bottom: AppSizes.l,
+            child: FloatingActionButton(
+              onPressed: _navigateToChatbot,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall), // 🔥 chỉnh ở đây
+              ),
+              child: const Icon(Icons.smart_toy_rounded),
+              // label: const Text('AI Chat'),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/app_bar.dart';
@@ -450,12 +451,33 @@ class _LoansScreenState extends State<LoansScreen> {
 
   void _showAddLoanDrawer() {
     final isVietnamese = _isVietnamese(context);
+    final formController = AddEditLoanFormController();
 
     AppDrawer.showAsBottomSheet(
       context: context,
       title: isVietnamese ? 'Thêm khoản vay/nợ' : 'Add loan/debt',
       showDragHandle: true,
+      headerActions: [
+        GestureDetector(
+          onTap: () async {
+            await formController.submit();
+          },
+          child: Container(
+            padding: const EdgeInsets.all(AppSizes.s),
+            decoration: BoxDecoration(
+              color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
+            ),
+            child: Icon(
+              Symbols.check_rounded,
+              size: AppSizes.iconL,
+              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
+            ),
+          ),
+        ),
+      ],
       body: AddEditLoanForm(
+        controller: formController,
         onSubmit: (data) async {
           final provider = context.read<LoansProvider>();
           final success = await provider.addLoan(
@@ -493,12 +515,33 @@ class _LoansScreenState extends State<LoansScreen> {
 
   void _openEditLoanDrawer(LoanModel loan) {
     final isVietnamese = _isVietnamese(context);
+    final formController = AddEditLoanFormController();
 
     AppDrawer.showAsBottomSheet(
       context: context,
       title: isVietnamese ? 'Cập nhật khoản vay/nợ' : 'Update loan/debt',
       showDragHandle: true,
+      headerActions: [
+        GestureDetector(
+          onTap: () async {
+            await formController.submit();
+          },
+          child: Container(
+            padding: const EdgeInsets.all(AppSizes.s),
+            decoration: BoxDecoration(
+              color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
+            ),
+            child: Icon(
+              Symbols.check_rounded,
+              size: AppSizes.iconL,
+              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
+            ),
+          ),
+        ),
+      ],
       body: AddEditLoanForm(
+        controller: formController,
         initialLoan: loan,
         onSubmit: (data) async {
           final provider = context.read<LoansProvider>();

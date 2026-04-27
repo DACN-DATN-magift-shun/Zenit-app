@@ -7,7 +7,10 @@ import 'package:zenit/features/setting_childs/category_manage/models/category_mo
 
 /// Service để gọi API liên quan đến Category
 class CategoryService {
-  final _api = ApiClient();
+  CategoryService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
+
+  final ApiClient _api;
+  static const int _defaultPageSize = 10;
 
   /// Helper để convert response data sang Map<String, dynamic> an toàn
   Map<String, dynamic> _convertToMap(dynamic data) {
@@ -21,17 +24,45 @@ class CategoryService {
     return {};
   }
 
+  List<CategoryModel> _extractCategoriesForGroup(
+    dynamic rawData,
+    int groupType,
+  ) {
+    final items = <dynamic>[];
+
+    if (rawData is List) {
+      items.addAll(rawData);
+    } else {
+      final data = _convertToMap(rawData);
+      final nestedCategories =
+          data['categories'] ?? data['data'] ?? data['items'];
+
+      if (nestedCategories is List) {
+        items.addAll(nestedCategories);
+      }
+    }
+
+    return items
+        .map((e) => CategoryModel.fromJson(_convertToMap(e)))
+        .where((category) => _tryParseInt(category.groupType) == groupType)
+        .toList(growable: false);
+  }
+
   /// Lấy danh sách categories theo groupType
   /// GET /Categories?groupType={groupType}
   Future<CategoryGroup> getCategoriesByGroupType(int groupType) async {
     try {
       print('=== Calling API ===');
       print('URL: ${ApiEndpoints.categories}');
-      print('Query params: {groupType: $groupType}');
+      print('Query params: {groupType: $groupType, Page: 1, PageSize: $_defaultPageSize}');
 
       final response = await _api.get(
         ApiEndpoints.categories,
-        queryParameters: {'groupType': groupType},
+        queryParameters: {
+          'groupType': groupType,
+          'Page': 1,
+          'PageSize': _defaultPageSize,
+        },
       );
 
       print('=== API Response for groupType $groupType ===');
@@ -42,40 +73,36 @@ class CategoryService {
       if (response.statusCode == 200) {
         final rawData = response.data;
 
-        // Handle case when API returns a List
-        if (rawData is List) {
-          return CategoryGroup(
-            name: GroupType.fromValue(groupType).displayName,
-            type: groupType,
-            categories: rawData
-                .map((e) => CategoryModel.fromJson(_convertToMap(e)))
-                .toList(),
-          );
-        }
-
-        // Handle object payloads where categories can be nested under
-        // different keys depending on backend response shape.
         final data = _convertToMap(rawData);
-        final nestedCategories =
-            data['categories'] ?? data['data'] ?? data['items'];
-        if (nestedCategories is List) {
+        final filteredCategories = _extractCategoriesForGroup(rawData, groupType);
+
+        // Some backend builds return pageSize=0 by default, which yields
+        // empty `items` even when `totalItems` is positive.
+        if (filteredCategories.isEmpty && _shouldRetryWithPaging(data)) {
+          final retried = await _api.get(
+            ApiEndpoints.categories,
+            queryParameters: {
+              'groupType': groupType,
+              'Page': 1,
+              'PageSize': _defaultPageSize,
+            },
+          );
+
+          final retryCategories = _extractCategoriesForGroup(
+            retried.data,
+            groupType,
+          );
           return CategoryGroup(
             name: GroupType.fromValue(groupType).displayName,
             type: groupType,
-            categories: nestedCategories
-                .map((e) => CategoryModel.fromJson(_convertToMap(e)))
-                .toList(),
+            categories: retryCategories,
           );
         }
 
-        // Fallback to generic parser but enforce queried groupType to keep
-        // keys stable for UI filtering (expense/income mode).
-        final parsedGroup = CategoryGroup.fromJson(data);
-        return parsedGroup.copyWith(
-          name: parsedGroup.name.isEmpty
-              ? GroupType.fromValue(groupType).displayName
-              : parsedGroup.name,
+        return CategoryGroup(
+          name: GroupType.fromValue(groupType).displayName,
           type: groupType,
+          categories: filteredCategories,
         );
       } else {
         // Return empty group for non-200 responses
@@ -96,6 +123,20 @@ class CategoryService {
       }
       throw _handleDioError(e);
     }
+  }
+
+  bool _shouldRetryWithPaging(Map<String, dynamic> data) {
+    final meta = _convertToMap(data['meta']);
+    final totalItems = _tryParseInt(meta['totalItems']);
+    final pageSize = _tryParseInt(meta['pageSize']);
+
+    return totalItems > 0 && pageSize == 0;
+  }
+
+  int _tryParseInt(dynamic value) {
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
   }
 
   /// Lấy tất cả categories của tất cả groupType (0-5)

@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:zenit/core/forms/form_fields/custom_text_form_field.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
-import 'package:zenit/core/widgets/button.dart';
 import 'package:zenit/features/loans/models/loan_model.dart';
 
 class LoanFormData {
@@ -25,11 +24,35 @@ class LoanFormData {
   final String note;
 }
 
+class AddEditLoanFormController {
+  _AddEditLoanFormState? _state;
+
+  Future<void> submit() async {
+    await _state?._submit();
+  }
+
+  void _attach(_AddEditLoanFormState state) {
+    _state = state;
+  }
+
+  void _detach(_AddEditLoanFormState state) {
+    if (_state == state) {
+      _state = null;
+    }
+  }
+}
+
 class AddEditLoanForm extends StatefulWidget {
-  const AddEditLoanForm({super.key, required this.onSubmit, this.initialLoan});
+  const AddEditLoanForm({
+    super.key,
+    required this.onSubmit,
+    this.initialLoan,
+    this.controller,
+  });
 
   final LoanModel? initialLoan;
   final Future<void> Function(LoanFormData data) onSubmit;
+  final AddEditLoanFormController? controller;
 
   @override
   State<AddEditLoanForm> createState() => _AddEditLoanFormState();
@@ -44,11 +67,11 @@ class _AddEditLoanFormState extends State<AddEditLoanForm> {
   late int _selectedType;
   late DateTime _date;
   late DateTime _dueDate;
-  bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
+    widget.controller?._attach(this);
     final initial = widget.initialLoan;
     _selectedType = initial?.type ?? 0;
     _date = initial?.date ?? DateTime.now();
@@ -60,7 +83,17 @@ class _AddEditLoanFormState extends State<AddEditLoanForm> {
   }
 
   @override
+  void didUpdateWidget(covariant AddEditLoanForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?._detach(this);
+      widget.controller?._attach(this);
+    }
+  }
+
+  @override
   void dispose() {
+    widget.controller?._detach(this);
     _nameController.dispose();
     _amountController.dispose();
     _noteController.dispose();
@@ -70,7 +103,6 @@ class _AddEditLoanFormState extends State<AddEditLoanForm> {
   @override
   Widget build(BuildContext context) {
     final isVietnamese = Localizations.localeOf(context).languageCode == 'vi';
-    final colors = Theme.of(context).extension<AppColorExtension>()!;
 
     return SingleChildScrollView(
       child: Form(
@@ -254,19 +286,6 @@ class _AddEditLoanFormState extends State<AddEditLoanForm> {
               controller: _noteController,
               maxLines: 3,
             ),
-            const SizedBox(height: AppSizes.xl),
-            Center(
-              child: AppButton(
-                text: isVietnamese ? 'Lưu' : 'Save',
-                icon: Icons.check_circle_rounded,
-                onPressed: _isSubmitting ? null : _submit,
-                isEnabled: !_isSubmitting,
-                width: 160,
-                backgroundColor: colors.primaryMain,
-                foregroundColor: colors.primaryText,
-              ),
-              
-            ),
             const SizedBox(height: AppSizes.l),
           ],
         ),
@@ -328,27 +347,15 @@ class _AddEditLoanFormState extends State<AddEditLoanForm> {
       return;
     }
 
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    try {
-      await widget.onSubmit(
-        LoanFormData(
-          name: _nameController.text.trim(),
-          type: _selectedType,
-          amount: amount,
-          date: _date,
-          dueDate: _dueDate,
-          note: _noteController.text.trim(),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
-    }
+    await widget.onSubmit(
+      LoanFormData(
+        name: _nameController.text.trim(),
+        type: _selectedType,
+        amount: amount,
+        date: _date,
+        dueDate: _dueDate,
+        note: _noteController.text.trim(),
+      ),
+    );
   }
 }

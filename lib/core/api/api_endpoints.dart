@@ -4,7 +4,7 @@ class ApiEndpoints {
       "https://zenit-api-tuir.onrender.com/";
 
   // Toggle this when switching between local backend and deployed backend.
-  static const bool useProduction = true;
+  static const bool useProduction = false;
   static const String nowDemoDeviceURL = useProduction
       ? productionBaseUrl
       : localBaseUrl;
@@ -59,6 +59,13 @@ class ApiEndpoints {
   static const String createLoan = "${transactionBaseUrl}Loans";
   static const String createManyLoans = "${transactionBaseUrl}Loans/many";
 
+  // Goals Endpoints (using transactionBaseUrl)
+  static const String goals = "${transactionBaseUrl}Goals";
+  static String goalById(String id) => "${transactionBaseUrl}Goals/$id";
+  static String updateGoalUrl(String id) => goalById(id);
+  static String deleteGoalUrl(String id) => goalById(id);
+  static const String createGoal = "${transactionBaseUrl}Goals";
+
   // Money transfer endpoints (using transactionBaseUrl)
   static const String moneyTransfers = "${transactionBaseUrl}MoneyTransfers";
   static String moneyTransferById(String id) =>
@@ -74,4 +81,11 @@ class ApiEndpoints {
   // Photos Endpoints (using transactionBaseUrl)
   static const String photos = "${transactionBaseUrl}Photos";
   static String photoById(String id) => "${transactionBaseUrl}Photos/$id";
+
+  // Conversation Endpoints (using baseUrl)
+  static const String conversations = "${baseUrl}Conversations";
+  static String conversationById(String id) => "${baseUrl}Conversations/$id";
+
+  // Message Endpoints (using baseUrl)
+  static const String messages = "${baseUrl}Messages";
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/app_bar.dart';
@@ -285,12 +286,33 @@ class _TransferScreenState extends State<TransferScreen> {
 
   void _showAddTransferDrawer() {
     final isVietnamese = _isVietnamese(context);
+    final formController = AddEditTransferFormController();
 
     AppDrawer.showAsBottomSheet(
       context: context,
       title: isVietnamese ? 'Thêm chuyển tiền' : 'Add transfer',
       showDragHandle: true,
+      headerActions: [
+        GestureDetector(
+          onTap: () async {
+            await formController.submit();
+          },
+          child: Container(
+            padding: const EdgeInsets.all(AppSizes.s),
+            decoration: BoxDecoration(
+              color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
+            ),
+            child: Icon(
+              Symbols.check_rounded,
+              size: AppSizes.iconL,
+              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
+            ),
+          ),
+        ),
+      ],
       body: AddEditTransferForm(
+        controller: formController,
         onSubmit: (data) async {
           final provider = context.read<MoneyTransferProvider>();
           final success = await provider.addTransfer(
@@ -327,12 +349,33 @@ class _TransferScreenState extends State<TransferScreen> {
 
   void _openEditTransferDrawer(MoneyTransferModel transfer) {
     final isVietnamese = _isVietnamese(context);
+    final formController = AddEditTransferFormController();
 
     AppDrawer.showAsBottomSheet(
       context: context,
       title: isVietnamese ? 'Cập nhật chuyển tiền' : 'Update transfer',
       showDragHandle: true,
+      headerActions: [
+        GestureDetector(
+          onTap: () async {
+            await formController.submit();
+          },
+          child: Container(
+            padding: const EdgeInsets.all(AppSizes.s),
+            decoration: BoxDecoration(
+              color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
+            ),
+            child: Icon(
+              Symbols.check_rounded,
+              size: AppSizes.iconL,
+              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
+            ),
+          ),
+        ),
+      ],
       body: AddEditTransferForm(
+        controller: formController,
         initialTransfer: transfer,
         onSubmit: (data) async {
           final provider = context.read<MoneyTransferProvider>();

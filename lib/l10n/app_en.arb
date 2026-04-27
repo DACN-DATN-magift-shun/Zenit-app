@@ -66,6 +66,33 @@
   "addressTooShort": "Address is too short",
 
   "send": "Send",
+  "chatbotTitle": "Zenos AI",
+  "chatHistoryTitle": "Conversation history",
+  "chatHistoryTooltip": "Conversation history",
+  "chatNewConversation": "New conversation",
+  "chatNewConversationTooltip": "New conversation",
+  "chatNoConversations": "No conversations yet",
+  "chatRenameConversation": "Rename conversation",
+  "chatConversationTitleHint": "Conversation title",
+  "chatSave": "Save",
+  "chatStartConversationHint": "Start a conversation. Messages are sent to the backend and AI replies are fetched from message history.",
+  "chatInputHint": "Ask anything...",
+  "chatUpdatedAt": "Updated {date}",
+  "@chatUpdatedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "chatConfirmDeleteConversation": "Are you sure you want to delete conversation \"{title}\"?",
+  "@chatConfirmDeleteConversation": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "registeredEmailOrUsername": "Registered email or username",
   "otp": "OTP",
   "otpHint": "OTP",
