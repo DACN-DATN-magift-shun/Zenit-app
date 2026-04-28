@@ -30,6 +30,38 @@ void main() {
       expect(message.isUser, false);
     });
 
+    test('ChatSuggestion.fromJson parses category and wallet payloads', () {
+      final suggestion = ChatSuggestion.fromJson(<String, dynamic>{
+        'category': 'Eating',
+        'wallet': 'Tien mat me cho dung',
+      });
+
+      expect(suggestion.label, 'Eating');
+      expect(suggestion.value, 'Tien mat me cho dung');
+      expect(
+        suggestion.displayText,
+        'category: Eating, wallet: Tien mat me cho dung',
+      );
+    });
+
+    test('ChatMessage.fromJson keeps category and wallet suggestions', () {
+      final message = ChatMessage.fromJson(<String, dynamic>{
+        'id': 'm1',
+        'accountId': '00000000-0000-0000-0000-000000000001',
+        'content': 'assistant message',
+        'suggestions': [
+          <String, dynamic>{
+            'category': 'Eating',
+            'wallet': 'Tien mat me cho dung',
+          },
+        ],
+      });
+
+      expect(message.suggestions, hasLength(1));
+      expect(message.suggestions.first.label, 'Eating');
+      expect(message.suggestions.first.value, 'Tien mat me cho dung');
+    });
+
     test('ConversationDetail.fromJson maps messages list', () {
       final source = MockJsonSource();
       when(() => source.value).thenReturn(conversationDetailMockJson);

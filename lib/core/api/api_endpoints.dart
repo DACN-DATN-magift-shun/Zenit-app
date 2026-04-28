@@ -77,6 +77,7 @@ class ApiEndpoints {
 
   // Statistics Endpoints (using statisticsBaseUrl)
   static const String statistics = "${statisticsBaseUrl}Statistics";
+    static const String statisticsReports = "${statisticsBaseUrl}Statistics/reports";
 
   // Photos Endpoints (using transactionBaseUrl)
   static const String photos = "${transactionBaseUrl}Photos";

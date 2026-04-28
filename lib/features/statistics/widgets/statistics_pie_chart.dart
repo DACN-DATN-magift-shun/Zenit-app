@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/theme/app_colors.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/features/statistics/models/statistics_model.dart';
@@ -27,6 +26,7 @@ class _StatisticsPieChartState extends State<StatisticsPieChart> {
     const Color(0xFFFF6B6B),
     const Color(0xFFFFD93D),
     const Color(0xFFB983FF),
+    const Color(0xFFFF8A65),
   ];
 
   @override
@@ -299,7 +299,7 @@ class _StatisticsPieChartState extends State<StatisticsPieChart> {
               ),
               const SizedBox(height: 3),
               Text(
-                _groupLabel(context, callout.group.groupType),
+                callout.group.groupName,
                 maxLines: 2,
                 textAlign: callout.isRightSide ? TextAlign.left : TextAlign.right,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -315,23 +315,6 @@ class _StatisticsPieChartState extends State<StatisticsPieChart> {
     );
   }
 
-  String _groupLabel(BuildContext context, int groupType) {
-    switch (groupType) {
-      case 0:
-        return context.l10n.groupNecessary;
-      case 1:
-        return context.l10n.groupSavings;
-      case 2:
-        return _splitIntoTwoLines(context.l10n.groupSelfDevelopment);
-      case 3:
-        return context.l10n.groupEntertainment;
-      case 4:
-        return context.l10n.groupGiving;
-      default:
-        return 'Group $groupType';
-    }
-  }
-
   IconData _iconForGroup(int groupType) {
     switch (groupType) {
       case 0:
@@ -344,6 +327,8 @@ class _StatisticsPieChartState extends State<StatisticsPieChart> {
         return Icons.movie_rounded;
       case 4:
         return Icons.volunteer_activism_rounded;
+      case 5:
+        return Icons.account_balance_wallet_rounded;
       default:
         return Icons.label_rounded;
     }
@@ -357,18 +342,6 @@ class _StatisticsPieChartState extends State<StatisticsPieChart> {
       return percentage.toStringAsFixed(percentage % 1 == 0 ? 0 : 1);
     }
     return percentage.toStringAsFixed(1);
-  }
-
-  String _splitIntoTwoLines(String text) {
-    final words = text.trim().split(RegExp(r'\s+'));
-    if (words.length <= 1) {
-      return text;
-    }
-
-    final cut = (words.length / 2).ceil();
-    final firstLine = words.take(cut).join(' ');
-    final secondLine = words.skip(cut).join(' ');
-    return '$firstLine\n$secondLine';
   }
 
   Widget _buildEmptyState() {

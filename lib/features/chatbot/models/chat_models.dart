@@ -72,24 +72,40 @@ class ChatSuggestion {
   final String label;
   final String value;
 
+  String get displayText {
+    final normalizedLabel = label.trim();
+    final normalizedValue = value.trim();
+
+    if (normalizedLabel.isNotEmpty && normalizedValue.isNotEmpty) {
+      return 'category: $normalizedLabel, wallet: $normalizedValue';
+    }
+
+    return normalizedLabel.isNotEmpty ? normalizedLabel : normalizedValue;
+  }
+
   factory ChatSuggestion.fromJson(dynamic rawJson) {
     final json = _safeMap(rawJson);
-    final label =
-        json['label']?.toString().trim() ??
-        json['title']?.toString().trim() ??
-        json['text']?.toString().trim() ??
-        json['prompt']?.toString().trim() ??
-        json['message']?.toString().trim() ??
-        json['content']?.toString().trim() ??
-        '';
+    final label = _firstNonEmptyString(<dynamic>[
+      json['label'],
+      json['title'],
+      json['text'],
+      json['prompt'],
+      json['message'],
+      json['content'],
+      json['category'],
+      json['name'],
+    ]);
 
-    final value =
-        json['value']?.toString().trim() ??
-        json['prompt']?.toString().trim() ??
-        json['message']?.toString().trim() ??
-        json['text']?.toString().trim() ??
-        json['content']?.toString().trim() ??
-        label;
+    final value = _firstNonEmptyString(<dynamic>[
+      json['value'],
+      json['prompt'],
+      json['message'],
+      json['text'],
+      json['content'],
+      json['wallet'],
+      json['category'],
+      json['name'],
+    ]);
 
     return ChatSuggestion(label: label, value: value);
   }
@@ -320,10 +336,29 @@ int _parseInt(dynamic value) {
   return 0;
 }
 
+bool _parseBool(dynamic value) {
+  if (value is bool) return value;
+  if (value is String) {
+    return value.toLowerCase() == 'true';
+  }
+  return false;
+}
+
 int? _nullableInt(dynamic value) {
   if (value == null) return null;
   if (value is int) return value;
   if (value is double) return value.toInt();
   if (value is String) return int.tryParse(value);
   return null;
+}
+
+String _firstNonEmptyString(Iterable<dynamic> values) {
+  for (final value in values) {
+    final text = value?.toString().trim() ?? '';
+    if (text.isNotEmpty) {
+      return text;
+    }
+  }
+
+  return '';
 }

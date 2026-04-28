@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/theme/app_colors.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 
@@ -10,13 +9,14 @@ import 'package:zenit/features/statistics/models/statistics_model.dart';
 class StatisticsLegend extends StatelessWidget {
   final List<StatisticsGroupModel> groups;
 
-  // Màu cho từng group type (0-4) - phải khớp với StatisticsPieChart
+  // Màu cho từng group type (0-5) - phải khớp với StatisticsPieChart
   static const List<Color> _groupColors = [
     Color(0xFF27AE60), // 0: Necessary
-    Color(0xFF3498DB), // 1: Savings
+    Color(0xFF3498DB), // 1: Assets
     Color(0xFF9B59B6), // 2: SelfDevelopment
     Color(0xFF00BCD4), // 3: Entertainment
     Color(0xFF95A5A6), // 4: Giving
+    Color(0xFFF39C12), // 5: Income
   ];
 
   const StatisticsLegend({
@@ -50,7 +50,7 @@ class StatisticsLegend extends StatelessWidget {
       decimalDigits: 0,
     ).format(group.totalAmount);
 
-    final groupLabel = _groupLabel(context, group.groupType);
+    final groupLabel = group.groupName;
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -108,20 +108,4 @@ class StatisticsLegend extends StatelessWidget {
     );
   }
 
-  String _groupLabel(BuildContext context, int groupType) {
-    switch (groupType) {
-      case 0:
-        return context.l10n.groupNecessary;
-      case 1:
-        return context.l10n.groupSavings;
-      case 2:
-        return context.l10n.groupSelfDevelopment;
-      case 3:
-        return context.l10n.groupEntertainment;
-      case 4:
-        return context.l10n.groupGiving;
-      default:
-        return 'Group $groupType';
-    }
-  }
 }

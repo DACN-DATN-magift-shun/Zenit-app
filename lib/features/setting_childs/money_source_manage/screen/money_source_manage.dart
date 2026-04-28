@@ -233,13 +233,17 @@ class _MoneySourceManageScreenState extends State<MoneySourceManageScreen> {
           child: Container(
             padding: const EdgeInsets.all(AppSizes.s),
             decoration: BoxDecoration(
-              color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
+              color: Theme.of(
+                context,
+              ).extension<AppColorExtension>()!.neutralBackground,
               borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
             ),
             child: Icon(
               Symbols.check_rounded,
               size: AppSizes.iconL,
-              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
+              color: Theme.of(
+                context,
+              ).extension<AppColorExtension>()!.primaryActive,
             ),
           ),
         ),

@@ -26,13 +26,6 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   final TextEditingController _composerController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final SpeechToText _speechToText = SpeechToText();
-  static const String _aiAccountId = '00000000-0000-0000-0000-000000000001';
-  static const List<String> _requiredTransactionFields = <String>[
-    'title',
-    'amount',
-    'category',
-    'wallet',
-  ];
 
   String? _lastAutoScrollAnchor;
   String? _lastSpeechError;
@@ -271,32 +264,14 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _scrollToLatest();
   }
 
-  bool _containsAllRequiredFields(String text) {
-    final lowerText = text.toLowerCase();
-    final hasRequiredFields = _requiredTransactionFields.every(
-      lowerText.contains,
-    );
-    final hasDateField = RegExp(
-      r'(transaction\s+date|date)',
-      caseSensitive: false,
-    ).hasMatch(text);
-    return hasRequiredFields && hasDateField;
-  }
-
   bool _shouldShowConfirmChip(ChatMessage? latestMessage) {
     if (latestMessage == null) {
       return false;
     }
 
-    if (latestMessage.accountId != _aiAccountId) {
-      return false;
-    }
-
-    if (!_containsAllRequiredFields(latestMessage.content)) {
-      return false;
-    }
-
-    return !latestMessage.content.toLowerCase().contains('transaction details');
+    return context.read<ChatbotProvider>().shouldShowAcceptButton(
+      latestMessage.id,
+    );
   }
 
   Future<void> _sendConfirmYes() async {
@@ -328,7 +303,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   }) {
     return message.suggestions
         .map((suggestion) {
-          final label = suggestion.label.trim();
+          final label = suggestion.displayText.trim();
           final value = suggestion.value.trim();
           final payload = value.isNotEmpty ? value : label;
 

@@ -29,6 +29,7 @@ class ChatbotProvider extends ChangeNotifier {
 
   final List<ConversationSummary> _conversations = [];
   final Map<String, List<ChatMessage>> _messagesByConversation = {};
+  final Map<String, bool> _displayAcceptButtonByMessageId = {};
 
   bool _isInitializing = false;
   bool _isLoadingConversations = false;
@@ -215,27 +216,19 @@ class ChatbotProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _messageService.sendMessage(
+      debugPrint('SSE/POST: sending message payload -> conversationId: $conversationId, text: ${text.length} chars');
+      await _messageService.sendMessage(
         conversationId: conversationId,
         text: text,
       );
 
-      if (response != null && response.hasAssistantPayload) {
-        _handleSseMessage(<String, dynamic>{
-          'chatbotMessage': response.chatbotMessage,
-          'suggestions': response.suggestions
-              .map((item) => item.toJson())
-              .toList(growable: false),
-          'conversationId': response.conversationId ?? conversationId,
-        });
-      }
-
       _promoteConversation(conversationId);
     } catch (_) {
       messages.removeWhere((item) => item.id == optimisticMessageId);
+      _isSending = false;
+      notifyListeners();
       rethrow;
     } finally {
-      _isSending = false;
       notifyListeners();
     }
   }
@@ -265,12 +258,16 @@ class ChatbotProvider extends ChangeNotifier {
     await _sseSubscription?.cancel();
     _sseSubscription = null;
 
+    debugPrint('SSE: start listening for conversationId="$conversationId"');
+
     if (conversationId.trim().isEmpty) {
+      debugPrint('SSE: conversationId is empty - aborting');
       return;
     }
 
     final token = await _storageService.getAccessToken();
     if (token == null || token.trim().isEmpty) {
+      debugPrint('SSE: no access token - aborting');
       return;
     }
 
@@ -287,10 +284,14 @@ class ChatbotProvider extends ChangeNotifier {
             'Cache-Control': 'no-cache',
           });
 
+    debugPrint('SSE: sending request to ${request.url}');
+
     try {
       final streamedResponse = await _client.send(request);
+      debugPrint('SSE: response status ${streamedResponse.statusCode}');
       if (streamedResponse.statusCode < 200 ||
           streamedResponse.statusCode > 299) {
+        debugPrint('SSE: non-success status - aborting');
         return;
       }
 
@@ -299,12 +300,16 @@ class ChatbotProvider extends ChangeNotifier {
           .transform(const LineSplitter())
           .listen(
             (line) {
+              debugPrint('SSE: received line: $line');
               if (!line.startsWith('data: ')) {
+                debugPrint('SSE: skipping non-data line');
                 return;
               }
 
               final rawPayload = line.substring(6).trim();
+              debugPrint('SSE: rawPayload="$rawPayload"');
               if (rawPayload.isEmpty || rawPayload == '[DONE]') {
+                debugPrint('SSE: empty or DONE payload - ignoring');
                 return;
               }
 
@@ -312,15 +317,19 @@ class ChatbotProvider extends ChangeNotifier {
                 final decoded = jsonDecode(rawPayload);
                 final data = _safeMap(decoded);
                 if (data.isEmpty) {
+                  debugPrint('SSE: decoded data is empty - ignoring');
                   return;
                 }
 
+                debugPrint('SSE: dispatching parsed SSE message');
                 _handleSseMessage(data);
-              } catch (_) {
+              } catch (e, st) {
+                debugPrint('SSE: malformed payload, decode error: $e\n$st');
                 // Ignore malformed event payloads and keep stream alive.
               }
             },
-            onError: (_) {
+            onError: (error) {
+              debugPrint('SSE: stream onError: $error');
               if (_activeConversationId == conversationId && _isSending) {
                 _isSending = false;
                 notifyListeners();
@@ -328,7 +337,8 @@ class ChatbotProvider extends ChangeNotifier {
             },
             cancelOnError: false,
           );
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('SSE: exception while creating stream: $e\n$st');
       if (_activeConversationId == conversationId && _isSending) {
         _isSending = false;
         notifyListeners();
@@ -338,14 +348,21 @@ class ChatbotProvider extends ChangeNotifier {
 
   void _handleSseMessage(Map<String, dynamic> data) {
     final conversationId = data['conversationId']?.toString() ?? '';
+    debugPrint('SSE: handleSseMessage for conversationId="$conversationId", rawData=${data.toString()}');
     if (conversationId.isEmpty || conversationId != _activeConversationId) {
+      debugPrint('SSE: conversationId mismatch or empty - ignoring');
       return;
     }
 
     final content = data['chatbotMessage']?.toString().trim() ?? '';
     final suggestions = ChatSuggestion.fromList(data['suggestions']);
+    final displayAcceptButton =
+      data['displayAcceptButton'] == true ||
+      data['displayAcceptButton']?.toString().toLowerCase() == 'true';
+    debugPrint('SSE: parsed content length=${content.length}, suggestions=${suggestions.length}');
 
     if (content.isEmpty && suggestions.isEmpty) {
+      debugPrint('SSE: both content and suggestions empty - ignoring');
       return;
     }
 
@@ -359,6 +376,16 @@ class ChatbotProvider extends ChangeNotifier {
       content: content,
       suggestions: suggestions,
     )) {
+      final lastMessage = messages.last;
+      if (displayAcceptButton && !shouldShowAcceptButton(lastMessage.id)) {
+        _displayAcceptButtonByMessageId[lastMessage.id] = true;
+        _isSending = false;
+        _promoteConversation(conversationId);
+        notifyListeners();
+        return;
+      }
+
+      debugPrint('SSE: duplicate assistant message detected - stopping send state');
       _isSending = false;
       notifyListeners();
       return;
@@ -367,15 +394,18 @@ class ChatbotProvider extends ChangeNotifier {
     if (content.isEmpty && messages.isNotEmpty) {
       final lastMessage = messages.last;
       if (lastMessage.role == ChatMessageRole.assistant) {
+        debugPrint('SSE: updating last assistant message suggestions');
         messages[messages.length - 1] = lastMessage.copyWith(
           suggestions: suggestions,
         );
+        _displayAcceptButtonByMessageId[messages.last.id] = displayAcceptButton;
         _isSending = false;
         notifyListeners();
         return;
       }
     }
 
+    debugPrint('SSE: adding assistant message to messages list');
     messages.add(
       ChatMessage(
         id: 'sse_${DateTime.now().microsecondsSinceEpoch}_$conversationId',
@@ -388,6 +418,7 @@ class ChatbotProvider extends ChangeNotifier {
         isMarkdown: true,
       ),
     );
+    _displayAcceptButtonByMessageId[messages.last.id] = displayAcceptButton;
 
     _isSending = false;
     _promoteConversation(conversationId);
@@ -476,12 +507,20 @@ class ChatbotProvider extends ChangeNotifier {
     final messages =
         response.items
             .map(
-              (item) => ChatMessage.fromJson(
-                item,
-                conversationId: conversationId,
-                currentUserId: _accountId,
-                aiAccountId: _aiAccountId,
-              ),
+              (item) {
+                final message = ChatMessage.fromJson(
+                  item,
+                  conversationId: conversationId,
+                  currentUserId: _accountId,
+                  aiAccountId: _aiAccountId,
+                );
+                final raw = _safeMap(item);
+                final accepts = _parseBool(raw['displayAcceptButton']);
+                if (accepts) {
+                  _displayAcceptButtonByMessageId[message.id] = true;
+                }
+                return message;
+              },
             )
             .where((item) => item.content.trim().isNotEmpty)
             .toList()
@@ -498,6 +537,10 @@ class ChatbotProvider extends ChangeNotifier {
     return messages;
   }
 
+  bool shouldShowAcceptButton(String messageId) {
+    return _displayAcceptButtonByMessageId[messageId] ?? false;
+  }
+
   Map<String, dynamic> _safeMap(dynamic data) {
     if (data is Map<String, dynamic>) {
       return data;
@@ -506,6 +549,14 @@ class ChatbotProvider extends ChangeNotifier {
       return Map<String, dynamic>.from(data);
     }
     return <String, dynamic>{};
+  }
+
+  bool _parseBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is String) {
+      return value.toLowerCase() == 'true';
+    }
+    return false;
   }
 
   @override

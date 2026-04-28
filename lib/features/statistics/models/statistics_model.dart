@@ -77,7 +77,7 @@ class StatisticsGroupModel {
   final int totalAmount;
   final double percentage;
   final double percentageChange;
-  final int groupType; // 0: Necessary, 1: Savings, 2: SelfDevelopment, 3: Entertainment, 4: Giving
+  final int groupType; // 0: Necessary, 1: Assets, 2: Self Development, 3: Entertainment, 4: Giving, 5: Income
   final List<StatisticsCategoryModel> categories;
 
   StatisticsGroupModel({
@@ -121,13 +121,15 @@ class StatisticsGroupModel {
       case 0:
         return 'Necessary';
       case 1:
-        return 'Savings';
+        return 'Assets';
       case 2:
         return 'Self Development';
       case 3:
         return 'Entertainment';
       case 4:
         return 'Giving';
+      case 5:
+        return 'Income';
       default:
         return 'Group $groupType';
     }
@@ -208,14 +210,18 @@ class StatisticsResponseModel {
     }
   }
 
-  /// Lấy group Savings (groupType = 1)
-  StatisticsGroupModel? get savingsGroup {
+  /// Lấy group Assets (groupType = 1)
+  StatisticsGroupModel? get assetsGroup {
     try {
       return items.firstWhere((item) => item.groupType == 1);
     } catch (e) {
       return null;
     }
   }
+
+  /// Giữ lại alias cũ để tránh vỡ code ở nơi khác
+  @Deprecated('Use assetsGroup instead. groupType 1 is Assets, not Savings.')
+  StatisticsGroupModel? get savingsGroup => assetsGroup;
 
   /// Lấy group Self Development (groupType = 2)
   StatisticsGroupModel? get selfDevelopmentGroup {
@@ -244,11 +250,20 @@ class StatisticsResponseModel {
     }
   }
 
+  /// Lấy group Income (groupType = 5)
+  StatisticsGroupModel? get incomeGroup {
+    try {
+      return items.firstWhere((item) => item.groupType == 5);
+    } catch (e) {
+      return null;
+    }
+  }
+
   @Deprecated('Use necessaryGroup instead. groupType 0 is Necessary, not Expense.')
   StatisticsGroupModel? get expenseGroup => necessaryGroup;
 
-  @Deprecated('Use savingsGroup instead. groupType 1 is Savings, not Income.')
-  StatisticsGroupModel? get incomeGroup => savingsGroup;
+  @Deprecated('Use incomeGroup instead. groupType 5 is Income, not Assets.')
+  StatisticsGroupModel? get incomeGroupLegacy => incomeGroup;
 
   /// Tổng số tiền của tất cả các group
   int get totalAmount {

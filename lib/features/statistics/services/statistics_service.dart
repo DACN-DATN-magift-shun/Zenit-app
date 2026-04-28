@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:zenit/core/api/api_endpoints.dart';
 import 'package:zenit/data/network/api_client.dart';
 import 'package:zenit/features/statistics/models/statistics_model.dart';
@@ -19,7 +21,7 @@ class StatisticsService {
     return DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
   }
 
-  /// Helper để convert response data sang Map<String, dynamic> an toàn
+  /// Helper để convert response data sang map an toàn
   Map<String, dynamic> _convertToMap(dynamic data) {
     if (data is Map<String, dynamic>) {
       return data;
@@ -34,11 +36,11 @@ class StatisticsService {
   /// Xử lý Dio errors
   Exception _handleDioError(DioException e) {
     if (e.response != null) {
-      print('Dio error response: ${e.response?.statusCode}');
-      print('Dio error data: ${e.response?.data}');
+      debugPrint('Dio error response: ${e.response?.statusCode}');
+      debugPrint('Dio error data: ${e.response?.data}');
       return Exception('API Error: ${e.response?.statusCode} - ${e.response?.data}');
     } else {
-      print('Dio error: ${e.message}');
+      debugPrint('Dio error: ${e.message}');
       return Exception('Network Error: ${e.message}');
     }
   }
@@ -66,18 +68,18 @@ class StatisticsService {
         'To': toDate.toUtc().toIso8601String(),
       };
 
-      print('=== Get Statistics ===');
-      print('URL: ${ApiEndpoints.statistics}');
-      print('Query params: $queryParams');
+      debugPrint('=== Get Statistics ===');
+      debugPrint('URL: ${ApiEndpoints.statistics}');
+      debugPrint('Query params: $queryParams');
 
       final response = await _api.get(
         ApiEndpoints.statistics,
         queryParameters: queryParams,
       );
 
-      print('=== Get Statistics Response ===');
-      print('Status code: ${response.statusCode}');
-      print('Response data: ${response.data}');
+      debugPrint('=== Get Statistics Response ===');
+      debugPrint('Status code: ${response.statusCode}');
+      debugPrint('Response data: ${response.data}');
 
       if (response.statusCode == 200) {
         return StatisticsResponseModel.fromJson(_convertToMap(response.data));
@@ -90,8 +92,6 @@ class StatisticsService {
   }
 
   /// Export báo cáo thống kê
-  /// Tùy thuộc vào API backend, có thể trả về file PDF, Excel, etc.
-  /// Hiện tại implement placeholder
   Future<void> exportReport({
     DateTime? from,
     DateTime? to,
@@ -104,18 +104,50 @@ class StatisticsService {
       final toDate = to == null ? rawToDate : _endOfDay(rawToDate);
 
       final queryParams = <String, dynamic>{
-        'From': fromDate.toUtc().toIso8601String(),
-        'To': toDate.toUtc().toIso8601String(),
+        'FromDate': fromDate.toUtc().toIso8601String(),
+        'ToDate': toDate.toUtc().toIso8601String(),
       };
 
-      print('=== Export Statistics Report ===');
-      print('Query params: $queryParams');
+      debugPrint('=== Export Statistics Report ===');
+      debugPrint('URL: ${ApiEndpoints.statisticsReports}');
+      debugPrint('Query params: $queryParams');
 
-      // TODO: Implement API export report khi backend có endpoint
-      // Có thể download file PDF, Excel, etc.
-      throw UnimplementedError('Export report chưa được implement trong backend');
+      final response = await _api.post(
+        ApiEndpoints.statisticsReports,
+        queryParameters: queryParams,
+        options: Options(headers: const {'accept': '*/*'}),
+      );
+
+      debugPrint('=== Export Statistics Report Response ===');
+      debugPrint('Status code: ${response.statusCode}');
+      debugPrint('Response data: ${response.data}');
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Failed to export report: ${response.statusCode}');
+      }
+
+      final responseData = _convertToMap(response.data);
+      final reportUrl = responseData['reportUrl']?.toString();
+
+      if (reportUrl == null || reportUrl.isEmpty) {
+        throw Exception('Report URL is missing in response');
+      }
+
+      final reportUri = Uri.tryParse(reportUrl);
+      if (reportUri == null) {
+        throw Exception('Invalid report URL: $reportUrl');
+      }
+
+      final didLaunch = await launchUrl(
+        reportUri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!didLaunch) {
+        throw Exception('Unable to open report URL');
+      }
     } catch (e) {
-      print('Export error: $e');
+      debugPrint('Export error: $e');
       rethrow;
     }
   }

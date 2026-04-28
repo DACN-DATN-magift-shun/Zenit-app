@@ -21,7 +21,8 @@ void main() {
 
   test('getCategoriesByGroupType handles list payload', () async {
     when(
-      () => apiClient.get(ApiEndpoints.categories, queryParameters: {'groupType': 0}),
+      () => apiClient.get(ApiEndpoints.categories, queryParameters: {'groupType': 0,'Page': 1,
+        'PageSize': 10}),
     ).thenAnswer((_) async => buildResponse(statusCode: 200, data: categoryListAsListData));
 
     final result = await service.getCategoriesByGroupType(0);
