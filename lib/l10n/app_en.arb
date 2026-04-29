@@ -337,5 +337,14 @@
     }
   },
   "notLoggedIn": "You are not logged in",
-  "pleaseLogin": "Please sign in to view information"
+  "pleaseLogin": "Please sign in to view information",
+  "walletsTitle": "Your wallets",
+  "overspentWalletWarning": "It seems you overspent on wallet {walletName}!",
+  "@overspentWalletWarning": {
+    "placeholders": {
+      "walletName": {
+        "type": "String"
+      }
+    }
+  }
 }

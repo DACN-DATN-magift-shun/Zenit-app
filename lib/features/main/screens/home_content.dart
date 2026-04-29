@@ -18,6 +18,8 @@ import 'package:zenit/features/photos/services/photo_service.dart';
 import 'package:zenit/features/main/models/action_item.dart';
 import 'package:zenit/features/main/models/home_action_item.dart';
 import 'package:zenit/features/main/widgets/home/home_action_grid.dart';
+import 'package:zenit/features/setting_childs/money_source_manage/services/money_source_service.dart';
+import 'package:zenit/features/setting_childs/money_source_manage/models/money_source_model.dart';
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
@@ -31,7 +33,9 @@ class _HomeContentState extends State<HomeContent> {
   final TransactionService _transactionService = TransactionService();
   final LoansService _loansService = LoansService();
   final PhotoService _photoService = PhotoService();
-  static const int _recentTransactionsLimit = 3;
+  final MoneySourceService _moneySourceService = MoneySourceService();
+  static const int _recentTransactionsLimit = 2;
+  static const int _walletsLimit = 2;
 
   String _userName = '';
   bool _isAuthenticated = false;
@@ -39,6 +43,10 @@ class _HomeContentState extends State<HomeContent> {
   bool _isLoadingRecentTransactions = false;
   String? _recentTransactionsError;
   List<TransactionModel> _recentTransactions = [];
+
+  bool _isLoadingWallets = false;
+  String? _walletsError;
+  List<MoneySourceModel> _wallets = [];
 
   List<HomeActionItem> _buildActionItems(BuildContext context) {
     final l10n = context.l10n;
@@ -136,11 +144,14 @@ class _HomeContentState extends State<HomeContent> {
       setState(() {
         _recentTransactions = [];
         _recentTransactionsError = null;
+        _wallets = [];
+        _walletsError = null;
       });
       return;
     }
 
     _loadRecentTransactions();
+    _loadWallets();
 
     final response = await _authService.getUserInfo();
 
@@ -208,6 +219,45 @@ class _HomeContentState extends State<HomeContent> {
       setState(() {
         _recentTransactionsError = e.toString();
         _isLoadingRecentTransactions = false;
+      });
+    }
+  }
+
+  Future<void> _loadWallets({bool showLoading = true}) async {
+    if (!_isAuthenticated) {
+      setState(() {
+        _wallets = [];
+        _walletsError = null;
+        _isLoadingWallets = false;
+      });
+      return;
+    }
+
+    if (showLoading) {
+      setState(() {
+        _isLoadingWallets = true;
+        _walletsError = null;
+      });
+    } else {
+      setState(() {
+        _walletsError = null;
+      });
+    }
+
+    try {
+      final allWallets = await _moneySourceService.getAllMoneySources();
+
+      if (!mounted) return;
+
+      setState(() {
+        _wallets = allWallets.take(_walletsLimit).toList();
+        _isLoadingWallets = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _walletsError = e.toString();
+        _isLoadingWallets = false;
       });
     }
   }
@@ -648,6 +698,187 @@ class _HomeContentState extends State<HomeContent> {
         );
   }
 
+  Widget _buildWalletsSection(BuildContext context) {
+    final l10n = context.l10n;
+
+    return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSizes.l),
+          decoration: BoxDecoration(
+            color: AppColors.light.neutralBackground,
+            borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
+            border: Border.all(color: AppColors.light.neutralBorder, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                    l10n.walletsTitle,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.light.neutralTextPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  )
+                  .animate()
+                  .fadeIn(duration: 700.ms, delay: 150.ms)
+                  .slideX(
+                    begin: -0.05,
+                    end: 0,
+                    duration: 700.ms,
+                    curve: Curves.easeOutQuart,
+                  ),
+              const SizedBox(height: AppSizes.s),
+              if (!_isAuthenticated)
+                Text(
+                  l10n.needLoginHistory,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.light.neutralTextSecondary,
+                  ),
+                ).animate().fadeIn(duration: 700.ms, delay: 300.ms)
+              else if (_isLoadingWallets)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppSizes.l),
+                  child: Center(child: CircularProgressIndicator()),
+                ).animate().fadeIn(duration: 500.ms)
+              else if (_walletsError != null && _wallets.isEmpty)
+                Text(
+                  l10n.cannotLoadData,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.light.errorText,
+                  ),
+                ).animate().fadeIn(duration: 700.ms, delay: 300.ms)
+              else if (_wallets.isEmpty)
+                Text(
+                  l10n.noData,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.light.neutralTextSecondary,
+                  ),
+                ).animate().fadeIn(duration: 700.ms, delay: 300.ms)
+              else
+                Column(
+                  children: [
+                    ...List.generate(_wallets.length, (index) {
+                      final wallet = _wallets[index];
+                      final isOverspent = wallet.amount < 0;
+
+                      return Column(
+                            children: [
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSizes.l,
+                                  vertical: AppSizes.l,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isOverspent
+                                      ? AppColors.light.errorBackground
+                                            .withValues(alpha: 0.15)
+                                      : AppColors.light.secondaryMain,
+                                  borderRadius: BorderRadius.circular(
+                                    AppSizes.borderRadiusXSmall,
+                                  ),
+                                  border: isOverspent
+                                      ? Border.all(
+                                          color:
+                                              AppColors.light.errorBackground,
+                                          width: 1.5,
+                                        )
+                                      : null,
+                                ),
+                                margin: EdgeInsets.only(
+                                  bottom: index == _wallets.length - 1
+                                      ? 0
+                                      : AppSizes.s,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      wallet.name,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: AppColors
+                                                .light
+                                                .neutralTextPrimary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                    Text(
+                                      _formatCurrency(wallet.amount),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: isOverspent
+                                                ? AppColors.light.errorText
+                                                : AppColors
+                                                      .light
+                                                      .neutralTextPrimary,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (isOverspent)
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    top: AppSizes.m,
+                                    bottom: index == _wallets.length - 1
+                                        ? 0
+                                        : AppSizes.s,
+                                  ),
+                                  child: Text(
+                                    l10n.overspentWalletWarning(wallet.name),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: AppColors.light.errorText,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                  ),
+                                ),
+                            ],
+                          )
+                          .animate(delay: (200 + index * 100).ms)
+                          .fadeIn(duration: 600.ms, curve: Curves.easeOutQuart)
+                          .slideY(
+                            begin: 0.1,
+                            end: 0,
+                            duration: 600.ms,
+                            curve: Curves.easeOutQuart,
+                          )
+                          .scaleXY(
+                            begin: 0.95,
+                            end: 1.0,
+                            duration: 600.ms,
+                            curve: Curves.easeOutQuart,
+                          );
+                    }),
+                  ],
+                ),
+            ],
+          ),
+        )
+        .animate()
+        .fadeIn(duration: 800.ms, curve: Curves.easeOut)
+        .scaleXY(
+          begin: 0.95,
+          end: 1.0,
+          duration: 800.ms,
+          curve: Curves.easeOutQuart,
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -672,7 +903,10 @@ class _HomeContentState extends State<HomeContent> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: AppSizes.l),
-                // Action Grid Section
+                // Wallets Section
+                _buildWalletsSection(context),
+                const SizedBox(height: AppSizes.l),
+                // Recent Transactions Section
                 _buildRecentTransactionsSection(context),
                 const SizedBox(height: AppSizes.l),
                 HomeActionGrid(
@@ -689,7 +923,9 @@ class _HomeContentState extends State<HomeContent> {
             child: FloatingActionButton(
               onPressed: _navigateToChatbot,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall), // 🔥 chỉnh ở đây
+                borderRadius: BorderRadius.circular(
+                  AppSizes.borderRadiusSmall,
+                ), // 🔥 chỉnh ở đây
               ),
               child: const Icon(Icons.smart_toy_rounded),
               // label: const Text('AI Chat'),

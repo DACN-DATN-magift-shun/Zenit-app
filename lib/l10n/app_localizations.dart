@@ -1495,6 +1495,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please sign in to view information'**
   String get pleaseLogin;
+
+  /// No description provided for @walletsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your wallets'**
+  String get walletsTitle;
+
+  /// No description provided for @overspentWalletWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'It seems you overspent on wallet {walletName}!'**
+  String overspentWalletWarning(String walletName);
 }
 
 class _AppLocalizationsDelegate

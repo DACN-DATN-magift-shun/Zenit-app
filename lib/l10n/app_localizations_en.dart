@@ -764,4 +764,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pleaseLogin => 'Please sign in to view information';
+
+  @override
+  String get walletsTitle => 'Your wallets';
+
+  @override
+  String overspentWalletWarning(String walletName) {
+    return 'It seems you overspent on wallet $walletName!';
+  }
 }

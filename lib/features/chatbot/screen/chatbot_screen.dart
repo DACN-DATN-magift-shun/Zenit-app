@@ -438,7 +438,13 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.chatbotTitle),
+        title: Text(
+          l10n.chatbotTitle,
+          style: const TextStyle(
+            color: Colors.white, 
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         titleSpacing: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),

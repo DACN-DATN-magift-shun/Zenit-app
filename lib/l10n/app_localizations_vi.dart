@@ -201,7 +201,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get send => 'Gửi';
 
   @override
-  String get chatbotTitle => 'Zenos AI';
+  String get chatbotTitle => 'Zenos';
 
   @override
   String get chatHistoryTitle => 'Lịch sử hội thoại';
@@ -761,4 +761,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get pleaseLogin => 'Vui lòng đăng nhập để xem thông tin';
+
+  @override
+  String get walletsTitle => 'Ví của bạn';
+
+  @override
+  String overspentWalletWarning(String walletName) {
+    return 'Có vẻ bạn đã tiêu quá tay ở ví $walletName!';
+  }
 }

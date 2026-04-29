@@ -66,7 +66,7 @@
   "addressTooShort": "Địa chỉ quá ngắn",
 
   "send": "Gửi",
-  "chatbotTitle": "Zenos AI",
+  "chatbotTitle": "Zenos",
   "chatHistoryTitle": "Lịch sử hội thoại",
   "chatHistoryTooltip": "Lịch sử hội thoại",
   "chatNewConversation": "Đoạn chat mới",
@@ -337,5 +337,14 @@
     }
   },
   "notLoggedIn": "Bạn chưa đăng nhập",
-  "pleaseLogin": "Vui lòng đăng nhập để xem thông tin"
+  "pleaseLogin": "Vui lòng đăng nhập để xem thông tin",
+  "walletsTitle": "Ví của bạn",
+  "overspentWalletWarning": "Có vẻ bạn đã tiêu quá tay ở ví {walletName}!",
+  "@overspentWalletWarning": {
+    "placeholders": {
+      "walletName": {
+        "type": "String"
+      }
+    }
+  }
 }
