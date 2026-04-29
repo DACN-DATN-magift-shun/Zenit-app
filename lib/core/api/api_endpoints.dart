@@ -1,19 +1,20 @@
 class ApiEndpoints {
+  // static const String localBaseUrl = "http://192.168.1.44:5212/";
   static const String localBaseUrl = "http://10.0.2.2:5212/";
   static const String productionBaseUrl =
       "https://zenit-api-tuir.onrender.com/";
 
   // Toggle this when switching between local backend and deployed backend.
   static const bool useProduction = false;
-  static const String nowDemoDeviceURL = useProduction
+  static const String demoURL = useProduction
       ? productionBaseUrl
       : localBaseUrl;
 
   // Base URLs for different services
-  static const String authBaseUrl = nowDemoDeviceURL;
-  static const String categoryBaseUrl = nowDemoDeviceURL;
-  static const String transactionBaseUrl = nowDemoDeviceURL;
-  static const String statisticsBaseUrl = nowDemoDeviceURL;
+  static const String authBaseUrl = demoURL;
+  static const String categoryBaseUrl = demoURL;
+  static const String transactionBaseUrl = demoURL;
+  static const String statisticsBaseUrl = demoURL;
 
   // Default base URL (for ApiClient compatibility)
   static const String baseUrl = authBaseUrl;

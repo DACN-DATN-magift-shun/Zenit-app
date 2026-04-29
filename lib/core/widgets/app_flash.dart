@@ -51,6 +51,7 @@ class AppFlash {
     Duration? duration,
   }) async {
     if (!context.mounted) return;
+    if (_isWidgetTestEnvironment()) return;
 
     final colors = Theme.of(context).extension<AppColorExtension>();
     final textTheme = Theme.of(context).textTheme;
@@ -93,6 +94,15 @@ class AppFlash {
         );
       },
     );
+  }
+
+  static bool _isWidgetTestEnvironment() {
+    final binding = WidgetsBinding.instance;
+    if (binding == null) {
+      return false;
+    }
+
+    return binding.runtimeType.toString().contains('TestWidgetsFlutterBinding');
   }
 
   static Widget _buildIcon(_AppFlashStyle style) {

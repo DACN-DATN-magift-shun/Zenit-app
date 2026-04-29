@@ -61,11 +61,49 @@ class AuthService {
     try {
       final response = await getUserInfo();
       if (response == null) return 'User';
-      
-      // Truy cập data từ response
-      final data = response.data;
-      final userInfo = data['data'] as Map<String, dynamic>? ?? data as Map<String, dynamic>?;
-      return userInfo?['username'] as String? ?? 'User';
+
+      dynamic payload = response.data;
+      if (payload is String && payload.isNotEmpty) {
+        try {
+          payload = jsonDecode(payload);
+        } catch (_) {
+          return 'User';
+        }
+      }
+
+      Map<String, dynamic>? root;
+      if (payload is Map<String, dynamic>) {
+        root = payload;
+      } else if (payload is Map) {
+        root = Map<String, dynamic>.from(payload);
+      }
+      if (root == null) return 'User';
+
+      dynamic userData = root['data'];
+      if (userData is String && userData.isNotEmpty) {
+        try {
+          userData = jsonDecode(userData);
+        } catch (_) {
+          userData = null;
+        }
+      }
+
+      Map<String, dynamic>? userInfo;
+      if (userData is Map<String, dynamic>) {
+        userInfo = userData;
+      } else if (userData is Map) {
+        userInfo = Map<String, dynamic>.from(userData);
+      } else if (userData is List && userData.isNotEmpty && userData.first is Map) {
+        userInfo = Map<String, dynamic>.from(userData.first as Map);
+      } else {
+        userInfo = root;
+      }
+
+      final username = userInfo['username'];
+      if (username is String && username.isNotEmpty) {
+        return username;
+      }
+      return 'User';
     } catch (e) {
       print('Error getting user display name: $e');
       return 'User';

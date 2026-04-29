@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:zenit/core/l10n/l10n.dart';
-import 'package:zenit/core/theme/app_colors.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/widgets/app_confirm_dialog.dart';
@@ -441,7 +440,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         title: Text(
           l10n.chatbotTitle,
           style: const TextStyle(
-            color: Colors.white, 
+            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -501,14 +500,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                     horizontal: AppSizes.l,
                     vertical: AppSizes.m,
                   ),
-                  itemCount: messages.length + (provider.isSending ? 1 : 0),
+                  itemCount: messages.length,
                   itemBuilder: (context, index) {
-                    if (provider.isSending && index == messages.length) {
-                      return const _AiTypingIndicatorBubble();
-                    }
-
-                    final messageIndex = index;
-                    final message = messages[messageIndex];
+                    final message = messages[index];
                     final latestMessage = messages.isNotEmpty
                         ? messages.last
                         : null;
@@ -518,7 +512,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                         _shouldShowConfirmChip(latestMessage);
                     final showSuggestionChips =
                         isLatestMessage &&
-                        message.role == ChatMessageRole.assistant;
+                        message.role == ChatMessageRole.assistant &&
+                        message.content.trim().isNotEmpty;
 
                     final chipItems = <ChatActionChipItem>[
                       if (showSuggestionChips)
@@ -620,92 +615,6 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               },
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AiTypingIndicatorBubble extends StatefulWidget {
-  const _AiTypingIndicatorBubble();
-
-  @override
-  State<_AiTypingIndicatorBubble> createState() =>
-      _AiTypingIndicatorBubbleState();
-}
-
-class _AiTypingIndicatorBubbleState extends State<_AiTypingIndicatorBubble>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: AppSizes.s),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSizes.l,
-          vertical: AppSizes.m,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.light.secondaryMain,
-          borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
-        ),
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _TypingDot(progress: _controller.value, delay: 0.0),
-                const SizedBox(width: 6),
-                _TypingDot(progress: _controller.value, delay: 0.2),
-                const SizedBox(width: 6),
-                _TypingDot(progress: _controller.value, delay: 0.4),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _TypingDot extends StatelessWidget {
-  const _TypingDot({required this.progress, required this.delay});
-
-  final double progress;
-  final double delay;
-
-  @override
-  Widget build(BuildContext context) {
-    final shifted = ((progress - delay) % 1.0 + 1.0) % 1.0;
-    final opacity = 0.28 + (0.72 * (1 - (shifted - 0.5).abs() * 2));
-
-    return Opacity(
-      opacity: opacity.clamp(0.2, 1.0),
-      child: Container(
-        width: 8,
-        height: 8,
-        decoration: BoxDecoration(
-          color: AppColors.light.neutralTextSecondary,
-          shape: BoxShape.circle,
         ),
       ),
     );

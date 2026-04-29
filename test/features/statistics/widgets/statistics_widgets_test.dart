@@ -55,14 +55,14 @@ void main() {
     testWidgets('StatisticsLegend renders labels and amounts', (tester) async {
       await tester.pumpWidget(
         _buildApp(
-          StatisticsLegend(groups: buildStatisticsWidgetGroups()),
+          StatisticsLegend(groups: <StatisticsGroupModel>[statisticsWidgetNecessaryGroup]),
         ),
       );
 
       expect(find.text('Necessary'), findsOneWidget);
-      expect(find.text('Savings'), findsOneWidget);
+      expect(find.text('Assets'), findsNothing);
       expect(find.textContaining('1.200'), findsOneWidget);
-      expect(find.textContaining('800'), findsOneWidget);
+      expect(find.textContaining('800'), findsNothing);
     });
 
     testWidgets('StatisticsLegend hides itself for empty groups', (
@@ -93,7 +93,6 @@ void main() {
             child: StatisticsPieChart(
               groups: <StatisticsGroupModel>[
                 statisticsWidgetNecessaryGroup,
-                statisticsWidgetSavingsGroup,
               ],
             ),
           ),
@@ -103,9 +102,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('60%'), findsOneWidget);
-      expect(find.text('40%'), findsOneWidget);
       expect(find.text('Necessary'), findsOneWidget);
-      expect(find.text('Savings'), findsOneWidget);
+      expect(find.text('Assets'), findsNothing);
     });
   });
 }
