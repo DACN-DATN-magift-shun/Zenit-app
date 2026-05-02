@@ -479,7 +479,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatbotTitle.
   ///
   /// In en, this message translates to:
-  /// **'Zenos AI'**
+  /// **'Zenos'**
   String get chatbotTitle;
 
   /// No description provided for @chatHistoryTitle.

@@ -13,7 +13,10 @@ import 'package:zenit/core/utils/auth_error_message.dart';
 import 'package:zenit/features/auth/services/account_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.accountService, this.authService});
+
+  final AccountService? accountService;
+  final dynamic authService;
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -47,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
       print('Sending login request to: ${ApiEndpoints.login}');
       print('Data: email=$email');
 
-      final response = await AccountService().login(
+      final response = await (widget.accountService ?? AccountService()).login(
         email: email,
         password: password,
       );
@@ -70,7 +73,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       if (accessToken != null && refreshToken != null) {
-        await AuthService().saveLoginData(
+        final auth = widget.authService ?? AuthService();
+        await auth.saveLoginData(
           accessToken: accessToken,
           refreshToken: refreshToken,
         );

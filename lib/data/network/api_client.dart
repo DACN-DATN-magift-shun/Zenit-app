@@ -25,6 +25,21 @@ class ApiClient {
 
   Dio get dio => _dio;
 
+  // Test-only hook: allows integration tests to plug in a fake adapter.
+  void setHttpClientAdapterForTest(HttpClientAdapter adapter) {
+    _dio.httpClientAdapter = adapter;
+  }
+
+  // Test-only hook: reset dio instance to app defaults.
+  void resetForTest() {
+    _dio = Dio(BaseOptions(
+      connectTimeout: const Duration(milliseconds: ApiEndpoints.connectionTimeout),
+      receiveTimeout: const Duration(milliseconds: ApiEndpoints.receiveTimeout),
+      headers: {'Content-Type': 'application/json'},
+    ));
+    _setupInterceptors();
+  }
+
   // ============ CONVENIENCE METHODS ============
   // Dùng các method này để gọi API với full URL từ ApiEndpoints
 

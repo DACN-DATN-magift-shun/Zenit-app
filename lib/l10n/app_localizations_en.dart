@@ -202,7 +202,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get send => 'Send';
 
   @override
-  String get chatbotTitle => 'Zenos AI';
+  String get chatbotTitle => 'Zenos';
 
   @override
   String get chatHistoryTitle => 'Conversation history';

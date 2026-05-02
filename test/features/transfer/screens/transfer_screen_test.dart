@@ -195,4 +195,32 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
   });
+
+  testWidgets('TransferScreen opens edit drawer from list item', (tester) async {
+    final provider = FakeTransferScreenProvider(
+      transfers: [
+        MoneyTransferModel(
+          id: 't-edit-1',
+          fromWalletId: 'w1',
+          toWalletId: 'w2',
+          amount: 123,
+          transferDate: DateTime(2026, 4, 30),
+          note: 'edit me',
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      _buildApp(const Scaffold(body: TransferScreen()), provider),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    await tester.tap(find.text('edit me'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+
+    expect(find.text('Update transfer'), findsOneWidget);
+  });
 }

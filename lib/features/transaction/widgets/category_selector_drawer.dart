@@ -217,6 +217,7 @@ class _CategorySelectorDrawerState extends State<CategorySelectorDrawer> {
                         widget.selectedCategory?.id == category.id;
 
                     return InkWell(
+                      key: ValueKey('category-option-${category.id}'),
                       onTap: () => widget.onCategorySelected(category),
                       borderRadius: BorderRadius.circular(
                         AppSizes.borderRadiusXSmall,

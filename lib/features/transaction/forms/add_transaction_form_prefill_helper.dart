@@ -21,6 +21,7 @@ class AddTransactionFormPrefillHelper {
   static Future<AddTransactionFormPrefillResult> loadFromRecentTransaction({
     required MoneySourceProvider moneySourceProvider,
     required CategoryProvider categoryProvider,
+    TransactionService? transactionService,
   }) async {
     if (!moneySourceProvider.hasData) {
       await moneySourceProvider.loadAllMoneySources();
@@ -34,7 +35,7 @@ class AddTransactionFormPrefillHelper {
       return const AddTransactionFormPrefillResult();
     }
 
-    final transactionService = TransactionService();
+    final service = transactionService ?? TransactionService();
     final fallbackWallet = moneySourceProvider.moneySources.first;
 
     MoneySourceModel selectedWallet = fallbackWallet;
@@ -42,7 +43,7 @@ class AddTransactionFormPrefillHelper {
     bool? isIncomeTransaction;
 
     try {
-      final response = await transactionService.getAllTransactions(
+      final response = await service.getAllTransactions(
         pageSize: 1,
         useCountTotal: false,
       );

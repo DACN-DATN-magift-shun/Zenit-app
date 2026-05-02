@@ -4,11 +4,20 @@ class ApiEndpoints {
   static const String productionBaseUrl =
       "https://zenit-api-tuir.onrender.com/";
 
+    static const String _apiBaseUrlOverride = String.fromEnvironment(
+        'API_BASE_URL',
+        defaultValue: '',
+    );
+
   // Toggle this when switching between local backend and deployed backend.
-  static const bool useProduction = false;
-  static const String demoURL = useProduction
-      ? productionBaseUrl
-      : localBaseUrl;
+    static const bool useProduction = bool.fromEnvironment(
+        'USE_PRODUCTION',
+        defaultValue: false,
+    );
+
+  static const String demoURL = _apiBaseUrlOverride != ''
+      ? _apiBaseUrlOverride
+      : (useProduction ? productionBaseUrl : localBaseUrl);
 
   // Base URLs for different services
   static const String authBaseUrl = demoURL;
@@ -78,7 +87,8 @@ class ApiEndpoints {
 
   // Statistics Endpoints (using statisticsBaseUrl)
   static const String statistics = "${statisticsBaseUrl}Statistics";
-    static const String statisticsReports = "${statisticsBaseUrl}Statistics/reports";
+  static const String statisticsReports =
+      "${statisticsBaseUrl}Statistics/reports";
 
   // Photos Endpoints (using transactionBaseUrl)
   static const String photos = "${transactionBaseUrl}Photos";
