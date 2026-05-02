@@ -200,6 +200,7 @@ class _MoneySourceSelectorDrawerState extends State<MoneySourceSelectorDrawer> {
     final colors = Theme.of(context).extension<AppColorExtension>()!;
 
     return GestureDetector(
+      key: ValueKey('wallet-option-${wallet.id}'),
       behavior: HitTestBehavior.opaque,
       onTap: () {
         widget.onWalletSelected(wallet);

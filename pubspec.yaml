@@ -32,6 +32,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
   flutter_lints: ^5.0.0
   mocktail: ^1.0.4
 
@@ -44,6 +46,8 @@ flutter:
   uses-material-design: true
   assets:
       - assets/
+      - assets/images/opening_screen_white_bg.png
+      - assets/images/ai_loader.gif
 
   fonts:
     - family: GoogleSansFlex 

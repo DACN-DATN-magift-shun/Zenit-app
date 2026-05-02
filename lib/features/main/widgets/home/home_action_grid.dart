@@ -67,6 +67,7 @@ class HomeActionGrid extends StatelessWidget {
         return _ActionGridItem(
           item: items[index],
           onTap: () => onItemTap(items[index]),
+          key: ValueKey('home-action-${items[index].type.name}'),
           iconContainerSize: iconContainerSize,
           iconSize: iconSize,
         );
@@ -83,6 +84,7 @@ class _ActionGridItem extends StatelessWidget {
   final double iconSize;
 
   const _ActionGridItem({
+    super.key,
     required this.item,
     required this.onTap,
     required this.iconContainerSize,

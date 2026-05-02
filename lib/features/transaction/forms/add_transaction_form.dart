@@ -47,8 +47,16 @@ class TransactionFormData {
 
 class AddTransactionForm extends StatefulWidget {
   final Function(TransactionFormData? Function() getFormData)? onFormReady;
+  final Future<AddTransactionFormPrefillResult> Function(
+    MoneySourceProvider moneySourceProvider,
+    CategoryProvider categoryProvider,
+  )? prefillLoader;
 
-  const AddTransactionForm({super.key, this.onFormReady});
+  const AddTransactionForm({
+    super.key,
+    this.onFormReady,
+    this.prefillLoader,
+  });
 
   @override
   State<AddTransactionForm> createState() => _AddTransactionFormState();
@@ -90,11 +98,12 @@ class _AddTransactionFormState extends State<AddTransactionForm>
     final moneySourceProvider = context.read<MoneySourceProvider>();
     final categoryProvider = context.read<CategoryProvider>();
 
-    final prefill =
-        await AddTransactionFormPrefillHelper.loadFromRecentTransaction(
-          moneySourceProvider: moneySourceProvider,
-          categoryProvider: categoryProvider,
-        );
+    final prefill = widget.prefillLoader != null
+        ? await widget.prefillLoader!(moneySourceProvider, categoryProvider)
+        : await AddTransactionFormPrefillHelper.loadFromRecentTransaction(
+            moneySourceProvider: moneySourceProvider,
+            categoryProvider: categoryProvider,
+          );
 
     if (!mounted || moneySourceProvider.moneySources.isEmpty) return;
 
@@ -513,6 +522,7 @@ class _AddTransactionFormState extends State<AddTransactionForm>
                     SizedBox(
                       width: MediaQuery.of(context).size.width * 0.78,
                       child: TextFormField(
+                        key: const ValueKey('transaction-amount-field'),
                         controller: _amountController,
                         keyboardType: TextInputType.text,
                         inputFormatters: [
@@ -572,6 +582,7 @@ class _AddTransactionFormState extends State<AddTransactionForm>
                     SizedBox(
                       width: MediaQuery.of(context).size.width * 0.55,
                       child: TextFormField(
+                        key: const ValueKey('transaction-title-field'),
                         controller: _titleController,
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -648,6 +659,7 @@ class _AddTransactionFormState extends State<AddTransactionForm>
                       ? [
                           const SizedBox(height: AppSizes.s),
                           CustomTextFormField(
+                            key: const ValueKey('transaction-loan-amount-field'),
                             label: _isVietnamese(context)
                                 ? 'Số tiền khoản vay'
                                 : 'Loan amount',
@@ -775,14 +787,21 @@ class _AddTransactionFormState extends State<AddTransactionForm>
                 label: _typeFieldLabel(context),
                 leadingIcon: Icons.compare_arrows_rounded,
                 child: SegmentedButton<int>(
+                  key: const ValueKey('transaction-type-selector'),
                   segments: [
                     ButtonSegment<int>(
                       value: 0,
-                      label: Text(_expenseLabel(context)),
+                      label: KeyedSubtree(
+                        key: const ValueKey('transaction-type-expense'),
+                        child: Text(_expenseLabel(context)),
+                      ),
                     ),
                     ButtonSegment<int>(
                       value: 1,
-                      label: Text(_incomeLabel(context)),
+                      label: KeyedSubtree(
+                        key: const ValueKey('transaction-type-income'),
+                        child: Text(_incomeLabel(context)),
+                      ),
                     ),
                   ],
                   selected: {_isIncomeTransaction ? 1 : 0},
@@ -821,6 +840,7 @@ class _AddTransactionFormState extends State<AddTransactionForm>
                 label: l10n.singleCategory,
                 leadingIcon: Icons.sell_rounded,
                 child: InkWell(
+                  key: const ValueKey('transaction-category-selector'),
                   onTap: _showCategorySelector,
                   child: _selectedCategory != null
                       ? Container(
@@ -882,6 +902,7 @@ class _AddTransactionFormState extends State<AddTransactionForm>
                 leadingIcon: Icons.account_balance_wallet_rounded,
                 child: _selectedWallet != null
                     ? GestureDetector(
+                        key: const ValueKey('transaction-wallet-selector'),
                         onHorizontalDragEnd: (details) {
                           const swipeThreshold = 50.0;
                           if (details.primaryVelocity == null) return;
@@ -982,7 +1003,8 @@ class _AddTransactionFormState extends State<AddTransactionForm>
                           ),
                         ),
                       )
-                    : InkWell(
+                      : InkWell(
+                        key: const ValueKey('transaction-wallet-selector'),
                         onTap: _showWalletSelector,
                         child: Row(
                           children: [

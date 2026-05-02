@@ -12,7 +12,10 @@ import 'package:zenit/features/auth/services/account_service.dart';
 import 'package:zenit/core/services/auth_service.dart';
 
 class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+  const SignupScreen({super.key, this.accountService, this.authService});
+
+  final AccountService? accountService;
+  final dynamic authService;
   @override
   State<SignupScreen> createState() => _SignupScreenState();
 }
@@ -35,7 +38,7 @@ class _SignupScreenState extends State<SignupScreen> {
         'Data: username=$username, email=$email, phone=$phone, address=$address',
       );
 
-      final respone = await AccountService().register(
+      final respone = await (widget.accountService ?? AccountService()).register(
         username: username,
         email: email,
         phone: phone,
@@ -46,7 +49,8 @@ class _SignupScreenState extends State<SignupScreen> {
       print('Response: ${respone.data}');
       final responeData = respone.data;
       final userID = responeData['id'];
-      AuthService().saveSignupData(userId: responeData['id'].toString());
+      final auth = widget.authService ?? AuthService();
+      auth.saveSignupData(userId: responeData['id'].toString());
       if (userID != null) {
         if (mounted) {
           StorageService().saveUserId(userID.toString());

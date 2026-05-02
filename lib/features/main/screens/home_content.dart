@@ -311,6 +311,7 @@ class _HomeContentState extends State<HomeContent> {
       showDragHandle: true,
       headerActions: [
         IconButton(
+          key: const ValueKey('transaction-submit-button'),
           onPressed: () => _handleCreateTransaction(getFormData),
           icon: Icon(
             Icons.check_circle_outline_rounded,

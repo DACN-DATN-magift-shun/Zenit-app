@@ -107,7 +107,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('Zenos AI'), findsOneWidget);
+    expect(find.text('Zenos'), findsOneWidget);
     expect(
       find.text(
         'Start a conversation. Messages are sent to the backend and AI replies are fetched from message history.',
