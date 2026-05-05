@@ -42,3 +42,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           SONAR_BRANCH_NAME: manage-feat 
+
+
+# add something to test sonarcloud integration
