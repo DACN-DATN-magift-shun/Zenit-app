@@ -1,0 +1,14 @@
+# Configuration for flutter_native_splash
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/images/opening_screen_white_bg.png
+  android: true
+  ios: true
+  web: true
+  android_gravity: center
+  ios_content_mode: center
+  web_image_mode: center
+  android_12:
+    color: "#FFFFFF"
+    image: assets/images/opening_screen_white_bg.png
+    icon_background_color: "#FFFFFF"

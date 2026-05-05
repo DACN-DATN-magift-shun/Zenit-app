@@ -7,25 +7,52 @@ environment:
   sdk: ^3.9.2
 
 dependencies:
+  dio: ^5.9.0
+  flash: ^3.1.1
+  fl_chart: ^0.69.0
+  flutter_animate: ^4.5.0
+  flutter_slidable: ^3.1.2
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_secure_storage: ^9.2.4
+  flutter_markdown: ^0.7.3
+  google_fonts: ^6.3.2
   google_nav_bar: ^5.0.7
+  intl: ^0.20.2
+  image_picker: ^1.1.2
+  http: ^1.2.2
   material_symbols_icons: ^4.0.0
+  liquid_progress_indicator_v2: ^0.5.0
+  provider: ^6.1.5+1
+  speech_to_text: ^7.0.0
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
   flutter_lints: ^5.0.0
+  mocktail: ^1.0.4
+
+# Thêm các package cho icon và splash screen
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.0
 
 flutter:
+  generate: true
   uses-material-design: true
+  assets:
+      - assets/
+      - assets/images/opening_screen_white_bg.png
+      - assets/images/ai_loader.gif
+
   fonts:
-    - family: MaterialSymbolsOutlined
+    - family: GoogleSansFlex 
       fonts:
-        - asset: "packages/material_symbols_icons/fonts/MaterialSymbolsOutlined.ttf"
-    - family: MaterialSymbolsRounded
+        - asset: assets/fonts/GoogleSansFlex.ttf
+    - family: MaterialSymbolsMain
       fonts:
-        - asset: "packages/material_symbols_icons/fonts/MaterialSymbolsRounded.ttf"
-    - family: MaterialSymbolsSharp
-      fonts:
-        - asset: "packages/material_symbols_icons/fonts/MaterialSymbolsSharp.ttf"
+        - asset: assets/icons/MaterialSymbolsRounded.ttf
