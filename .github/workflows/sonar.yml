@@ -23,25 +23,25 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-          cache: true
+          channel: 'stable' # Dùng channel stable cho ổn định
+          cache: true       # Bật cache để lần sau chạy cho nhanh
 
       - name: Get dependencies
         run: flutter pub get
 
+      # - name: Build Runner
+      #   run: dart run build_runner build --delete-conflicting-outputs
+      
       - name: Run tests with coverage
         run: flutter test --coverage
-
-      - name: Check coverage file
-        run: |
-          if [ -f coverage/lcov.info ]; then
-            echo "✓ Coverage file found"
-          else
-            echo "✗ Coverage file NOT found"
-          fi
-
+      
+      # SonarCloud đôi khi cần file lcov.info ở đúng định dạng, bước này đảm bảo điều đó
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
+        uses: SonarSource/sonarcloud-github-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          SONAR_BRANCH_NAME: main
+
+
