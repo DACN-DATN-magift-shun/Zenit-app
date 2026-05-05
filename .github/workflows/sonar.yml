@@ -46,3 +46,47 @@ jobs:
 
 
 # add something to test sonarcloud integration
+name: SonarCloud Analysis
+
+on:
+  push:
+    branches:
+      - manage-feat
+  pull_request:
+    branches:
+      - main
+      - manage-feat
+
+jobs:
+  sonarcloud:
+    name: SonarCloud Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4 
+        with:
+          fetch-depth: 0 
+      
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable' # Dùng channel stable cho ổn định
+          cache: true       # Bật cache để lần sau chạy cho nhanh
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      # - name: Build Runner
+      #   run: dart run build_runner build --delete-conflicting-outputs
+      
+      - name: Run tests with coverage
+        run: flutter test --coverage
+      
+      # SonarCloud đôi khi cần file lcov.info ở đúng định dạng, bước này đảm bảo điều đó
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          SONAR_BRANCH_NAME: manage-feat 
