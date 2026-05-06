@@ -170,6 +170,7 @@ class _MoneySourceManageScreenState extends State<MoneySourceManageScreen> {
     }
 
     final isEditing = ValueNotifier<bool>(false);
+    final formController = AddEditMoneySourceFormController();
 
     try {
       await AppDrawer.showAsBottomSheet(
@@ -180,11 +181,27 @@ class _MoneySourceManageScreenState extends State<MoneySourceManageScreen> {
           ValueListenableBuilder<bool>(
             valueListenable: isEditing,
             builder: (context, editing, _) {
+              final colors = Theme.of(context).extension<AppColorExtension>()!;
               if (editing) {
-                return const SizedBox.shrink();
+                return GestureDetector(
+                  onTap: () {
+                    formController.submit();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(AppSizes.s),
+                    decoration: BoxDecoration(
+                      color: colors.neutralBackground,
+                      borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
+                    ),
+                    child: Icon(
+                      Symbols.check_rounded,
+                      size: AppSizes.iconL,
+                      color: colors.primaryActive,
+                    ),
+                  ),
+                );
               }
 
-              final colors = Theme.of(context).extension<AppColorExtension>()!;
               return GestureDetector(
                 onTap: () => isEditing.value = !editing,
                 child: Container(
@@ -208,6 +225,7 @@ class _MoneySourceManageScreenState extends State<MoneySourceManageScreen> {
         body: ViewEditMoneySourceForm(
           moneySourceId: source.id,
           isEditing: isEditing,
+          controller: formController,
           onUpdated: () async {
             await context.read<MoneySourceProvider>().refreshMoneySources();
           },

@@ -15,11 +15,13 @@ class ViewEditMoneySourceForm extends StatefulWidget {
     required this.moneySourceId,
     required this.isEditing,
     this.onUpdated,
+    this.controller,
   });
 
   final String moneySourceId;
   final ValueNotifier<bool> isEditing;
   final Future<void> Function()? onUpdated;
+  final AddEditMoneySourceFormController? controller;
 
   @override
   State<ViewEditMoneySourceForm> createState() =>
@@ -137,6 +139,7 @@ class _ViewEditMoneySourceFormState extends State<ViewEditMoneySourceForm> {
       builder: (context, isEditing, child) {
         if (isEditing) {
           return AddEditMoneySourceForm(
+            controller: widget.controller,
             initialName: _moneySource!.name,
             initialIconName: _moneySource!.iconName,
             initialAmount: _moneySource!.amount,

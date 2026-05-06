@@ -12,7 +12,7 @@ class ApiEndpoints {
   // Toggle this when switching between local backend and deployed backend.
     static const bool useProduction = bool.fromEnvironment(
         'USE_PRODUCTION',
-        defaultValue: false,
+        defaultValue: true,
     );
 
   static const String demoURL = _apiBaseUrlOverride != ''
