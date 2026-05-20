@@ -253,8 +253,8 @@ void main() {
     ).thenAnswer(
       (_) async => ConversationListResponse(
         items: [
-          ConversationSummary(id: 'conv-1', title: 'Thread 1'),
-          ConversationSummary(id: 'conv-2', title: 'Thread 2'),
+          ConversationSummary(id: 'conv-1', title: '2026-05-02_chat_number_1'),
+          ConversationSummary(id: 'conv-2', title: '2026-04-29_chat_number_1'),
         ],
         meta: PaginationMeta(totalItems: 2, pageCount: 1, pageSize: 50),
       ),
@@ -341,8 +341,8 @@ void main() {
     await provider.refreshConversations();
 
     expect(provider.conversations.length, 2);
-    expect(provider.conversations[0].id, 'conv-1');
-    expect(provider.conversations[1].id, 'conv-2');
+    expect(provider.conversations[0].id, 'conv-2');
+    expect(provider.conversations[1].id, 'conv-1');
   });
 
   test('selectConversation loads messages for conversation', () async {
