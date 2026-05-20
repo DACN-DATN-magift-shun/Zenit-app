@@ -4,9 +4,10 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
     <application
-        android:label="zenit"
+        android:label="Zenit"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -95,7 +95,7 @@ class MainApp extends StatelessWidget {
             ],
             theme: lightTheme,
             darkTheme: darkTheme,
-            themeMode: ThemeMode.system,
+            themeMode: ThemeMode.light,
             navigatorKey: NavigationService.instance.navigatorKey,
             initialRoute: '/opening',
             routes: {

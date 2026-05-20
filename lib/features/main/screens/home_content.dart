@@ -437,6 +437,13 @@ class _HomeContentState extends State<HomeContent> {
     return Localizations.localeOf(context).languageCode.toLowerCase() == 'vi';
   }
 
+  Future<void> _handleRefresh() async {
+    await Future.wait([
+      _loadRecentTransactions(showLoading: false),
+      _loadWallets(showLoading: false),
+    ]);
+  }
+
   Future<void> _openTransactionInHistory(TransactionModel transaction) async {
     final resolvedTransaction = await _resolveTransactionForNavigation(
       transaction,
@@ -898,9 +905,11 @@ class _HomeContentState extends State<HomeContent> {
       ),
       child: Stack(
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: AppSizes.l),
-            child: Column(
+          RefreshIndicator(
+            onRefresh: _handleRefresh,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: AppSizes.l),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: AppSizes.l),
@@ -916,6 +925,7 @@ class _HomeContentState extends State<HomeContent> {
                 ),
                 const SizedBox(height: 96),
               ],
+            ),
             ),
           ),
           Positioned(

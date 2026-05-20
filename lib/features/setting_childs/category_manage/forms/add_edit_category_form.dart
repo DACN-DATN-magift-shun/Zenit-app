@@ -254,16 +254,16 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
                 ),
               ],
             ),
+// trường này đã bị tạm ẩn vì k cần dùng nữa
+            // const SizedBox(height: AppSizes.l),
 
-            const SizedBox(height: AppSizes.l),
-
-            // Expense limit
-            CustomTextFormField(
-              label: l10n.expenseLimit,
-              hintText: l10n.enterExpenseLimitOptional,
-              controller: _expenseLimitController,
-              keyboardType: TextInputType.number,
-            ),
+            // // Expense limit
+            // CustomTextFormField(
+            //   label: l10n.expenseLimit,
+            //   hintText: l10n.enterExpenseLimitOptional,
+            //   controller: _expenseLimitController,
+            //   keyboardType: TextInputType.number,
+            // ),
 
             const SizedBox(height: AppSizes.l),
 

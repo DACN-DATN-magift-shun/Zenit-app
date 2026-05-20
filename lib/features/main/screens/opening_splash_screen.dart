@@ -19,15 +19,20 @@ class _OpeningSplashScreenState extends State<OpeningSplashScreen> {
   }
 
   Future<void> _resolveStartRoute() async {
-    await Future.delayed(_displayDuration);
-    if (!mounted) return;
+    try {
+      await Future.delayed(_displayDuration);
+      if (!mounted) return;
 
-    final isAuthenticated = await _authService.isAuthenticated();
-    if (!mounted) return;
+      final isAuthenticated = await _authService.isAuthenticated();
+      if (!mounted) return;
 
-    Navigator.of(context).pushReplacementNamed(
-      isAuthenticated ? '/home' : '/login',
-    );
+      Navigator.of(context).pushReplacementNamed(
+        isAuthenticated ? '/home' : '/login',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed('/login');
+    }
   }
 
   @override

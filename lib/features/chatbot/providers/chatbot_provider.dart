@@ -26,6 +26,9 @@ class ChatbotProvider extends ChangeNotifier {
 
   static const int _defaultPageSize = 50;
   static const String _aiAccountId = '00000000-0000-0000-0000-000000000001';
+  static final RegExp _conversationTitlePattern = RegExp(
+    r'^(\d{4})-(\d{2})-(\d{2})_chat_number_(\d+)$',
+  );
 
   final List<ConversationSummary> _conversations = [];
   final Map<String, List<ChatMessage>> _messagesByConversation = {};
@@ -93,6 +96,8 @@ class ChatbotProvider extends ChangeNotifier {
       _conversations
         ..clear()
         ..addAll(response.items);
+
+      _sortConversationsByMostRecentTitle();
 
       if (_activeConversationId == null && _conversations.isNotEmpty) {
         _activeConversationId = _conversations.first.id;
@@ -398,6 +403,8 @@ class ChatbotProvider extends ChangeNotifier {
     final content = data['chatbotMessage']?.toString().trim() ?? '';
     final suggestions = ChatSuggestion.fromList(data['suggestions']);
     final displayAcceptButton =
+        data['display_accept_button'] == true ||
+        data['display_accept_button']?.toString().toLowerCase() == 'true' ||
         data['displayAcceptButton'] == true ||
         data['displayAcceptButton']?.toString().toLowerCase() == 'true';
     debugPrint(
@@ -535,6 +542,69 @@ class ChatbotProvider extends ChangeNotifier {
     _conversations.insert(0, item);
   }
 
+  void _sortConversationsByMostRecentTitle() {
+    _conversations.sort((a, b) {
+      final aParsed = _parseConversationTitleOrder(a.title);
+      final bParsed = _parseConversationTitleOrder(b.title);
+
+      if (aParsed != null && bParsed != null) {
+        final byDate = bParsed.date.compareTo(aParsed.date);
+        if (byDate != 0) {
+          return byDate;
+        }
+
+        final byNumber = bParsed.chatNumber.compareTo(aParsed.chatNumber);
+        if (byNumber != 0) {
+          return byNumber;
+        }
+      } else if (aParsed != null) {
+        return -1;
+      } else if (bParsed != null) {
+        return 1;
+      }
+
+      final aUpdatedAt = a.updatedAt;
+      final bUpdatedAt = b.updatedAt;
+      if (aUpdatedAt != null && bUpdatedAt != null) {
+        final byUpdatedAt = bUpdatedAt.compareTo(aUpdatedAt);
+        if (byUpdatedAt != 0) {
+          return byUpdatedAt;
+        }
+      } else if (aUpdatedAt != null) {
+        return -1;
+      } else if (bUpdatedAt != null) {
+        return 1;
+      }
+
+      return b.title.compareTo(a.title);
+    });
+  }
+
+  _ConversationTitleOrder? _parseConversationTitleOrder(String title) {
+    final match = _conversationTitlePattern.firstMatch(title.trim());
+    if (match == null) {
+      return null;
+    }
+
+    final year = int.tryParse(match.group(1) ?? '');
+    final month = int.tryParse(match.group(2) ?? '');
+    final day = int.tryParse(match.group(3) ?? '');
+    final chatNumber = int.tryParse(match.group(4) ?? '');
+
+    if (year == null || month == null || day == null || chatNumber == null) {
+      return null;
+    }
+
+    final date = DateTime.tryParse(
+      '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}',
+    );
+    if (date == null) {
+      return null;
+    }
+
+    return _ConversationTitleOrder(date: date, chatNumber: chatNumber);
+  }
+
   String _buildAutoConversationTitle() {
     final now = DateTime.now();
     final datePart =
@@ -578,7 +648,9 @@ class ChatbotProvider extends ChangeNotifier {
                 aiAccountId: _aiAccountId,
               );
               final raw = _safeMap(item);
-              final accepts = _parseBool(raw['displayAcceptButton']);
+              final accepts =
+                  _parseBool(raw['display_accept_button']) ||
+                  _parseBool(raw['displayAcceptButton']);
               if (accepts) {
                 _displayAcceptButtonByMessageId[message.id] = true;
               }
@@ -627,4 +699,11 @@ class ChatbotProvider extends ChangeNotifier {
     _client.close();
     super.dispose();
   }
+}
+
+class _ConversationTitleOrder {
+  const _ConversationTitleOrder({required this.date, required this.chatNumber});
+
+  final DateTime date;
+  final int chatNumber;
 }

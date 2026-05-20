@@ -35,9 +35,15 @@ class _MainShellState extends State<MainShell> {
   }
 
   Future<void> _checkAuth() async {
-    final isAuth = await AuthService().isAuthenticated();
-    if (!isAuth && mounted) {
-      NavigationService.instance.pushAndRemoveUntil('/login');
+    try {
+      final isAuth = await AuthService().isAuthenticated();
+      if (!isAuth && mounted) {
+        NavigationService.instance.pushAndRemoveUntil('/login');
+      }
+    } catch (e) {
+      if (mounted) {
+        NavigationService.instance.pushAndRemoveUntil('/login');
+      }
     }
   }
 
