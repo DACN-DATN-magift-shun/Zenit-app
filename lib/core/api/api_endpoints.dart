@@ -13,7 +13,7 @@ class ApiEndpoints {
 
   static const bool useProduction = bool.fromEnvironment(
     'USE_PRODUCTION',
-    defaultValue: false,
+    defaultValue: true,
   );
 
   static const String demoURL = _apiBaseUrlOverride != ''

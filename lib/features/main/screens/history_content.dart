@@ -1029,6 +1029,7 @@ class _HistoryContentState extends State<HistoryContent> {
   }
 
   Widget _buildPaginationSection(AppColorExtension colors) {
+    // Compact pagination: smaller padding, inline controls to save vertical space
     final visibleItems = _transactions.length;
     final pageStart = _totalItems == 0
         ? 0
@@ -1037,90 +1038,104 @@ class _HistoryContentState extends State<HistoryContent> {
     final progress = _totalPages <= 1 ? 1.0 : _currentPage / _totalPages;
 
     return Container(
-      margin: const EdgeInsets.only(top: AppSizes.m),
-      padding: const EdgeInsets.all(AppSizes.l),
+      margin: const EdgeInsets.only(top: AppSizes.s),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.m,
+        vertical: AppSizes.s,
+      ),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [colors.neutralSurface, colors.secondaryMain],
-        ),
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMedium),
-        border: Border.all(color: colors.neutralBorder.withValues(alpha: 0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: colors.neutralBorder.withValues(alpha: 0.25),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        color: colors.neutralSurface,
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
+        border: Border.all(color: colors.neutralBorder.withValues(alpha: 0.35)),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
               Expanded(
                 child: Text(
                   _textByLocale(
-                    vi: 'Hiển thị $pageStart-$pageEnd / $_totalItems giao dịch',
-                    en: 'Showing $pageStart-$pageEnd / $_totalItems transactions',
+                    vi: '$_currentPage/$_totalPages — Hiển thị $pageStart-$pageEnd/$_totalItems',
+                    en: '$_currentPage/$_totalPages — Showing $pageStart-$pageEnd/$_totalItems',
                   ),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colors.neutralTextSecondary,
                     fontWeight: FontWeight.w600,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.m,
-                  vertical: AppSizes.s,
-                ),
-                decoration: BoxDecoration(
-                  color: colors.primaryMain.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  '$_currentPage / $_totalPages',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colors.primaryMain,
-                    fontWeight: FontWeight.w700,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: _canGoPrevious ? _goToPreviousPage : null,
+                    icon: Icon(
+                      Icons.chevron_left_rounded,
+                      size: AppSizes.iconM,
+                    ),
+                    color: _canGoPrevious
+                        ? colors.primaryMain
+                        : colors.neutralTextDisable,
+                    tooltip: _textByLocale(vi: 'Trang trước', en: 'Previous'),
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.all(6),
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
                   ),
-                ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: AppSizes.s),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.s,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.primaryMain.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$_currentPage / $_totalPages',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colors.primaryMain,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _canGoNext ? _goToNextPage : null,
+                    icon: Icon(
+                      Icons.chevron_right_rounded,
+                      size: AppSizes.iconM,
+                    ),
+                    color: _canGoNext
+                        ? colors.primaryMain
+                        : colors.neutralTextDisable,
+                    tooltip: _textByLocale(vi: 'Trang sau', en: 'Next'),
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.all(6),
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: AppSizes.m),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 7,
-              backgroundColor: colors.neutralBorder.withValues(alpha: 0.45),
-              valueColor: AlwaysStoppedAnimation<Color>(colors.primaryMain),
+          const SizedBox(height: AppSizes.s),
+          SizedBox(
+            height: 6,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: progress,
+                backgroundColor: colors.neutralBorder.withValues(alpha: 0.35),
+                valueColor: AlwaysStoppedAnimation<Color>(colors.primaryMain),
+              ),
             ),
-          ),
-          const SizedBox(height: AppSizes.l),
-          Row(
-            children: [
-              Expanded(
-                child: _buildPagerButton(
-                  icon: Icons.chevron_left_rounded,
-                  label: _textByLocale(vi: 'Trang trước', en: 'Previous'),
-                  onPressed: _canGoPrevious ? _goToPreviousPage : null,
-                ),
-              ),
-              const SizedBox(width: AppSizes.s),
-              Expanded(
-                child: _buildPagerButton(
-                  icon: Icons.chevron_right_rounded,
-                  label: _textByLocale(vi: 'Trang sau', en: 'Next'),
-                  onPressed: _canGoNext ? _goToNextPage : null,
-                  isPrimary: true,
-                ),
-              ),
-            ],
           ),
         ],
       ),

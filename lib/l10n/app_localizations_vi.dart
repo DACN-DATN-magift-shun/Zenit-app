@@ -752,6 +752,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get groupGiving => 'Cho đi';
 
   @override
+  String get groupIncome => 'Thu nhập';
+
+  @override
   String usernameLabel(String username) {
     return 'Tên người dùng: $username';
   }

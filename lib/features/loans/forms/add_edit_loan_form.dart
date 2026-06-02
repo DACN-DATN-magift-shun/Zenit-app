@@ -14,6 +14,7 @@ class LoanFormData {
     required this.date,
     required this.dueDate,
     required this.note,
+    required this.status,
   });
 
   final String name;
@@ -22,6 +23,7 @@ class LoanFormData {
   final DateTime date;
   final DateTime dueDate;
   final String note;
+  final int status;
 }
 
 class AddEditLoanFormController {
@@ -65,6 +67,7 @@ class _AddEditLoanFormState extends State<AddEditLoanForm> {
   final _noteController = TextEditingController();
 
   late int _selectedType;
+  late int _selectedStatus;
   late DateTime _date;
   late DateTime _dueDate;
 
@@ -74,6 +77,7 @@ class _AddEditLoanFormState extends State<AddEditLoanForm> {
     widget.controller?._attach(this);
     final initial = widget.initialLoan;
     _selectedType = initial?.type ?? 0;
+    _selectedStatus = initial?.status ?? 0;
     _date = initial?.date ?? DateTime.now();
     _dueDate = initial?.dueDate ?? DateTime.now();
 
@@ -123,6 +127,45 @@ class _AddEditLoanFormState extends State<AddEditLoanForm> {
                       : 'Name is required';
                 }
                 return null;
+              },
+            ),
+            const SizedBox(height: AppSizes.l),
+            Text(
+              isVietnamese ? 'Trạng thái' : 'Status',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: AppSizes.m),
+            SegmentedButton<int>(
+              segments: [
+                ButtonSegment<int>(value: 0, label: Text(isVietnamese ? 'Đang tiến hành' : 'Ongoing')),
+                ButtonSegment<int>(value: 1, label: Text(isVietnamese ? 'Hoàn thành' : 'Completed')),
+                ButtonSegment<int>(value: 2, label: Text(isVietnamese ? 'Đã huỷ' : 'Canceled')),
+              ],
+              selected: {_selectedStatus},
+              style: ButtonStyle(
+                side: const MaterialStatePropertyAll(BorderSide.none),
+                backgroundColor: MaterialStateProperty.resolveWith((states) {
+                  final isSelected = states.contains(MaterialState.selected);
+                  return isSelected
+                      ? Theme.of(context).colorScheme.secondaryContainer
+                      : Theme.of(context).colorScheme.surfaceVariant;
+                }),
+                foregroundColor: MaterialStateProperty.resolveWith((states) {
+                  final isSelected = states.contains(MaterialState.selected);
+                  return isSelected
+                      ? Theme.of(context).colorScheme.onSecondaryContainer
+                      : Theme.of(context).colorScheme.onSurfaceVariant;
+                }),
+                shape: MaterialStatePropertyAll(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+              ),
+              onSelectionChanged: (selection) {
+                setState(() {
+                  _selectedStatus = selection.first;
+                });
               },
             ),
             const SizedBox(height: AppSizes.l),
@@ -355,6 +398,7 @@ class _AddEditLoanFormState extends State<AddEditLoanForm> {
         date: _date,
         dueDate: _dueDate,
         note: _noteController.text.trim(),
+        status: _selectedStatus,
       ),
     );
   }

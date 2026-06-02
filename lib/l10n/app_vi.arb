@@ -327,6 +327,7 @@
   "groupSelfDevelopment": "Phát triển bản thân",
   "groupEntertainment": "Giải trí",
   "groupGiving": "Cho đi",
+  "groupIncome": "Thu nhập",
 
   "usernameLabel": "Tên người dùng: {username}",
   "@usernameLabel": {

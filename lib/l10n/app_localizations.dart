@@ -1478,6 +1478,12 @@ abstract class AppLocalizations {
   /// **'Giving'**
   String get groupGiving;
 
+  /// No description provided for @groupIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get groupIncome;
+
   /// No description provided for @usernameLabel.
   ///
   /// In en, this message translates to:

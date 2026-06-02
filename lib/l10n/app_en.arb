@@ -327,6 +327,7 @@
   "groupSelfDevelopment": "Self Development",
   "groupEntertainment": "Entertainment",
   "groupGiving": "Giving",
+  "groupIncome": "Income",
 
   "usernameLabel": "Username: {username}",
   "@usernameLabel": {

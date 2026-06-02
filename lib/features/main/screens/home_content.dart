@@ -104,18 +104,6 @@ class _HomeContentState extends State<HomeContent> {
         iconColor: AppColors.light.primaryMain,
         type: ActionType.goals,
       ),
-      HomeActionItem(
-        title: l10n.actionMoreActions,
-        icon: Icons.apps_rounded,
-        backgroundColor: AppColors.light.primaryMain,
-        iconColor: Colors.white,
-        type: ActionType.moreActions,
-        useGradient: true,
-        gradientColors: [
-          AppColors.light.primaryMain,
-          AppColors.light.primaryActive,
-        ],
-      ),
     ];
   }
 
@@ -540,14 +528,25 @@ class _HomeContentState extends State<HomeContent> {
           width: double.infinity,
           padding: const EdgeInsets.all(AppSizes.l),
           decoration: BoxDecoration(
-            color: AppColors.light.neutralBackground,
+            gradient: LinearGradient(
+              colors: [
+                AppColors.light.primaryMain.withValues(alpha: 0.08),
+                AppColors.light.primaryMain.withValues(alpha: 0.16),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
-            border: Border.all(color: AppColors.light.neutralBorder, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
               ),
             ],
           ),
@@ -618,10 +617,17 @@ class _HomeContentState extends State<HomeContent> {
                               ),
                               padding: const EdgeInsets.all(AppSizes.m),
                               decoration: BoxDecoration(
-                                color: AppColors.light.secondaryMain,
+                                color: AppColors.light.neutralBackground,
                                 borderRadius: BorderRadius.circular(
                                   AppSizes.borderRadiusXSmall,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.02),
+                                    blurRadius: 2,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
                               ),
                               child: Row(
                                 children: [
@@ -713,14 +719,25 @@ class _HomeContentState extends State<HomeContent> {
           width: double.infinity,
           padding: const EdgeInsets.all(AppSizes.l),
           decoration: BoxDecoration(
-            color: AppColors.light.neutralBackground,
+            gradient: LinearGradient(
+              colors: [
+                AppColors.light.successIcon.withValues(alpha: 0.08),
+                AppColors.light.successIcon.withValues(alpha: 0.18),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
-            border: Border.all(color: AppColors.light.neutralBorder, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
               ),
             ],
           ),
@@ -788,7 +805,7 @@ class _HomeContentState extends State<HomeContent> {
                                   color: isOverspent
                                       ? AppColors.light.errorBackground
                                             .withValues(alpha: 0.15)
-                                      : AppColors.light.secondaryMain,
+                                      : AppColors.light.neutralBackground,
                                   borderRadius: BorderRadius.circular(
                                     AppSizes.borderRadiusXSmall,
                                   ),
@@ -799,6 +816,15 @@ class _HomeContentState extends State<HomeContent> {
                                           width: 1.5,
                                         )
                                       : null,
+                                  boxShadow: isOverspent
+                                      ? null
+                                      : [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.02),
+                                            blurRadius: 2,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
                                 ),
                                 margin: EdgeInsets.only(
                                   bottom: index == _wallets.length - 1

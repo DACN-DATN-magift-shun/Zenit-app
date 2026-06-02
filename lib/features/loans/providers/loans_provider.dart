@@ -13,14 +13,13 @@ class LoansProvider extends ChangeNotifier {
   bool _isActionLoading = false;
   String? _errorMessage;
   int? _selectedTypeFilter;
-  String _searchKeyword = '';
 
   List<LoanModel> get loans => _loans;
   bool get isLoading => _isLoading;
   bool get isActionLoading => _isActionLoading;
   String? get errorMessage => _errorMessage;
   int? get selectedTypeFilter => _selectedTypeFilter;
-  String get searchKeyword => _searchKeyword;
+  
   bool get hasData => _loans.isNotEmpty;
 
   int get totalLoanAmount {
@@ -46,16 +45,13 @@ class LoansProvider extends ChangeNotifier {
     _errorMessage = null;
 
     _selectedTypeFilter = type;
-    if (search != null) {
-      _searchKeyword = search;
-    }
 
     notifyListeners();
 
     try {
       _loans = await _loansService.getLoans(
         type: _selectedTypeFilter,
-        search: _searchKeyword,
+        search: search,
         pageSize: pageSize,
       );
       _errorMessage = null;
@@ -68,17 +64,17 @@ class LoansProvider extends ChangeNotifier {
   }
 
   Future<void> refreshLoans() async {
-    await loadLoans(type: _selectedTypeFilter, search: _searchKeyword);
+    await loadLoans(type: _selectedTypeFilter);
   }
 
   Future<void> setTypeFilter(int? type) async {
     _selectedTypeFilter = type;
-    await loadLoans(type: type, search: _searchKeyword);
+    await loadLoans(type: type);
   }
 
   Future<void> setSearchKeyword(String keyword) async {
-    _searchKeyword = keyword.trim();
-    await loadLoans(type: _selectedTypeFilter, search: _searchKeyword);
+    // Search removed. This method retained for compatibility but reloads full list.
+    await loadLoans(type: _selectedTypeFilter);
   }
 
   Future<bool> addLoan({
@@ -88,6 +84,7 @@ class LoansProvider extends ChangeNotifier {
     required DateTime date,
     required DateTime dueDate,
     String note = '',
+    int status = 0,
   }) async {
     _isActionLoading = true;
     _errorMessage = null;
@@ -97,6 +94,7 @@ class LoansProvider extends ChangeNotifier {
       await _loansService.createLoan(
         name: name,
         type: type,
+        status: status,
         amount: amount,
         date: date,
         dueDate: dueDate,
@@ -123,6 +121,7 @@ class LoansProvider extends ChangeNotifier {
     required DateTime date,
     required DateTime dueDate,
     required String note,
+    int? status,
   }) async {
     _isActionLoading = true;
     _errorMessage = null;
@@ -133,6 +132,7 @@ class LoansProvider extends ChangeNotifier {
         id: id,
         name: name,
         type: type,
+        status: status,
         amount: amount,
         date: date,
         dueDate: dueDate,

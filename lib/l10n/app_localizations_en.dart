@@ -755,6 +755,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get groupGiving => 'Giving';
 
   @override
+  String get groupIncome => 'Income';
+
+  @override
   String usernameLabel(String username) {
     return 'Username: $username';
   }

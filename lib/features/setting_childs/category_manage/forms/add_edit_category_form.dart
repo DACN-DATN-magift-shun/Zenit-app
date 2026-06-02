@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/forms/form_fields/custom_text_form_field.dart';
+import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
 import 'package:zenit/core/widgets/app_flash.dart';
-
 import 'package:zenit/features/setting_childs/category_manage/models/category_model.dart';
 import 'package:zenit/features/setting_childs/category_manage/utils/category_color_palette.dart';
 
-/// Data class để trả về khi submit form
 class AddCategoryData {
   final String name;
   final double? expenseLimit;
@@ -59,21 +57,12 @@ class AddCategoryForm extends StatefulWidget {
     this.controller,
   });
 
-  /// Loại group (0-5)
   final int groupType;
-
-  /// Tên group để hiển thị
   final String groupName;
-
-  /// Callback khi submit form thành công
   final void Function(AddCategoryData data)? onSubmit;
-
-  // Initial values for editing
   final String? initialName;
   final double? initialExpenseLimit;
   final String? initialIcon;
-  
-  /// Có phải đang ở chế độ edit không (true = edit, false = add new)
   final bool isEditMode;
   final AddCategoryFormController? controller;
 
@@ -88,12 +77,33 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
 
   String? _selectedIcon;
   int? _selectedGroupType;
-  
+
+  static const List<IconItem> _availableIcons = [
+    IconItem(icon: Symbols.shopping_cart_rounded, name: 'shopping_cart_rounded'),
+    IconItem(icon: Symbols.restaurant_rounded, name: 'restaurant_rounded'),
+    IconItem(icon: Symbols.account_balance_rounded, name: 'account_balance_rounded'),
+    IconItem(icon: Symbols.trending_up_rounded, name: 'trending_up_rounded'),
+    IconItem(icon: Symbols.school_rounded, name: 'school_rounded'),
+    IconItem(icon: Symbols.menu_book_rounded, name: 'menu_book_rounded'),
+    IconItem(icon: Symbols.movie_rounded, name: 'movie_rounded'),
+    IconItem(icon: Symbols.fitness_center_rounded, name: 'fitness_center_rounded'),
+  ];
+
+  static final List<int> _availableGroupTypes = [
+    GroupType.necessary.value,
+    GroupType.assets.value,
+    GroupType.selfDevelopment.value,
+    GroupType.entertainment.value,
+    GroupType.giving.value,
+    GroupType.income.value,
+  ];
+
   @override
   void initState() {
     super.initState();
     widget.controller?._attach(this);
     _selectedGroupType = widget.groupType;
+
     if (widget.initialName != null) {
       _nameController.text = widget.initialName!;
     }
@@ -104,27 +114,6 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
       _selectedIcon = widget.initialIcon;
     }
   }
-
-  static const List<IconItem> _availableIcons = [
-    // Neccessary
-    IconItem(icon: Symbols.shopping_cart_rounded, name: 'shopping_cart_rounded'),
-    IconItem(icon: Symbols.restaurant_rounded, name: 'restaurant_rounded'),
-
-    // Savings
-    IconItem(icon: Symbols.account_balance_rounded, name: 'account_balance_rounded'),
-    IconItem(icon: Symbols.trending_up_rounded, name: 'trending_up_rounded'),
-
-    // SelfDevelopment
-    IconItem(icon: Symbols.school_rounded, name: 'school_rounded'),
-    IconItem(icon: Symbols.menu_book_rounded, name: 'menu_book_rounded'),
-
-    // Entertainment
-    IconItem(icon: Symbols.movie_rounded, name: 'movie_rounded'),
-    IconItem(icon: Symbols.fitness_center_rounded, name: 'fitness_center_rounded'),
-  ];
-
-  // Available colors for picker (8 colors - 2 rows x 4 columns)
-  // REMOVED - Không còn cho phép người dùng chọn màu
 
   @override
   void didUpdateWidget(covariant AddCategoryForm oldWidget) {
@@ -144,43 +133,36 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
   }
 
   void _handleSubmit() {
-    // Đóng keyboard trước khi submit để tránh conflict với navigation
     FocusScope.of(context).unfocus();
-    
-    if (_formKey.currentState?.validate() ?? false) {
-      if (_selectedIcon == null) {
-        AppFlash.warning(context, context.l10n.pleaseSelectIcon);
-        return;
-      }
 
-      // Nếu là mode thêm mới, random một cặp màu
-      String? colorHex;
-      String? bgColorHex;
-      
-      if (!widget.isEditMode) {
-        final randomColorPair = CategoryColorPalette.getRandomColorPair();
-        colorHex = randomColorPair.iconColorHex;
-        bgColorHex = randomColorPair.backgroundColorHex;
-        
-        print('=== Random Color Pair Selected ===');
-        print('Icon Color: $colorHex');
-        print('Background Color: $bgColorHex');
-      } else {
-        // Chế độ edit - không gửi màu (API edit không trả về màu)
-        print('=== Edit Mode - No Color Data Sent ===');
-      }
-
-      final data = AddCategoryData(
-        name: _nameController.text.trim(),
-        expenseLimit: double.tryParse(_expenseLimitController.text.trim()),
-        icon: _selectedIcon!,
-        color: colorHex,
-        backgroundColor: bgColorHex,
-        groupType: _selectedGroupType ?? widget.groupType,
-      );
-
-      widget.onSubmit?.call(data);
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
     }
+
+    if (_selectedIcon == null) {
+      AppFlash.warning(context, context.l10n.pleaseSelectIcon);
+      return;
+    }
+
+    String? colorHex;
+    String? bgColorHex;
+
+    if (!widget.isEditMode) {
+      final randomColorPair = CategoryColorPalette.getRandomColorPair();
+      colorHex = randomColorPair.iconColorHex;
+      bgColorHex = randomColorPair.backgroundColorHex;
+    }
+
+    final data = AddCategoryData(
+      name: _nameController.text.trim(),
+      expenseLimit: double.tryParse(_expenseLimitController.text.trim()),
+      icon: _selectedIcon!,
+      color: colorHex,
+      backgroundColor: bgColorHex,
+      groupType: _selectedGroupType ?? widget.groupType,
+    );
+
+    widget.onSubmit?.call(data);
   }
 
   @override
@@ -194,7 +176,6 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Category name
             CustomTextFormField(
               label: l10n.categoryName,
               hintText: l10n.enterCategoryName,
@@ -206,10 +187,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
                 return null;
               },
             ),
-
             const SizedBox(height: AppSizes.l),
-
-            // Belong to group (selectable)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -220,58 +198,60 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
                       ),
                 ),
                 const SizedBox(height: AppSizes.s),
-                Container(
-                  decoration: BoxDecoration(
-                    color: colors.neutralSurface,
-                    borderRadius: BorderRadius.circular(AppSizes.borderRadiusMedium),
-                    border: Border.all(color: colors.neutralBorder),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: _selectedGroupType ?? widget.groupType,
-                      isExpanded: true,
-                      padding: const EdgeInsets.symmetric(horizontal: AppSizes.m),
+                DropdownButtonFormField<int>(
+                  value: _selectedGroupType ?? widget.groupType,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppSizes.borderRadiusMedium),
-                      dropdownColor: colors.neutralSurface,
-                      items: GroupType.values.map((type) {
-                        return DropdownMenuItem<int>(
-                          value: type.value,
-                          child: Text(
-                            _groupDisplayName(context, type.value),
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _selectedGroupType = value;
-                          });
-                        }
-                      },
+                      borderSide: BorderSide(color: colors.neutralBorder),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSizes.borderRadiusMedium),
+                      borderSide: BorderSide(color: colors.neutralBorder),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSizes.borderRadiusMedium),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: colors.neutralSurface,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.m,
+                      vertical: AppSizes.s,
                     ),
                   ),
+                  dropdownColor: colors.neutralSurface,
+                  icon: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: colors.neutralTextSecondary,
+                  ),
+                  items: _availableGroupTypes.map((groupType) {
+                    return DropdownMenuItem<int>(
+                      value: groupType,
+                      child: Text(
+                        _groupDisplayName(context, groupType),
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedGroupType = value;
+                      });
+                    }
+                  },
                 ),
               ],
             ),
-// trường này đã bị tạm ẩn vì k cần dùng nữa
-            // const SizedBox(height: AppSizes.l),
-
-            // // Expense limit
-            // CustomTextFormField(
-            //   label: l10n.expenseLimit,
-            //   hintText: l10n.enterExpenseLimitOptional,
-            //   controller: _expenseLimitController,
-            //   keyboardType: TextInputType.number,
-            // ),
-
             const SizedBox(height: AppSizes.l),
-
-            // Select icon
             Text(l10n.selectIcon, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: AppSizes.m),
             _buildIconGrid(colors),
-
             const SizedBox(height: 60),
           ],
         ),
@@ -292,12 +272,12 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
         return l10n.groupEntertainment;
       case 4:
         return l10n.groupGiving;
+      case 5:
+        return l10n.groupIncome;
       default:
         return l10n.groupNecessary;
     }
   }
-
-
 
   Widget _buildIconGrid(AppColorExtension colors) {
     return Container(
@@ -321,9 +301,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
               padding: const EdgeInsets.all(AppSizes.m),
               decoration: BoxDecoration(
                 color: isSelected ? colors.primaryMain : Colors.transparent,
-                borderRadius: BorderRadius.circular(
-                  AppSizes.borderRadiusXSmall,
-                ),
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusXSmall),
                 border: Border.all(
                   color: isSelected ? colors.primaryMain : colors.neutralBorder,
                   width: isSelected ? 2 : 1,
@@ -332,9 +310,7 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
               child: Icon(
                 iconItem.icon,
                 size: AppSizes.iconL,
-                color: isSelected
-                    ? colors.primaryText
-                    : colors.neutralTextPrimary,
+                color: isSelected ? colors.primaryText : colors.neutralTextPrimary,
               ),
             ),
           );
@@ -344,7 +320,6 @@ class _AddCategoryFormState extends State<AddCategoryForm> {
   }
 }
 
-/// Helper class cho icon item
 class IconItem {
   final IconData icon;
   final String name;
