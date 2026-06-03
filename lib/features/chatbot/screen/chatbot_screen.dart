@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +24,8 @@ class ChatbotScreen extends StatefulWidget {
   State<ChatbotScreen> createState() => _ChatbotScreenState();
 }
 
-class _ChatbotScreenState extends State<ChatbotScreen> {
+class _ChatbotScreenState extends State<ChatbotScreen>
+    with TickerProviderStateMixin {
   final TextEditingController _composerController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final SpeechToText _speechToText = SpeechToText();
@@ -32,9 +35,16 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   bool _isListening = false;
   bool _speechReady = false;
 
+  // Gradient border animation
+  late final AnimationController _gradientController;
+
   @override
   void initState() {
     super.initState();
+    _gradientController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2400),
+    );
     _initializeSpeechToText();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ChatbotProvider>().initialize();
@@ -43,11 +53,16 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   @override
   void dispose() {
+    _gradientController.dispose();
     _speechToText.stop();
     _composerController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
+
+  // -------------------------------------------------------------------------
+  // Speech to text
+  // -------------------------------------------------------------------------
 
   Future<bool> _initializeSpeechToText() async {
     try {
@@ -213,6 +228,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       return null;
     }
   }
+
+  // -------------------------------------------------------------------------
+  // Messaging
+  // -------------------------------------------------------------------------
 
   Future<void> _sendMessage() async {
     final text = _composerController.text.trim();
@@ -432,6 +451,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     return result;
   }
 
+  // -------------------------------------------------------------------------
+  // Build
+  // -------------------------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -452,6 +475,19 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
+          // ── MOCK TEST BUTTON (remove before release) ──────────────────────
+          // Consumer<ChatbotProvider>(
+          //   builder: (context, provider, child) {
+          //     return IconButton(
+          //       onPressed:
+          //           provider.isSending ? null : provider.mockSimulateAiResponse,
+          //       icon: const Icon(Icons.science_outlined),
+          //       tooltip: 'Mock AI Test',
+          //       color: Colors.white70,
+          //     );
+          //   },
+          // ),
+          // // ─────────────────────────────────────────────────────────────────
           IconButton(
             onPressed: _openHistorySheet,
             icon: const Icon(Icons.history_rounded),
@@ -487,6 +523,18 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   messages: messages,
                   isSending: provider.isSending,
                 );
+
+                // Drive the gradient animation based on sending state
+                if (provider.isSending) {
+                  if (!_gradientController.isAnimating) {
+                    _gradientController.repeat();
+                  }
+                } else {
+                  if (_gradientController.isAnimating) {
+                    _gradientController.stop();
+                    _gradientController.reset();
+                  }
+                }
 
                 if (messages.isEmpty) {
                   return Center(
@@ -541,7 +589,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ChatMessageBubble(message: message),
+                        ChatMessageBubble(
+                          message: message,
+                          shouldAnimate: provider.shouldAnimateMessage(message.id),
+                        ),
                         if (chipItems.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(
@@ -557,15 +608,17 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               },
             ),
           ),
-          _buildComposer(context),
+          _buildComposer(context, colors),
         ],
       ),
     );
   }
 
-  Widget _buildComposer(BuildContext context) {
-    final colors = Theme.of(context).extension<AppColorExtension>()!;
+  // -------------------------------------------------------------------------
+  // Composer with animated gradient border
+  // -------------------------------------------------------------------------
 
+  Widget _buildComposer(BuildContext context, AppColorExtension colors) {
     return SafeArea(
       top: false,
       child: Padding(
@@ -575,113 +628,217 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           AppSizes.l,
           AppSizes.l,
         ),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSizes.m,
-            vertical: 6.0,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(36),
-            border: Border.all(
-              color: colors.neutralBorder.withValues(alpha: 0.8),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              const SizedBox(width: AppSizes.l),
-              Expanded(
-                child: TextField(
-                  controller: _composerController,
-                  minLines: 1,
-                  maxLines: 5,
-                  textInputAction: TextInputAction.newline,
-                  decoration: InputDecoration(
-                    hintText: context.l10n.chatInputHint,
-                    focusedBorder: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    border: InputBorder.none,
-                    fillColor: Colors.transparent,
-                    filled: false,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 15.0,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSizes.s),
-              Consumer<ChatbotProvider>(
-                builder: (context, provider, child) {
-                  final disableActions = provider.isSending;
+        child: Consumer<ChatbotProvider>(
+          builder: (context, provider, child) {
+            final isSending = provider.isSending;
 
-                  Widget micButton = IconButton(
-                    onPressed: disableActions ? null : _toggleVoiceInput,
-                    icon: Icon(
-                      _isListening
-                          ? Icons.mic_rounded
-                          : Icons.mic_none_rounded,
-                      color: _isListening
-                          ? Colors.white
-                          : colors.neutralTextSecondary,
-                    ),
-                    style: IconButton.styleFrom(
-                      backgroundColor: _isListening
-                          ? colors.primaryMain
-                          : Colors.transparent,
-                      padding: const EdgeInsets.all(AppSizes.s),
-                    ),
-                    tooltip: _isListening
-                        ? 'Stop voice input'
-                        : 'Start voice input',
-                  );
+            // Gradient border colors: primaryMain → neon purple → cyan → secondaryHover
+            final gradientColors = [
+              colors.primaryMain,
+              const Color(0xFF9B59F5), // neon purple
+              const Color(0xFF00E5FF), // neon cyan
+              colors.secondaryHover,
+              colors.primaryMain,
+            ];
 
-                  if (_isListening) {
-                    micButton = micButton
-                        .animate(
-                          onPlay: (controller) =>
-                              controller.repeat(reverse: true),
+            return AnimatedBuilder(
+              animation: _gradientController,
+              child: _buildComposerInner(colors),
+              builder: (context, composerChild) {
+                // Wrap the inner box in padding so the foreground ring paints
+                // in the gap between the CustomPaint bounds and the inner Container.
+                // When not sending, padding is zero — no layout shift.
+                return CustomPaint(
+                  // foregroundPainter renders OVER the child so the ring is
+                  // always visible regardless of the Container’s background.
+                  foregroundPainter: isSending
+                      ? _GradientBorderPainter(
+                          progress: _gradientController.value,
+                          gradientColors: gradientColors,
+                          borderRadius: 36.0,
+                          borderWidth: 3.0,
                         )
-                        .scale(
-                          begin: const Offset(1.0, 1.0),
-                          end: const Offset(1.15, 1.15),
-                          duration: 600.ms,
-                          curve: Curves.easeInOut,
-                        );
-                  }
-
-                  return Row(
-                    children: [
-                      micButton,
-                      const SizedBox(width: AppSizes.xs),
-                      IconButton(
-                        onPressed: disableActions ? null : _sendMessage,
-                        icon: const Icon(Icons.send_rounded),
-                        style: IconButton.styleFrom(
-                          foregroundColor: colors.primaryMain,
-                          padding: const EdgeInsets.all(AppSizes.s),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ],
-          ),
+                      : null,
+                  child: composerChild,
+                );
+              },
+            );
+          },
         ),
       ),
     );
+  }
+
+  Widget _buildComposerInner(AppColorExtension colors) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.m,
+        vertical: 6.0,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(36),
+        border: Border.all(
+          color: colors.neutralBorder.withValues(alpha: 0.8),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: AppSizes.l),
+          Expanded(
+            child: TextField(
+              controller: _composerController,
+              minLines: 1,
+              maxLines: 5,
+              textInputAction: TextInputAction.newline,
+              decoration: InputDecoration(
+                hintText: context.l10n.chatInputHint,
+                focusedBorder: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                border: InputBorder.none,
+                fillColor: Colors.transparent,
+                filled: false,
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 15.0,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSizes.s),
+          Consumer<ChatbotProvider>(
+            builder: (context, provider, child) {
+              final disableActions = provider.isSending;
+
+              Widget micButton = IconButton(
+                onPressed: disableActions ? null : _toggleVoiceInput,
+                icon: Icon(
+                  _isListening
+                      ? Icons.mic_rounded
+                      : Icons.mic_none_rounded,
+                  color: _isListening
+                      ? Colors.white
+                      : colors.neutralTextSecondary,
+                ),
+                style: IconButton.styleFrom(
+                  backgroundColor: _isListening
+                      ? colors.primaryMain
+                      : Colors.transparent,
+                  padding: const EdgeInsets.all(AppSizes.s),
+                ),
+                tooltip: _isListening
+                    ? 'Stop voice input'
+                    : 'Start voice input',
+              );
+
+              if (_isListening) {
+                micButton = micButton
+                    .animate(
+                      onPlay: (controller) =>
+                          controller.repeat(reverse: true),
+                    )
+                    .scale(
+                      begin: const Offset(1.0, 1.0),
+                      end: const Offset(1.15, 1.15),
+                      duration: 600.ms,
+                      curve: Curves.easeInOut,
+                    );
+              }
+
+              return Row(
+                children: [
+                  micButton,
+                  const SizedBox(width: AppSizes.xs),
+                  IconButton(
+                    onPressed: disableActions ? null : _sendMessage,
+                    icon: const Icon(Icons.send_rounded),
+                    style: IconButton.styleFrom(
+                      foregroundColor: colors.primaryMain,
+                      padding: const EdgeInsets.all(AppSizes.s),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// CustomPainter — spinning sweep gradient border
+// ---------------------------------------------------------------------------
+
+class _GradientBorderPainter extends CustomPainter {
+  const _GradientBorderPainter({
+    required this.progress,
+    required this.gradientColors,
+    required this.borderRadius,
+    required this.borderWidth,
+  });
+
+  final double progress;
+  final List<Color> gradientColors;
+  final double borderRadius;
+  final double borderWidth;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final rrect = RRect.fromRectAndRadius(
+      rect,
+      Radius.circular(borderRadius),
+    );
+
+    // Outer clip path = rounded rect border ring
+    final outerPath = Path()..addRRect(rrect);
+    final innerRRect = RRect.fromRectAndRadius(
+      rect.deflate(borderWidth),
+      Radius.circular(borderRadius - borderWidth),
+    );
+    final innerPath = Path()..addRRect(innerRRect);
+    final borderPath = Path.combine(
+      PathOperation.difference,
+      outerPath,
+      innerPath,
+    );
+
+    // Sweep gradient rotated by progress (full 2π rotation per cycle)
+    final center = rect.center;
+    final sweepGradient = SweepGradient(
+      center: Alignment.center,
+      startAngle: 0,
+      endAngle: math.pi * 2,
+      colors: gradientColors,
+      transform: GradientRotation(progress * math.pi * 2),
+    );
+
+    final paint = Paint()
+      ..shader = sweepGradient.createShader(rect)
+      ..style = PaintingStyle.fill;
+
+    canvas.save();
+    canvas.clipPath(borderPath);
+    canvas.drawCircle(center, math.max(size.width, size.height), paint);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_GradientBorderPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }

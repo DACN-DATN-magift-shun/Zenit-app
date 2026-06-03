@@ -34,6 +34,11 @@ class ChatbotProvider extends ChangeNotifier {
   final Map<String, List<ChatMessage>> _messagesByConversation = {};
   final Map<String, bool> _displayAcceptButtonByMessageId = {};
 
+  /// IDs of assistant messages that were received live (via SSE or mock) in
+  /// the current app session. Only these messages play the typewriter animation.
+  /// Messages loaded from history are never added here.
+  final Set<String> _sseReceivedMessageIds = {};
+
   bool _isInitializing = false;
   bool _isLoadingConversations = false;
   bool _isSending = false;
@@ -48,6 +53,11 @@ class ChatbotProvider extends ChangeNotifier {
   bool get isLoadingConversations => _isLoadingConversations;
   bool get isSending => _isSending;
   String? get activeConversationId => _activeConversationId;
+
+  /// Returns true only for assistant messages that arrived live via SSE
+  /// (not fetched from history). Used to gate the typewriter animation.
+  bool shouldAnimateMessage(String messageId) =>
+      _sseReceivedMessageIds.contains(messageId);
 
   List<ChatMessage> get activeMessages {
     final conversationId = _activeConversationId;
@@ -230,6 +240,8 @@ class ChatbotProvider extends ChangeNotifier {
         isMarkdown: true,
       ),
     );
+    // Mark as live-received so the typewriter animation fires for this message.
+    _sseReceivedMessageIds.add(pendingAssistantMessageId);
 
     _isSending = true;
     notifyListeners();
@@ -456,6 +468,8 @@ class ChatbotProvider extends ChangeNotifier {
         );
         _displayAcceptButtonByMessageId[messages.last.id] = displayAcceptButton;
         if (content.isNotEmpty) {
+          // The pending_ ID was already registered; the message keeps its ID
+          // so shouldAnimateMessage() will return true for it.
           _isSending = false;
         }
         notifyListeners();
@@ -477,6 +491,8 @@ class ChatbotProvider extends ChangeNotifier {
       ),
     );
     _displayAcceptButtonByMessageId[messages.last.id] = displayAcceptButton;
+    // Mark as live-received so the typewriter animation fires.
+    _sseReceivedMessageIds.add(messages.last.id);
 
     _isSending = false;
     _promoteConversation(conversationId);
@@ -691,6 +707,90 @@ class ChatbotProvider extends ChangeNotifier {
       return value.toLowerCase() == 'true';
     }
     return false;
+  }
+
+  // -------------------------------------------------------------------------
+  // MOCK – temporary dev helper, remove before release
+  // -------------------------------------------------------------------------
+
+  static const String _mockResponse =
+      'Hello! I am **Zenos**, your AI assistant. '
+      'This is a **mock response** used for testing the streaming animations. '
+      'The gradient border should be spinning around the input field right now, '
+      'and this text should be appearing *word by word* in a smooth typewriter effect. '
+      'Isn\'t it looking great? 🎉\n\n'
+      '> "The best way to predict the future is to invent it." — Alan Kay\n\n'
+      'Feel free to test with the real API once you\'re satisfied with the animation.';
+
+  Future<void> mockSimulateAiResponse() async {
+    if (_isSending) return;
+
+    if (_activeConversationId == null) {
+      await createNewConversation();
+    }
+
+    final conversationId = _activeConversationId;
+    if (conversationId == null) return;
+
+    final messages = _messagesByConversation.putIfAbsent(
+      conversationId,
+      () => <ChatMessage>[],
+    );
+
+    final mockUserId =
+        'mock_user_${DateTime.now().microsecondsSinceEpoch}';
+    messages.add(
+      ChatMessage(
+        id: mockUserId,
+        conversationId: conversationId,
+        accountId: _accountId ?? 'mock_account',
+        role: ChatMessageRole.user,
+        content: 'Mock test message',
+        createdAt: DateTime.now(),
+      ),
+    );
+
+    final pendingId = 'pending_${DateTime.now().microsecondsSinceEpoch}';
+    messages.add(
+      ChatMessage(
+        id: pendingId,
+        conversationId: conversationId,
+        accountId: _aiAccountId,
+        role: ChatMessageRole.assistant,
+        content: '',
+        createdAt: DateTime.now(),
+        isMarkdown: true,
+      ),
+    );
+
+    _isSending = true;
+    // Mark the mock message as live-received so the typewriter animation fires.
+    _sseReceivedMessageIds.add(pendingId);
+    notifyListeners();
+
+    // Simulate a 2-second network delay
+    await Future<void>.delayed(const Duration(seconds: 2));
+
+    if (_activeConversationId != conversationId) {
+      // User switched conversation — clean up silently
+      messages.removeWhere(
+        (m) => m.id == mockUserId || m.id == pendingId,
+      );
+      _isSending = false;
+      notifyListeners();
+      return;
+    }
+
+    // Replace the pending placeholder with the mock assistant response
+    final pendingIndex = messages.indexWhere((m) => m.id == pendingId);
+    if (pendingIndex != -1) {
+      messages[pendingIndex] = messages[pendingIndex].copyWith(
+        content: _mockResponse,
+      );
+    }
+
+    _isSending = false;
+    notifyListeners();
   }
 
   @override
