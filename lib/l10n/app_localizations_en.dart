@@ -233,7 +233,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Start a conversation. Messages are sent to the backend and AI replies are fetched from message history.';
 
   @override
-  String get chatInputHint => 'Ask anything...';
+  String get chatInputHint => 'Command Zenos...';
 
   @override
   String chatUpdatedAt(String date) {

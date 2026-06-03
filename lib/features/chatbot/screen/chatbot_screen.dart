@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/theme/app_sizes.dart';
 import 'package:zenit/core/theme/app_theme.dart';
@@ -343,6 +344,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           return ChatHistorySheet(
             conversations: state.conversations,
             activeConversationId: state.activeConversationId,
+            messages: state.activeMessages,
             onCreateNew: () async {
               await state.createNewConversation();
               if (!sheetContext.mounted) return;
@@ -455,10 +457,17 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             icon: const Icon(Icons.history_rounded),
             tooltip: l10n.chatHistoryTooltip,
           ),
-          IconButton(
-            onPressed: _createNewConversation,
-            icon: const Icon(Icons.add_comment_outlined),
-            tooltip: l10n.chatNewConversationTooltip,
+          Consumer<ChatbotProvider>(
+            builder: (context, provider, child) {
+              final isCurrentSessionEmpty =
+                  provider.activeConversationId != null &&
+                  provider.activeMessages.isEmpty;
+              return IconButton(
+                onPressed: isCurrentSessionEmpty ? null : _createNewConversation,
+                icon: const Icon(Icons.add_comment_outlined),
+                tooltip: l10n.chatNewConversationTooltip,
+              );
+            },
           ),
           const SizedBox(width: AppSizes.xs),
         ],
@@ -559,62 +568,118 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
     return SafeArea(
       top: false,
-      child: Container(
+      child: Padding(
         padding: const EdgeInsets.fromLTRB(
           AppSizes.l,
-          AppSizes.m,
+          AppSizes.s,
           AppSizes.l,
-          AppSizes.m,
+          AppSizes.l,
         ),
-        decoration: BoxDecoration(
-          color: colors.neutralBackground,
-          border: Border(top: BorderSide(color: colors.neutralBorder)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _composerController,
-                minLines: 1,
-                maxLines: 5,
-                textInputAction: TextInputAction.newline,
-                decoration: InputDecoration(
-                  hintText: context.l10n.chatInputHint,
-                  // border: OutlineInputBorder(),
-                  focusedBorder: InputBorder.none,
-                  border: InputBorder.none,
-                  fillColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSizes.m,
+            vertical: 6.0,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(36),
+            border: Border.all(
+              color: colors.neutralBorder.withValues(alpha: 0.8),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const SizedBox(width: AppSizes.l),
+              Expanded(
+                child: TextField(
+                  controller: _composerController,
+                  minLines: 1,
+                  maxLines: 5,
+                  textInputAction: TextInputAction.newline,
+                  decoration: InputDecoration(
+                    hintText: context.l10n.chatInputHint,
+                    focusedBorder: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    border: InputBorder.none,
+                    fillColor: Colors.transparent,
+                    filled: false,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 15.0,
+                    ),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: AppSizes.m),
-            Consumer<ChatbotProvider>(
-              builder: (context, provider, child) {
-                final disableActions = provider.isSending;
+              const SizedBox(width: AppSizes.s),
+              Consumer<ChatbotProvider>(
+                builder: (context, provider, child) {
+                  final disableActions = provider.isSending;
 
-                return Row(
-                  children: [
-                    IconButton(
-                      onPressed: disableActions ? null : _toggleVoiceInput,
-                      icon: Icon(
-                        _isListening
-                            ? Icons.mic_rounded
-                            : Icons.mic_none_rounded,
+                  Widget micButton = IconButton(
+                    onPressed: disableActions ? null : _toggleVoiceInput,
+                    icon: Icon(
+                      _isListening
+                          ? Icons.mic_rounded
+                          : Icons.mic_none_rounded,
+                      color: _isListening
+                          ? Colors.white
+                          : colors.neutralTextSecondary,
+                    ),
+                    style: IconButton.styleFrom(
+                      backgroundColor: _isListening
+                          ? colors.primaryMain
+                          : Colors.transparent,
+                      padding: const EdgeInsets.all(AppSizes.s),
+                    ),
+                    tooltip: _isListening
+                        ? 'Stop voice input'
+                        : 'Start voice input',
+                  );
+
+                  if (_isListening) {
+                    micButton = micButton
+                        .animate(
+                          onPlay: (controller) =>
+                              controller.repeat(reverse: true),
+                        )
+                        .scale(
+                          begin: const Offset(1.0, 1.0),
+                          end: const Offset(1.15, 1.15),
+                          duration: 600.ms,
+                          curve: Curves.easeInOut,
+                        );
+                  }
+
+                  return Row(
+                    children: [
+                      micButton,
+                      const SizedBox(width: AppSizes.xs),
+                      IconButton(
+                        onPressed: disableActions ? null : _sendMessage,
+                        icon: const Icon(Icons.send_rounded),
+                        style: IconButton.styleFrom(
+                          foregroundColor: colors.primaryMain,
+                          padding: const EdgeInsets.all(AppSizes.s),
+                        ),
                       ),
-                      tooltip: _isListening
-                          ? 'Stop voice input'
-                          : 'Start voice input',
-                    ),
-                    const SizedBox(width: AppSizes.s),
-                    IconButton(
-                      onPressed: disableActions ? null : _sendMessage,
-                      icon: const Icon(Icons.send_rounded),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

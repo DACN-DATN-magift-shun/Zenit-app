@@ -539,7 +539,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatInputHint.
   ///
   /// In en, this message translates to:
-  /// **'Ask anything...'**
+  /// **'Command Zenos...'**
   String get chatInputHint;
 
   /// No description provided for @chatUpdatedAt.

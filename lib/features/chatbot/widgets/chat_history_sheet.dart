@@ -15,6 +15,7 @@ class ChatHistorySheet extends StatelessWidget {
     required this.onSelect,
     required this.onRename,
     required this.onDelete,
+    this.messages = const [],
   });
 
   final List<ConversationSummary> conversations;
@@ -23,11 +24,13 @@ class ChatHistorySheet extends StatelessWidget {
   final ValueChanged<ConversationSummary> onSelect;
   final ValueChanged<ConversationSummary> onRename;
   final ValueChanged<ConversationSummary> onDelete;
+  final List<ChatMessage> messages;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final colors = Theme.of(context).extension<AppColorExtension>()!;
+    final isCurrentSessionEmpty = activeConversationId != null && messages.isEmpty;
 
     return Column(
       children: [
@@ -43,16 +46,23 @@ class ChatHistorySheet extends StatelessWidget {
                 )
               : ListView.builder(
                   itemCount: conversations.length,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.l,
+                    vertical: AppSizes.m,
+                  ),
                   itemBuilder: (context, index) {
                     final item = conversations[index];
                     final selected = item.id == activeConversationId;
 
-                    return _ConversationHistoryItem(
-                      item: item,
-                      selected: selected,
-                      onSelect: () => onSelect(item),
-                      onRename: () => onRename(item),
-                      onDelete: () => onDelete(item),
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSizes.m),
+                      child: _ConversationHistoryItem(
+                        item: item,
+                        selected: selected,
+                        onSelect: () => onSelect(item),
+                        onRename: () => onRename(item),
+                        onDelete: () => onDelete(item),
+                      ),
                     );
                   },
                 ),
@@ -68,7 +78,7 @@ class ChatHistorySheet extends StatelessWidget {
           child: SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: onCreateNew,
+              onPressed: isCurrentSessionEmpty ? null : onCreateNew,
               icon: const Icon(Icons.add_comment_outlined),
               label: Text(l10n.chatNewConversation),
             ),
@@ -98,61 +108,49 @@ class _ConversationHistoryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final colors = Theme.of(context).extension<AppColorExtension>()!;
-    final formattedDate = _formatDate(item.updatedAt);
 
     return Slidable(
       key: ValueKey(item.id),
       endActionPane: ActionPane(
         motion: const ScrollMotion(),
-        extentRatio: 0.5,
+        extentRatio: 0.28,
         children: [
           CustomSlidableAction(
             onPressed: (actionContext) {
               Slidable.of(actionContext)?.close();
               onDelete();
             },
-            backgroundColor: colors.neutralBackground,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSizes.xs,
-              vertical: AppSizes.s,
+            backgroundColor: Colors.transparent,
+            padding: const EdgeInsets.only(
+              left: AppSizes.s,
             ),
             child: Container(
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: colors.errorBackground,
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
-              ),
-              child: Text(
-                l10n.delete,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colors.errorIcon,
-                  fontWeight: FontWeight.w700,
+                borderRadius: BorderRadius.circular(16.0),
+                border: Border.all(
+                  color: colors.errorIcon.withValues(alpha: 0.3),
+                  width: 1.0,
                 ),
               ),
-            ),
-          ),
-          CustomSlidableAction(
-            onPressed: (actionContext) {
-              Slidable.of(actionContext)?.close();
-              onRename();
-            },
-            backgroundColor: colors.neutralBackground,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSizes.xs,
-              vertical: AppSizes.s,
-            ),
-            child: Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: colors.neutralSurface,
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
-              ),
-              child: Text(
-                l10n.edit,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colors.neutralTextSecondary,
-                  fontWeight: FontWeight.w700,
-                ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Symbols.delete,
+                    color: colors.errorIcon,
+                    size: AppSizes.iconM,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.delete,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colors.errorIcon,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -168,56 +166,54 @@ class _ConversationHistoryItem extends StatelessWidget {
           ),
           constraints: const BoxConstraints(minHeight: 72),
           decoration: BoxDecoration(
-            color: selected ? colors.secondaryShade : colors.neutralBackground,
-            border: Border(
-              bottom: BorderSide(color: colors.neutralBorder, width: 0.5),
+            color: selected ? colors.primaryMain : colors.neutralSurface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected
+                  ? colors.primaryMain
+                  : colors.neutralBorder.withValues(alpha: 0.5),
+              width: 1.0,
             ),
           ),
           child: Row(
             children: [
               Material(
-                color: selected ? colors.secondaryMain : colors.neutralSurface,
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
-                child: SizedBox(
-                  width: 42,
-                  height: 42,
+                color: selected
+                    ? Colors.white.withValues(alpha: 0.2)
+                    : colors.neutralSurface,
+                shape: CircleBorder(
+                  side: BorderSide(
+                    color: selected
+                        ? Colors.white.withValues(alpha: 0.3)
+                        : colors.neutralBorder.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
                   child: Icon(
                     Symbols.chat_bubble_rounded,
-                    size: AppSizes.iconL,
+                    size: 20.0,
                     color: selected
-                        ? colors.secondaryText
+                        ? Colors.white
                         : colors.neutralTextSecondary,
                   ),
                 ),
               ),
               const SizedBox(width: AppSizes.m),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: selected
-                            ? FontWeight.w700
-                            : FontWeight.w600,
-                        color: colors.neutralTextPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      formattedDate == null
-                          ? l10n.unknown
-                          : l10n.chatUpdatedAt(formattedDate),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colors.neutralTextSecondary,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  item.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: selected
+                        ? FontWeight.w700
+                        : FontWeight.w600,
+                    color: selected ? Colors.white : colors.neutralTextPrimary,
+                  ),
                 ),
               ),
             ],
@@ -227,11 +223,5 @@ class _ConversationHistoryItem extends StatelessWidget {
     );
   }
 
-  String? _formatDate(DateTime? date) {
-    if (date == null) return null;
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    final year = date.year;
-    return '$day/$month/$year';
-  }
+
 }

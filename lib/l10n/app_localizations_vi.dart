@@ -232,7 +232,7 @@ class AppLocalizationsVi extends AppLocalizations {
       'Hãy bắt đầu một cuộc trò chuyện. Tin nhắn sẽ được gửi đến backend và phản hồi AI sẽ được lấy từ lịch sử tin nhắn.';
 
   @override
-  String get chatInputHint => 'Hỏi bất cứ điều gì...';
+  String get chatInputHint => 'Ra lệnh cho Zenos...';
 
   @override
   String chatUpdatedAt(String date) {
