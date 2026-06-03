@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:lottie/lottie.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/main_layout.dart';
@@ -955,8 +956,8 @@ class _HomeContentState extends State<HomeContent> {
             ),
           ),
           Positioned(
-            right: AppSizes.l,
-            bottom: AppSizes.l,
+            right: AppSizes.xl,
+            bottom: AppSizes.xl,
             child: FloatingActionButton(
               onPressed: _navigateToChatbot,
               shape: RoundedRectangleBorder(
@@ -964,7 +965,12 @@ class _HomeContentState extends State<HomeContent> {
                   AppSizes.borderRadiusSmall,
                 ), // 🔥 chỉnh ở đây
               ),
-              child: const Icon(Icons.smart_toy_rounded),
+              child: Lottie.asset(
+                'assets/icons/chatbot.json',
+                width: 65,
+                height: 65,
+                fit: BoxFit.contain,
+              ),
               // label: const Text('AI Chat'),
             ),
           ),
