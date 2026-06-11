@@ -13,7 +13,6 @@ class GoalsProvider extends ChangeNotifier {
   bool _isActionLoading = false;
   String? _errorMessage;
   GoalStatus? _selectedStatusFilter;
-  String _searchKeyword = '';
 
   List<GoalModel> get goals {
     return _allGoals.where((goal) {
@@ -28,7 +27,7 @@ class GoalsProvider extends ChangeNotifier {
   bool get isActionLoading => _isActionLoading;
   String? get errorMessage => _errorMessage;
   GoalStatus? get selectedStatusFilter => _selectedStatusFilter;
-  String get searchKeyword => _searchKeyword;
+  
   bool get hasData => goals.isNotEmpty;
 
   List<GoalModel> get _ongoingGoalsForProgress {
@@ -76,15 +75,11 @@ class GoalsProvider extends ChangeNotifier {
     _isLoading = true;
     _errorMessage = null;
 
-    if (search != null) {
-      _searchKeyword = search;
-    }
-
     notifyListeners();
 
     try {
       _allGoals = await _goalsService.getGoals(
-        search: _searchKeyword,
+        search: search,
         pageSize: pageSize,
       );
       _errorMessage = null;
@@ -97,7 +92,7 @@ class GoalsProvider extends ChangeNotifier {
   }
 
   Future<void> refreshGoals() async {
-    await loadGoals(search: _searchKeyword);
+    await loadGoals();
   }
 
   Future<void> setStatusFilter(GoalStatus? status) async {
@@ -105,9 +100,9 @@ class GoalsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Search removed — method retained for compatibility but now reloads full list.
   Future<void> setSearchKeyword(String keyword) async {
-    _searchKeyword = keyword.trim();
-    await loadGoals(search: _searchKeyword);
+    await loadGoals();
   }
 
   Future<bool> addGoal({

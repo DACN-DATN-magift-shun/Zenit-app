@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:lottie/lottie.dart';
 import 'package:zenit/core/layout/app_bar.dart';
 import 'package:zenit/core/l10n/l10n.dart';
 import 'package:zenit/core/layout/main_layout.dart';
@@ -71,18 +72,7 @@ class _HomeContentState extends State<HomeContent> {
           AppColors.light.primaryActive,
         ],
       ),
-      // HomeActionItem(
-      //   title: l10n.actionQuickImport,
-      //   icon: Icons.library_add_rounded,
-      //   backgroundColor: AppColors.light.primaryMain,
-      //   iconColor: Colors.white,
-      //   type: ActionType.quickImport,
-      //   useGradient: true,
-      //   gradientColors: [
-      //     AppColors.light.primaryMain,
-      //     AppColors.light.primaryActive,
-      //   ],
-      // ),
+
       HomeActionItem(
         title: l10n.actionLoans,
         icon: Icons.receipt_long_rounded,
@@ -103,18 +93,6 @@ class _HomeContentState extends State<HomeContent> {
         backgroundColor: AppColors.light.secondaryMain,
         iconColor: AppColors.light.primaryMain,
         type: ActionType.goals,
-      ),
-      HomeActionItem(
-        title: l10n.actionMoreActions,
-        icon: Icons.apps_rounded,
-        backgroundColor: AppColors.light.primaryMain,
-        iconColor: Colors.white,
-        type: ActionType.moreActions,
-        useGradient: true,
-        gradientColors: [
-          AppColors.light.primaryMain,
-          AppColors.light.primaryActive,
-        ],
       ),
     ];
   }
@@ -279,9 +257,7 @@ class _HomeContentState extends State<HomeContent> {
       case ActionType.transaction:
         _navigateToTransaction();
         break;
-      // case ActionType.quickImport:
-      //   _navigateToQuickImport();
-      //   break;
+
       case ActionType.loans:
         _navigateToLoans();
         break;
@@ -437,6 +413,13 @@ class _HomeContentState extends State<HomeContent> {
     return Localizations.localeOf(context).languageCode.toLowerCase() == 'vi';
   }
 
+  Future<void> _handleRefresh() async {
+    await Future.wait([
+      _loadRecentTransactions(showLoading: false),
+      _loadWallets(showLoading: false),
+    ]);
+  }
+
   Future<void> _openTransactionInHistory(TransactionModel transaction) async {
     final resolvedTransaction = await _resolveTransactionForNavigation(
       transaction,
@@ -483,10 +466,7 @@ class _HomeContentState extends State<HomeContent> {
     return null;
   }
 
-  void _navigateToQuickImport() {
-    // TODO: Navigate to Quick Import screen
-    AppFlash.info(context, context.l10n.navigateQuickImport);
-  }
+
 
   void _navigateToLoans() {
     NavigationService.instance.navigateTo('/loans');
@@ -533,14 +513,25 @@ class _HomeContentState extends State<HomeContent> {
           width: double.infinity,
           padding: const EdgeInsets.all(AppSizes.l),
           decoration: BoxDecoration(
-            color: AppColors.light.neutralBackground,
+            gradient: LinearGradient(
+              colors: [
+                AppColors.light.primaryMain.withValues(alpha: 0.08),
+                AppColors.light.primaryMain.withValues(alpha: 0.16),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
-            border: Border.all(color: AppColors.light.neutralBorder, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
               ),
             ],
           ),
@@ -611,10 +602,17 @@ class _HomeContentState extends State<HomeContent> {
                               ),
                               padding: const EdgeInsets.all(AppSizes.m),
                               decoration: BoxDecoration(
-                                color: AppColors.light.secondaryMain,
+                                color: AppColors.light.neutralBackground,
                                 borderRadius: BorderRadius.circular(
                                   AppSizes.borderRadiusXSmall,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.02),
+                                    blurRadius: 2,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
                               ),
                               child: Row(
                                 children: [
@@ -706,14 +704,25 @@ class _HomeContentState extends State<HomeContent> {
           width: double.infinity,
           padding: const EdgeInsets.all(AppSizes.l),
           decoration: BoxDecoration(
-            color: AppColors.light.neutralBackground,
+            gradient: LinearGradient(
+              colors: [
+                AppColors.light.successIcon.withValues(alpha: 0.08),
+                AppColors.light.successIcon.withValues(alpha: 0.18),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
-            border: Border.all(color: AppColors.light.neutralBorder, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
               ),
             ],
           ),
@@ -781,7 +790,7 @@ class _HomeContentState extends State<HomeContent> {
                                   color: isOverspent
                                       ? AppColors.light.errorBackground
                                             .withValues(alpha: 0.15)
-                                      : AppColors.light.secondaryMain,
+                                      : AppColors.light.neutralBackground,
                                   borderRadius: BorderRadius.circular(
                                     AppSizes.borderRadiusXSmall,
                                   ),
@@ -792,6 +801,15 @@ class _HomeContentState extends State<HomeContent> {
                                           width: 1.5,
                                         )
                                       : null,
+                                  boxShadow: isOverspent
+                                      ? null
+                                      : [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.02),
+                                            blurRadius: 2,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
                                 ),
                                 margin: EdgeInsets.only(
                                   bottom: index == _wallets.length - 1
@@ -898,9 +916,11 @@ class _HomeContentState extends State<HomeContent> {
       ),
       child: Stack(
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: AppSizes.l),
-            child: Column(
+          RefreshIndicator(
+            onRefresh: _handleRefresh,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: AppSizes.l),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: AppSizes.l),
@@ -917,10 +937,11 @@ class _HomeContentState extends State<HomeContent> {
                 const SizedBox(height: 96),
               ],
             ),
+            ),
           ),
           Positioned(
-            right: AppSizes.l,
-            bottom: AppSizes.l,
+            right: AppSizes.xl,
+            bottom: AppSizes.xl,
             child: FloatingActionButton(
               onPressed: _navigateToChatbot,
               shape: RoundedRectangleBorder(
@@ -928,7 +949,12 @@ class _HomeContentState extends State<HomeContent> {
                   AppSizes.borderRadiusSmall,
                 ), // 🔥 chỉnh ở đây
               ),
-              child: const Icon(Icons.smart_toy_rounded),
+              child: Lottie.asset(
+                'assets/icons/chatbot.json',
+                width: 65,
+                height: 65,
+                fit: BoxFit.contain,
+              ),
               // label: const Text('AI Chat'),
             ),
           ),

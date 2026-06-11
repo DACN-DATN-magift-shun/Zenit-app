@@ -533,13 +533,13 @@ abstract class AppLocalizations {
   /// No description provided for @chatStartConversationHint.
   ///
   /// In en, this message translates to:
-  /// **'Start a conversation. Messages are sent to the backend and AI replies are fetched from message history.'**
+  /// **'Start a conversation.'**
   String get chatStartConversationHint;
 
   /// No description provided for @chatInputHint.
   ///
   /// In en, this message translates to:
-  /// **'Ask anything...'**
+  /// **'Command Zenos...'**
   String get chatInputHint;
 
   /// No description provided for @chatUpdatedAt.
@@ -1477,6 +1477,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Giving'**
   String get groupGiving;
+
+  /// No description provided for @groupIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get groupIncome;
 
   /// No description provided for @usernameLabel.
   ///

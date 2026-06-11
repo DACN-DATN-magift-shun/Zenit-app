@@ -152,7 +152,7 @@ class _SettingsContentState extends State<SettingsContent> {
                         context,
                       ).extension<AppColorExtension>()!.neutralBackground,
                       borderRadius: BorderRadius.circular(
-                        AppSizes.borderRadiusSmall,
+                        AppSizes.borderRadiusLarge,
                       ),
                       boxShadow: [
                         BoxShadow(

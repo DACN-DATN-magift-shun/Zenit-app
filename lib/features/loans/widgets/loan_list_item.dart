@@ -44,6 +44,39 @@ class LoanListItem extends StatelessWidget {
         ? colors.successBackground
         : colors.errorBackground;
 
+    final statusText = () {
+      switch (loan.status) {
+        case 1:
+          return isVietnamese ? 'Hoàn thành' : 'Completed';
+        case 2:
+          return isVietnamese ? 'Đã huỷ' : 'Canceled';
+        default:
+          return isVietnamese ? 'Đang nợ' : 'Ongoing';
+      }
+    }();
+
+    final statusColor = () {
+      switch (loan.status) {
+        case 1:
+          return colors.successText;
+        case 2:
+          return colors.errorText;
+        default:
+          return colors.neutralTextSecondary;
+      }
+    }();
+
+    final statusBgColor = () {
+      switch (loan.status) {
+        case 1:
+          return colors.successBackground;
+        case 2:
+          return colors.errorBackground;
+        default:
+          return colors.neutralSurface;
+      }
+    }();
+
     return Slidable(
       key: ValueKey(loan.id.isEmpty ? '${loan.name}-${loan.amount}' : loan.id),
       endActionPane: ActionPane(
@@ -138,6 +171,26 @@ class LoanListItem extends StatelessWidget {
                       typeText,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: typeColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSizes.m),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.l,
+                      vertical: AppSizes.m,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusBgColor,
+                      borderRadius: BorderRadius.circular(
+                        AppSizes.borderRadiusLarge,
+                      ),
+                    ),
+                    child: Text(
+                      statusText,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: statusColor,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

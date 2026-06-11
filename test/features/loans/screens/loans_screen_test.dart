@@ -61,11 +61,9 @@ class FakeLoansProvider extends LoansProvider {
   String? _errorMessage;
   bool _keepLoadingOnLoad = false;
   int? _selectedTypeFilter;
-  String _searchKeyword = '';
 
   int loadLoansCalls = 0;
   int refreshLoansCalls = 0;
-  int setSearchKeywordCalls = 0;
   int setTypeFilterCalls = 0;
 
   @override
@@ -79,9 +77,6 @@ class FakeLoansProvider extends LoansProvider {
 
   @override
   int? get selectedTypeFilter => _selectedTypeFilter;
-
-  @override
-  String get searchKeyword => _searchKeyword;
 
   @override
   bool get hasData => _loans.isNotEmpty;
@@ -99,7 +94,6 @@ class FakeLoansProvider extends LoansProvider {
   Future<void> loadLoans({int? type, String? search, int pageSize = 100}) async {
     loadLoansCalls += 1;
     _selectedTypeFilter = type;
-    _searchKeyword = search ?? _searchKeyword;
     if (!_keepLoadingOnLoad) {
       _isLoading = false;
     }
@@ -109,13 +103,6 @@ class FakeLoansProvider extends LoansProvider {
   @override
   Future<void> refreshLoans() async {
     refreshLoansCalls += 1;
-  }
-
-  @override
-  Future<void> setSearchKeyword(String keyword) async {
-    setSearchKeywordCalls += 1;
-    _searchKeyword = keyword.trim();
-    notifyListeners();
   }
 
   @override
@@ -169,7 +156,7 @@ void main() {
     expect(find.text('Retry'), findsOneWidget);
   });
 
-  testWidgets('LoansScreen shows empty state and search clear branch', (tester) async {
+  testWidgets('LoansScreen shows empty state', (tester) async {
     final provider = FakeLoansProvider();
 
     await tester.pumpWidget(
@@ -179,17 +166,6 @@ void main() {
     await tester.pump();
 
     expect(find.text('No loans or debts yet'), findsOneWidget);
-
-    await tester.enterText(find.byType(TextField), '  rent  ');
-    await tester.pump();
-
-    expect(find.byIcon(Icons.close), findsAtLeastNWidgets(1));
-
-    await tester.tap(find.byIcon(Icons.close).first);
-    await tester.pump();
-
-    expect(provider.setSearchKeywordCalls, 2);
-    expect(provider.searchKeyword, isEmpty);
   });
 
   testWidgets('LoansScreen shows summary, filters and opens add drawer', (tester) async {

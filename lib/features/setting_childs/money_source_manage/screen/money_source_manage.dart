@@ -182,42 +182,44 @@ class _MoneySourceManageScreenState extends State<MoneySourceManageScreen> {
             valueListenable: isEditing,
             builder: (context, editing, _) {
               final colors = Theme.of(context).extension<AppColorExtension>()!;
-              if (editing) {
+
+              Widget buildButton({
+                required VoidCallback onTap,
+                required IconData icon,
+                required Color iconColor,
+                Color? backgroundColor,
+              }) {
                 return GestureDetector(
-                  onTap: () {
-                    formController.submit();
-                  },
+                  onTap: onTap,
                   child: Container(
                     padding: const EdgeInsets.all(AppSizes.s),
                     decoration: BoxDecoration(
-                      color: colors.neutralBackground,
-                      borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
+                      color: backgroundColor ?? colors.neutralBackground,
+                      borderRadius: BorderRadius.circular(
+                        AppSizes.borderRadiusLarge,
+                      ),
                     ),
                     child: Icon(
-                      Symbols.check_rounded,
+                      icon,
                       size: AppSizes.iconL,
-                      color: colors.primaryActive,
+                      color: iconColor,
                     ),
                   ),
                 );
               }
 
-              return GestureDetector(
-                onTap: () => isEditing.value = !editing,
-                child: Container(
-                  padding: const EdgeInsets.all(AppSizes.s),
-                  decoration: BoxDecoration(
-                    color: colors.neutralBackground,
-                    borderRadius: BorderRadius.circular(
-                      AppSizes.borderRadiusLarge,
-                    ),
-                  ),
-                  child: Icon(
-                    Symbols.edit_rounded,
-                    size: AppSizes.iconL,
-                    color: colors.primaryActive,
-                  ),
-                ),
+              if (editing) {
+                return buildButton(
+                  onTap: () => formController.submit(),
+                  icon: Symbols.check_rounded,
+                  iconColor: colors.primaryActive,
+                );
+              }
+
+              return buildButton(
+                onTap: () => isEditing.value = true,
+                icon: Symbols.edit_rounded,
+                iconColor: colors.primaryActive,
               );
             },
           ),

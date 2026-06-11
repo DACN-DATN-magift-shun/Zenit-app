@@ -6,7 +6,8 @@ class LoanModel {
     required this.amount,
     required this.date,
     required this.dueDate,
-    this.note = '',
+      this.note = '',
+      this.status = 0,
   });
 
   final String id;
@@ -16,6 +17,7 @@ class LoanModel {
   final DateTime date;
   final DateTime dueDate;
   final String note;
+  final int status;
 
   bool get isLoan => type == 0;
   bool get isDebt => type == 1;
@@ -28,6 +30,7 @@ class LoanModel {
     DateTime? date,
     DateTime? dueDate,
     String? note,
+    int? status,
   }) {
     return LoanModel(
       id: id ?? this.id,
@@ -37,6 +40,7 @@ class LoanModel {
       date: date ?? this.date,
       dueDate: dueDate ?? this.dueDate,
       note: note ?? this.note,
+      status: status ?? this.status,
     );
   }
 
@@ -44,6 +48,7 @@ class LoanModel {
     return {
       'name': name,
       'type': type,
+      'status': status,
       'amount': amount,
       'date': date.toUtc().toIso8601String(),
       'dueDate': dueDate.toUtc().toIso8601String(),
@@ -56,6 +61,7 @@ class LoanModel {
       'id': id,
       'name': name,
       'type': type,
+      'status': status,
       'amount': amount,
       'date': date.toUtc().toIso8601String(),
       'dueDate': dueDate.toUtc().toIso8601String(),
@@ -70,6 +76,7 @@ class LoanModel {
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       type: _parseInt(json['type']),
+      status: _parseInt(json['status']),
       amount: _parseInt(json['amount']),
       date: _parseDate(json['date']) ?? DateTime.now(),
       dueDate:

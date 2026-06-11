@@ -168,9 +168,14 @@ void main() {
     expect(find.text('Pick a suggestion'), findsOneWidget);
     expect(find.byType(ActionChip), findsNWidgets(2));
 
-    await tester.tap(find.byType(ActionChip).first);
+    final chips = find.byType(ActionChip);
+    await tester.ensureVisible(chips.first);
+    await tester.pumpAndSettle();
+    await tester.tap(chips.first);
     await tester.pump();
-    await tester.tap(find.byType(ActionChip).last);
+    await tester.ensureVisible(chips.last);
+    await tester.pumpAndSettle();
+    await tester.tap(chips.last);
     await tester.pump();
 
     expect(provider.sendMessageCalls, 2);

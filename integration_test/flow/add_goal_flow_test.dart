@@ -87,7 +87,8 @@ void main() {
 
     await tester.pumpWidget(const MainApp());
     await tester.pump(const Duration(milliseconds: 1400));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('home-action-goals')),
@@ -95,12 +96,14 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     await tester.tap(find.byKey(const ValueKey('home-action-goals')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('Goals management'), findsOneWidget);
 
     await tester.tap(find.byType(FloatingActionButton));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(AddEditGoalForm), findsOneWidget);
 
@@ -113,7 +116,8 @@ void main() {
     await tester.enterText(formFields.at(1), '10000000');
     await tester.enterText(formFields.at(2), '1200000');
     await tester.enterText(formFields.at(3), 'Save monthly for emergencies');
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(find.byIcon(Symbols.check_rounded).first);
     await tester.pump();

@@ -15,17 +15,24 @@ class AuthService {
 
   // Kiểm tra xem user đã đăng nhập chưa
   Future<bool> isAuthenticated() async {
-    final token = await _storageService.getAccessToken();
-    if (token == null || token.isEmpty) {
+    try {
+      final token = await _storageService.getAccessToken().timeout(
+        const Duration(seconds: 2),
+      );
+      if (token == null || token.isEmpty) {
+        return false;
+      }
+
+      if (_isTokenExpired(token)) {
+        await _storageService.clearStorage();
+        return false;
+      }
+
+      return true;
+    } catch (e) {
+      print('Error checking auth state: $e');
       return false;
     }
-
-    if (_isTokenExpired(token)) {
-      await _storageService.clearStorage();
-      return false;
-    }
-
-    return true;
   }
 
   // Lấy access token

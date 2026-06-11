@@ -19,6 +19,24 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+subprojects {
+    tasks.withType<JavaCompile>().configureEach {
+        sourceCompatibility = "11"
+        targetCompatibility = "11"
+    }
+    
+    tasks.matching { it.name.startsWith("compile") && it.name.endsWith("Kotlin") }.configureEach {
+        try {
+            val kotlinOptions = this.property("kotlinOptions")
+            val setJvmTarget = kotlinOptions?.javaClass?.getMethod("setJvmTarget", java.lang.String::class.java)
+                ?: kotlinOptions?.javaClass?.getMethod("setJvmTarget", String::class.java)
+            setJvmTarget?.invoke(kotlinOptions, "11")
+        } catch (e: Exception) {
+            // Ignore
+        }
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }

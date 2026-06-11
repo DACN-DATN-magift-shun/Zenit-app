@@ -114,8 +114,8 @@ class ApiClient {
                 'snackMessage': 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
               },
             );
-            _isHandlingUnauthorized = false;
           }
+          return handler.reject(error);
         }
 
         return handler.next(error);

@@ -25,33 +25,29 @@ class LoansScreen extends StatefulWidget {
 
 class _LoansScreenState extends State<LoansScreen> {
   static const double _cardRadius = 24;
-  final TextEditingController _searchController = TextEditingController();
+  
+  static const int _pageSize = 10;
+  int _currentPage = 1;
 
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(_onSearchTextChanged);
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<LoansProvider>().loadLoans();
     });
   }
 
-  void _onSearchTextChanged() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
   @override
   void dispose() {
-    _searchController.removeListener(_onSearchTextChanged);
-    _searchController.dispose();
+    
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final isVietnamese = _isVietnamese(context);
+    final colors = Theme.of(context).extension<AppColorExtension>()!;
 
     return BaseLayout(
       appBar: CommonAppBar(
@@ -85,9 +81,44 @@ class _LoansScreenState extends State<LoansScreen> {
                           : ListView.builder(
                               physics: const AlwaysScrollableScrollPhysics(),
                               padding: const EdgeInsets.only(bottom: 96),
-                              itemCount: provider.loans.length,
+                              itemCount: (() {
+                                final total = provider.loans.length;
+                                final totalPages =
+                                    (total + _pageSize - 1) ~/ _pageSize;
+                                final current = _currentPage.clamp(
+                                  1,
+                                  totalPages == 0 ? 1 : totalPages,
+                                );
+                                final start = (current - 1) * _pageSize;
+                                final remaining = total - start;
+                                final visible = remaining < 0
+                                    ? 0
+                                    : (remaining < _pageSize ? remaining : _pageSize);
+                                return visible + (visible > 0 ? 1 : 0);
+                              })(),
                               itemBuilder: (context, index) {
-                                final item = provider.loans[index];
+                                final total = provider.loans.length;
+                                final totalPages =
+                                    (total + _pageSize - 1) ~/ _pageSize;
+                                final current = _currentPage.clamp(
+                                  1,
+                                  totalPages == 0 ? 1 : totalPages,
+                                );
+                                final start = (current - 1) * _pageSize;
+                                final remaining = total - start;
+                                final visible = remaining < 0
+                                    ? 0
+                                    : (remaining < _pageSize ? remaining : _pageSize);
+                                if (index == visible) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: AppSizes.s),
+                                    child: _buildPaginationSectionForLoans(
+                                      colors,
+                                      provider.loans.length,
+                                    ),
+                                  );
+                                }
+                                final item = provider.loans[start + index];
                                 final animationDelayMs = index < 8
                                     ? index * 40
                                     : 320;
@@ -117,11 +148,12 @@ class _LoansScreenState extends State<LoansScreen> {
                             ),
                     ),
                   ),
+                  
                 ],
               ),
               Positioned(
                 right: AppSizes.l,
-                bottom: AppSizes.l,
+                bottom: AppSizes.l + (AppSizes.m * 5),
                 child: FloatingActionButton(
                   onPressed: _showAddLoanDrawer,
                   elevation: 4,
@@ -293,63 +325,7 @@ class _LoansScreenState extends State<LoansScreen> {
 
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _searchController,
-                textInputAction: TextInputAction.search,
-                onChanged: provider.setSearchKeyword,
-                onSubmitted: provider.setSearchKeyword,
-                decoration: InputDecoration(
-                  hintText: isVietnamese
-                      ? 'Tìm theo tên khoản vay/nợ'
-                      : 'Search by loan/debt name',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _searchController.text.trim().isEmpty
-                      ? null
-                      : IconButton(
-                          onPressed: () {
-                            _searchController.clear();
-                            provider.setSearchKeyword('');
-                          },
-                          icon: const Icon(Icons.close),
-                        ),
-                  filled: true,
-                  fillColor: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerLowest,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(22),
-                    borderSide: BorderSide(
-                      color: colors.neutralBorder.withValues(alpha: 0.8),
-                      width: 1.3,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(22),
-                    borderSide: BorderSide(
-                      color: colors.neutralBorder.withValues(alpha: 0.8),
-                      width: 1.3,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(22),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 1.6,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                  prefixIconConstraints: const BoxConstraints(minWidth: 48),
-                  suffixIconConstraints: const BoxConstraints(minWidth: 48),
-                ),
-              ),
-            ),
-            const SizedBox(width: AppSizes.m),
-            const SizedBox.shrink(),
-          ],
-        ),
+        const SizedBox.shrink(),
         const SizedBox(height: AppSizes.m),
         Row(
           children: [
@@ -424,6 +400,145 @@ class _LoansScreenState extends State<LoansScreen> {
     );
   }
 
+  Widget _buildPaginationSectionForLoans(
+    AppColorExtension colors,
+    int totalItems,
+  ) {
+    final totalPages = totalItems == 0
+        ? 1
+        : (totalItems + _pageSize - 1) ~/ _pageSize;
+    final current = _currentPage.clamp(1, totalPages);
+    final pageStart = totalItems == 0 ? 0 : ((current - 1) * _pageSize) + 1;
+    final visible = totalItems == 0
+        ? 0
+        : ((pageStart + _pageSize - 1) > totalItems
+              ? (totalItems - pageStart + 1)
+              : _pageSize);
+    final pageEnd = visible == 0 ? 0 : pageStart + visible - 1;
+    final progress = totalPages <= 1 ? 1.0 : current / totalPages;
+
+    final canPrev = current > 1;
+    final canNext = current < totalPages;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSizes.m),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.m,
+        vertical: AppSizes.s,
+      ),
+      decoration: BoxDecoration(
+        color: colors.neutralSurface,
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
+        border: Border.all(color: colors.neutralBorder.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _textByLocale(
+                    vi: 'Trang $current/$totalPages — Hiển thị $pageStart-$pageEnd/$totalItems',
+                    en: 'Page $current/$totalPages — Showing $pageStart-$pageEnd/$totalItems',
+                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.neutralTextSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: canPrev
+                        ? () {
+                            setState(() {
+                              _currentPage = (_currentPage - 1).clamp(
+                                1,
+                                totalPages,
+                              );
+                            });
+                          }
+                        : null,
+                    icon: Icon(
+                      Icons.chevron_left_rounded,
+                      size: AppSizes.iconM,
+                    ),
+                    color: canPrev
+                        ? colors.primaryMain
+                        : colors.neutralTextDisable,
+                    padding: const EdgeInsets.all(6),
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: AppSizes.s),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.s,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.primaryMain.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$current / $totalPages',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colors.primaryMain,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: canNext
+                        ? () {
+                            setState(() {
+                              _currentPage = (_currentPage + 1).clamp(
+                                1,
+                                totalPages,
+                              );
+                            });
+                          }
+                        : null,
+                    icon: Icon(
+                      Icons.chevron_right_rounded,
+                      size: AppSizes.iconM,
+                    ),
+                    color: canNext
+                        ? colors.primaryMain
+                        : colors.neutralTextDisable,
+                    padding: const EdgeInsets.all(6),
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSizes.s),
+          SizedBox(
+            height: 6,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: progress,
+                backgroundColor: colors.neutralBorder.withValues(alpha: 0.35),
+                valueColor: AlwaysStoppedAnimation<Color>(colors.primaryMain),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEmptyState(BuildContext context) {
     final isVietnamese = _isVietnamese(context);
     final colors = Theme.of(context).extension<AppColorExtension>()!;
@@ -465,13 +580,17 @@ class _LoansScreenState extends State<LoansScreen> {
           child: Container(
             padding: const EdgeInsets.all(AppSizes.s),
             decoration: BoxDecoration(
-              color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
+              color: Theme.of(
+                context,
+              ).extension<AppColorExtension>()!.neutralBackground,
               borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
             ),
             child: Icon(
               Symbols.check_rounded,
               size: AppSizes.iconL,
-              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
+              color: Theme.of(
+                context,
+              ).extension<AppColorExtension>()!.primaryActive,
             ),
           ),
         ),
@@ -483,6 +602,7 @@ class _LoansScreenState extends State<LoansScreen> {
           final success = await provider.addLoan(
             name: data.name,
             type: data.type,
+            status: data.status,
             amount: data.amount,
             date: data.date,
             dueDate: data.dueDate,
@@ -529,13 +649,17 @@ class _LoansScreenState extends State<LoansScreen> {
           child: Container(
             padding: const EdgeInsets.all(AppSizes.s),
             decoration: BoxDecoration(
-              color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
+              color: Theme.of(
+                context,
+              ).extension<AppColorExtension>()!.neutralBackground,
               borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
             ),
             child: Icon(
               Symbols.check_rounded,
               size: AppSizes.iconL,
-              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
+              color: Theme.of(
+                context,
+              ).extension<AppColorExtension>()!.primaryActive,
             ),
           ),
         ),
@@ -549,6 +673,7 @@ class _LoansScreenState extends State<LoansScreen> {
             id: loan.id,
             name: data.name,
             type: data.type,
+            status: data.status,
             amount: data.amount,
             date: data.date,
             dueDate: data.dueDate,
@@ -619,5 +744,9 @@ class _LoansScreenState extends State<LoansScreen> {
 
   bool _isVietnamese(BuildContext context) {
     return Localizations.localeOf(context).languageCode == 'vi';
+  }
+
+  String _textByLocale({required String vi, required String en}) {
+    return _isVietnamese(context) ? vi : en;
   }
 }

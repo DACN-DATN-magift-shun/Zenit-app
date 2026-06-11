@@ -36,7 +36,6 @@ void main() {
     );
 
     expect(find.text('Category name'), findsOneWidget);
-    expect(find.text('Expense limit'), findsOneWidget);
     expect(find.text('Select icon'), findsOneWidget);
 
     await tester.enterText(
@@ -47,26 +46,14 @@ void main() {
       'Food',
     );
 
-    await tester.enterText(
-      find.descendant(
-        of: find.byType(CustomTextFormField).at(1),
-        matching: find.byType(TextFormField),
-      ),
-      '150000',
-    );
-
-    final ddCountBefore = find.byType(DropdownButton).evaluate().length;
-    print('DropdownButton count before tap: $ddCountBefore');
-    if (ddCountBefore == 0) debugDumpApp();
-    // Use initial groupType=5 (Income) so no need to open dropdown in tests
-
-    // initialIcon is provided, no need to tap to select it in tests
+    // The expense limit field was removed from the form.
+    // initialIcon is provided, so no need to tap to select it in tests.
 
     controller.submit();
     await tester.pumpAndSettle();
 
     expect(submittedData?.name, 'Food');
-    expect(submittedData?.expenseLimit, 150000);
+    expect(submittedData?.expenseLimit, isNull);
     expect(submittedData?.icon, 'shopping_cart_rounded');
     expect(submittedData?.groupType, 5);
     expect(submittedData?.color, isNotNull);

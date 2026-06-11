@@ -229,11 +229,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatSave => 'Save';
 
   @override
-  String get chatStartConversationHint =>
-      'Start a conversation. Messages are sent to the backend and AI replies are fetched from message history.';
+  String get chatStartConversationHint => 'Start a conversation.';
 
   @override
-  String get chatInputHint => 'Ask anything...';
+  String get chatInputHint => 'Command Zenos...';
 
   @override
   String chatUpdatedAt(String date) {
@@ -753,6 +752,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get groupGiving => 'Giving';
+
+  @override
+  String get groupIncome => 'Income';
 
   @override
   String usernameLabel(String username) {

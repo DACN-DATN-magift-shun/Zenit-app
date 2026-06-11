@@ -68,19 +68,19 @@ class LoansService {
     bool useCountTotal = false,
   }) async {
     try {
-      final queryParameters = <String, dynamic>{'PageSize': pageSize};
+      final queryParameters = <String, dynamic>{'pageSize': pageSize};
 
       if (type != null) {
-        queryParameters['Type'] = type;
+        queryParameters['type'] = type;
       }
       if (search != null && search.trim().isNotEmpty) {
-        queryParameters['Search'] = search.trim();
+        queryParameters['search'] = search.trim();
       }
       if (beforeId != null && beforeId.trim().isNotEmpty) {
-        queryParameters['BeforeId'] = beforeId.trim();
+        queryParameters['beforeId'] = beforeId.trim();
       }
       if (useCountTotal) {
-        queryParameters['UseCountTotal'] = true;
+        queryParameters['useCountTotal'] = true;
       }
 
       final response = await _api.get(
@@ -119,11 +119,13 @@ class LoansService {
     required DateTime date,
     required DateTime dueDate,
     String note = '',
+    int status = 0,
   }) async {
     try {
       final requestData = {
         'name': name,
         'type': type,
+        'status': status,
         'amount': amount,
         'date': date.toUtc().toIso8601String(),
         'dueDate': dueDate.toUtc().toIso8601String(),
@@ -145,6 +147,7 @@ class LoansService {
           id: '',
           name: name,
           type: type,
+          status: status,
           amount: amount,
           date: date,
           dueDate: dueDate,
@@ -166,12 +169,14 @@ class LoansService {
     DateTime? date,
     DateTime? dueDate,
     String? note,
+    int? status,
   }) async {
     try {
       final requestData = <String, dynamic>{'id': id};
 
       if (name != null) requestData['name'] = name;
       if (type != null) requestData['type'] = type;
+      if (status != null) requestData['status'] = status;
       if (amount != null) requestData['amount'] = amount;
       if (date != null) requestData['date'] = date.toUtc().toIso8601String();
       if (dueDate != null) {
@@ -194,6 +199,7 @@ class LoansService {
           id: id,
           name: name ?? '',
           type: type ?? 0,
+          status: status ?? 0,
           amount: amount ?? 0,
           date: date ?? DateTime.now(),
           dueDate: dueDate ?? date ?? DateTime.now(),

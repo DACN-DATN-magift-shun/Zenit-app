@@ -26,10 +26,17 @@ class ChatbotProvider extends ChangeNotifier {
 
   static const int _defaultPageSize = 50;
   static const String _aiAccountId = '00000000-0000-0000-0000-000000000001';
+  static final RegExp _conversationTitlePattern = RegExp(
+    r'^(\d{4})-(\d{2})-(\d{2})_chat_number_(\d+)$',
+  );
 
   final List<ConversationSummary> _conversations = [];
   final Map<String, List<ChatMessage>> _messagesByConversation = {};
   final Map<String, bool> _displayAcceptButtonByMessageId = {};
+
+  /// IDs of messages that were received live and should animate.
+  /// Once they finish animating, the UI calls markMessageAsAnimated() to remove them.
+  final Set<String> _pendingAnimationMessageIds = {};
 
   bool _isInitializing = false;
   bool _isLoadingConversations = false;
@@ -45,6 +52,16 @@ class ChatbotProvider extends ChangeNotifier {
   bool get isLoadingConversations => _isLoadingConversations;
   bool get isSending => _isSending;
   String? get activeConversationId => _activeConversationId;
+
+  /// Returns true only for messages that are newly received and haven't finished animating.
+  bool shouldAnimateMessage(String messageId) =>
+      _pendingAnimationMessageIds.contains(messageId);
+
+  void markMessageAsAnimated(String messageId) {
+    if (_pendingAnimationMessageIds.remove(messageId)) {
+      notifyListeners();
+    }
+  }
 
   List<ChatMessage> get activeMessages {
     final conversationId = _activeConversationId;
@@ -93,6 +110,8 @@ class ChatbotProvider extends ChangeNotifier {
       _conversations
         ..clear()
         ..addAll(response.items);
+
+      _sortConversationsByMostRecentTitle();
 
       if (_activeConversationId == null && _conversations.isNotEmpty) {
         _activeConversationId = _conversations.first.id;
@@ -225,6 +244,8 @@ class ChatbotProvider extends ChangeNotifier {
         isMarkdown: true,
       ),
     );
+    // Mark as pending animation so the typewriter effect plays for this message.
+    _pendingAnimationMessageIds.add(pendingAssistantMessageId);
 
     _isSending = true;
     notifyListeners();
@@ -349,7 +370,7 @@ class ChatbotProvider extends ChangeNotifier {
                 }
 
                 debugPrint('SSE: dispatching parsed SSE message');
-                _handleSseMessage(data);
+                _handleSseMessage(data, conversationId);
               } catch (e, st) {
                 debugPrint('SSE: malformed payload, decode error: $e\n$st');
                 // Ignore malformed event payloads and keep stream alive.
@@ -385,8 +406,8 @@ class ChatbotProvider extends ChangeNotifier {
     }
   }
 
-  void _handleSseMessage(Map<String, dynamic> data) {
-    final conversationId = data['conversationId']?.toString() ?? '';
+  void _handleSseMessage(Map<String, dynamic> data, String expectedConversationId) {
+    final conversationId = data['conversationId']?.toString() ?? expectedConversationId;
     debugPrint(
       'SSE: handleSseMessage for conversationId="$conversationId", rawData=${data.toString()}',
     );
@@ -395,9 +416,11 @@ class ChatbotProvider extends ChangeNotifier {
       return;
     }
 
-    final content = data['chatbotMessage']?.toString().trim() ?? '';
+    final content = (data['chatbotMessage'] ?? data['message'] ?? data['content'] ?? data['text'])?.toString().trim() ?? '';
     final suggestions = ChatSuggestion.fromList(data['suggestions']);
     final displayAcceptButton =
+        data['display_accept_button'] == true ||
+        data['display_accept_button']?.toString().toLowerCase() == 'true' ||
         data['displayAcceptButton'] == true ||
         data['displayAcceptButton']?.toString().toLowerCase() == 'true';
     debugPrint(
@@ -449,6 +472,8 @@ class ChatbotProvider extends ChangeNotifier {
         );
         _displayAcceptButtonByMessageId[messages.last.id] = displayAcceptButton;
         if (content.isNotEmpty) {
+          // The pending_ ID was already registered; the message keeps its ID
+          // so shouldAnimateMessage() will return true for it.
           _isSending = false;
         }
         notifyListeners();
@@ -470,6 +495,8 @@ class ChatbotProvider extends ChangeNotifier {
       ),
     );
     _displayAcceptButtonByMessageId[messages.last.id] = displayAcceptButton;
+    // Update the pending animation set
+    _pendingAnimationMessageIds.add(messages.last.id);
 
     _isSending = false;
     _promoteConversation(conversationId);
@@ -535,6 +562,69 @@ class ChatbotProvider extends ChangeNotifier {
     _conversations.insert(0, item);
   }
 
+  void _sortConversationsByMostRecentTitle() {
+    _conversations.sort((a, b) {
+      final aParsed = _parseConversationTitleOrder(a.title);
+      final bParsed = _parseConversationTitleOrder(b.title);
+
+      if (aParsed != null && bParsed != null) {
+        final byDate = bParsed.date.compareTo(aParsed.date);
+        if (byDate != 0) {
+          return byDate;
+        }
+
+        final byNumber = bParsed.chatNumber.compareTo(aParsed.chatNumber);
+        if (byNumber != 0) {
+          return byNumber;
+        }
+      } else if (aParsed != null) {
+        return -1;
+      } else if (bParsed != null) {
+        return 1;
+      }
+
+      final aUpdatedAt = a.updatedAt;
+      final bUpdatedAt = b.updatedAt;
+      if (aUpdatedAt != null && bUpdatedAt != null) {
+        final byUpdatedAt = bUpdatedAt.compareTo(aUpdatedAt);
+        if (byUpdatedAt != 0) {
+          return byUpdatedAt;
+        }
+      } else if (aUpdatedAt != null) {
+        return -1;
+      } else if (bUpdatedAt != null) {
+        return 1;
+      }
+
+      return b.title.compareTo(a.title);
+    });
+  }
+
+  _ConversationTitleOrder? _parseConversationTitleOrder(String title) {
+    final match = _conversationTitlePattern.firstMatch(title.trim());
+    if (match == null) {
+      return null;
+    }
+
+    final year = int.tryParse(match.group(1) ?? '');
+    final month = int.tryParse(match.group(2) ?? '');
+    final day = int.tryParse(match.group(3) ?? '');
+    final chatNumber = int.tryParse(match.group(4) ?? '');
+
+    if (year == null || month == null || day == null || chatNumber == null) {
+      return null;
+    }
+
+    final date = DateTime.tryParse(
+      '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}',
+    );
+    if (date == null) {
+      return null;
+    }
+
+    return _ConversationTitleOrder(date: date, chatNumber: chatNumber);
+  }
+
   String _buildAutoConversationTitle() {
     final now = DateTime.now();
     final datePart =
@@ -578,7 +668,9 @@ class ChatbotProvider extends ChangeNotifier {
                 aiAccountId: _aiAccountId,
               );
               final raw = _safeMap(item);
-              final accepts = _parseBool(raw['displayAcceptButton']);
+              final accepts =
+                  _parseBool(raw['display_accept_button']) ||
+                  _parseBool(raw['displayAcceptButton']);
               if (accepts) {
                 _displayAcceptButtonByMessageId[message.id] = true;
               }
@@ -621,10 +713,101 @@ class ChatbotProvider extends ChangeNotifier {
     return false;
   }
 
+  // -------------------------------------------------------------------------
+  // MOCK – temporary dev helper, remove before release
+  // -------------------------------------------------------------------------
+
+  static const String _mockResponse =
+      'Hello! I am **Zenos**, your AI assistant. '
+      'This is a **mock response** used for testing the streaming animations. '
+      'The gradient border should be spinning around the input field right now, '
+      'and this text should be appearing *word by word* in a smooth typewriter effect. '
+      'Isn\'t it looking great? 🎉\n\n'
+      '> "The best way to predict the future is to invent it." — Alan Kay\n\n'
+      'Feel free to test with the real API once you\'re satisfied with the animation.';
+
+  Future<void> mockSimulateAiResponse() async {
+    if (_isSending) return;
+
+    if (_activeConversationId == null) {
+      await createNewConversation();
+    }
+
+    final conversationId = _activeConversationId;
+    if (conversationId == null) return;
+
+    final messages = _messagesByConversation.putIfAbsent(
+      conversationId,
+      () => <ChatMessage>[],
+    );
+
+    final mockUserId =
+        'mock_user_${DateTime.now().microsecondsSinceEpoch}';
+    messages.add(
+      ChatMessage(
+        id: mockUserId,
+        conversationId: conversationId,
+        accountId: _accountId ?? 'mock_account',
+        role: ChatMessageRole.user,
+        content: 'Mock test message',
+        createdAt: DateTime.now(),
+      ),
+    );
+
+    final pendingId = 'pending_${DateTime.now().microsecondsSinceEpoch}';
+    messages.add(
+      ChatMessage(
+        id: pendingId,
+        conversationId: conversationId,
+        accountId: _aiAccountId,
+        role: ChatMessageRole.assistant,
+        content: '',
+        createdAt: DateTime.now(),
+        isMarkdown: true,
+      ),
+    );
+
+    _isSending = true;
+    // Mark the mock message as pending animation.
+    _pendingAnimationMessageIds.add(pendingId);
+    notifyListeners();
+
+    // Simulate a 2-second network delay
+    await Future<void>.delayed(const Duration(seconds: 2));
+
+    if (_activeConversationId != conversationId) {
+      // User switched conversation — clean up silently
+      messages.removeWhere(
+        (m) => m.id == mockUserId || m.id == pendingId,
+      );
+      _isSending = false;
+      notifyListeners();
+      return;
+    }
+
+    // Replace the pending placeholder with the mock assistant response
+    final pendingIndex = messages.indexWhere((m) => m.id == pendingId);
+    if (pendingIndex != -1) {
+      messages[pendingIndex] = messages[pendingIndex].copyWith(
+        content: _mockResponse,
+      );
+    }
+
+    _isSending = false;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _sseSubscription?.cancel();
     _client.close();
     super.dispose();
   }
+}
+
+class _ConversationTitleOrder {
+  const _ConversationTitleOrder({required this.date, required this.chatNumber});
+
+  final DateTime date;
+  final int chatNumber;
 }

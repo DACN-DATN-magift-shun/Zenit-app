@@ -32,49 +32,50 @@ class ChatActionChipsRow extends StatelessWidget {
 
     return Align(
       alignment: alignment,
-      child: Container(
-        padding: EdgeInsets.all(AppSizes.s),
-        decoration: BoxDecoration(
-          color: AppColors.light.secondaryActive,
-          borderRadius: BorderRadius.circular(AppSizes.borderRadiusMedium),
-        ),
-        child: Wrap(
-          spacing: AppSizes.s,
-          runSpacing: AppSizes.s,
-          children: items
-              .map(
-                (item) => Theme(
-                  data: Theme.of(context).copyWith(
-                    chipTheme: Theme.of(context).chipTheme.copyWith(
-                      backgroundColor: AppColors.light.secondaryActive,
-                      disabledColor: Colors.grey.shade200,
-                      side: BorderSide.none,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  child: ActionChip(
-                    label: Text(item.label),
-                    onPressed: item.enabled ? item.onPressed : null,
-
-                    elevation: 0,
-                    pressElevation: 0,
-                    shadowColor: Colors.transparent,
-
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        AppSizes.borderRadiusLarge,
-                      ),
-                      side: BorderSide.none,
-                    ),
-                  ),
+      child: Column(
+        crossAxisAlignment: alignment == Alignment.centerRight
+            ? CrossAxisAlignment.end
+            : (alignment == Alignment.center
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.start),
+        children: items.map((item) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppSizes.elementSpacing),
+            child: ActionChip(
+              label: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.s,
+                  vertical: AppSizes.xs,
                 ),
-              )
-              .toList(growable: false),
-        ),
+                child: Text(
+                  item.label,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: item.enabled
+                            ? AppColors.light.primaryMain
+                            : AppColors.light.neutralTextSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
+              ),
+              onPressed: item.enabled ? item.onPressed : null,
+              backgroundColor: Colors.white,
+              disabledColor: Colors.grey.shade100,
+              elevation: 0,
+              pressElevation: 0,
+              shadowColor: Colors.transparent,
+              side: BorderSide(
+                color: item.enabled
+                    ? AppColors.light.primaryMain.withValues(alpha: 0.4)
+                    : Colors.grey.shade300,
+                width: 1.2,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
+              ),
+            ),
+          );
+        }).toList(growable: false),
       ),
     );
   }
-}
+}

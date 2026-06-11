@@ -228,11 +228,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chatSave => 'Lưu';
 
   @override
-  String get chatStartConversationHint =>
-      'Hãy bắt đầu một cuộc trò chuyện. Tin nhắn sẽ được gửi đến backend và phản hồi AI sẽ được lấy từ lịch sử tin nhắn.';
+  String get chatStartConversationHint => 'Hãy bắt đầu một cuộc trò chuyện.';
 
   @override
-  String get chatInputHint => 'Hỏi bất cứ điều gì...';
+  String get chatInputHint => 'Ra lệnh cho Zenos...';
 
   @override
   String chatUpdatedAt(String date) {
@@ -750,6 +749,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get groupGiving => 'Cho đi';
+
+  @override
+  String get groupIncome => 'Thu nhập';
 
   @override
   String usernameLabel(String username) {

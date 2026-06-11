@@ -25,12 +25,13 @@ class GoalsScreen extends StatefulWidget {
 
 class _GoalsScreenState extends State<GoalsScreen> {
   static const double _cardRadius = 24;
-  final TextEditingController _searchController = TextEditingController();
+  static const int _pageSize = 10;
+  int _currentPage = 1;
 
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(_onSearchTextChanged);
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<GoalsProvider>().loadGoals();
     });
@@ -38,20 +39,15 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
   @override
   void dispose() {
-    _searchController.removeListener(_onSearchTextChanged);
-    _searchController.dispose();
+    
     super.dispose();
   }
 
-  void _onSearchTextChanged() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     final isVietnamese = _isVietnamese(context);
+    final colors = Theme.of(context).extension<AppColorExtension>()!;
 
     return BaseLayout(
       appBar: CommonAppBar(
@@ -73,10 +69,10 @@ class _GoalsScreenState extends State<GoalsScreen> {
             children: [
               Column(
                 children: [
-                  _buildSummary(context, provider),
-                  const SizedBox(height: AppSizes.l),
-                  _buildToolbar(context, provider),
-                  const SizedBox(height: AppSizes.m),
+                    _buildSummary(context, provider),
+                    const SizedBox(height: AppSizes.l),
+                    _buildToolbar(context, provider),
+                    const SizedBox(height: AppSizes.m),
                   Expanded(
                     child: RefreshIndicator(
                       onRefresh: provider.refreshGoals,
@@ -85,9 +81,44 @@ class _GoalsScreenState extends State<GoalsScreen> {
                           : ListView.builder(
                               physics: const AlwaysScrollableScrollPhysics(),
                               padding: const EdgeInsets.only(bottom: 96),
-                              itemCount: provider.goals.length,
+                              itemCount: (() {
+                                final total = provider.goals.length;
+                                final totalPages =
+                                    (total + _pageSize - 1) ~/ _pageSize;
+                                final current = _currentPage.clamp(
+                                  1,
+                                  totalPages == 0 ? 1 : totalPages,
+                                );
+                                final start = (current - 1) * _pageSize;
+                                final remaining = total - start;
+                                final visible = remaining < 0
+                                    ? 0
+                                    : (remaining < _pageSize ? remaining : _pageSize);
+                                return visible + (visible > 0 ? 1 : 0);
+                              })(),
                               itemBuilder: (context, index) {
-                                final item = provider.goals[index];
+                                final total = provider.goals.length;
+                                final totalPages =
+                                    (total + _pageSize - 1) ~/ _pageSize;
+                                final current = _currentPage.clamp(
+                                  1,
+                                  totalPages == 0 ? 1 : totalPages,
+                                );
+                                final start = (current - 1) * _pageSize;
+                                final remaining = total - start;
+                                final visible = remaining < 0
+                                    ? 0
+                                    : (remaining < _pageSize ? remaining : _pageSize);
+                                if (index == visible) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: AppSizes.s),
+                                    child: _buildPaginationSectionForGoals(
+                                      colors,
+                                      provider.goals.length,
+                                    ),
+                                  );
+                                }
+                                final item = provider.goals[start + index];
                                 final animationDelayMs = index < 8
                                     ? index * 40
                                     : 320;
@@ -117,11 +148,12 @@ class _GoalsScreenState extends State<GoalsScreen> {
                             ),
                     ),
                   ),
+                  
                 ],
               ),
               Positioned(
                 right: AppSizes.l,
-                bottom: AppSizes.l,
+                bottom: AppSizes.l + (AppSizes.m * 5),
                 child: FloatingActionButton(
                   onPressed: _showAddGoalDrawer,
                   elevation: 4,
@@ -197,7 +229,10 @@ class _GoalsScreenState extends State<GoalsScreen> {
             color: Theme.of(context).colorScheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(_cardRadius),
             border: Border.all(
-              color: Theme.of(context).extension<AppColorExtension>()!.neutralBorder.withValues(alpha: 0.7),
+              color: Theme.of(context)
+                  .extension<AppColorExtension>()!
+                  .neutralBorder
+                  .withValues(alpha: 0.7),
             ),
           ),
           child: Column(
@@ -205,9 +240,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
             children: [
               Text(
                 isVietnamese ? 'Tiến độ mục tiêu' : 'Goal progress',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: AppSizes.m),
               Container(
@@ -223,9 +258,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     minHeight: 14,
                     value: provider.amountProgress,
                     backgroundColor: const Color(0xFFE7EEF8),
-                    valueColor: const AlwaysStoppedAnimation(
-                      Color(0xFF2F80ED),
-                    ),
+                    valueColor: const AlwaysStoppedAnimation(Color(0xFF2F80ED)),
                   ),
                 ),
               ),
@@ -241,7 +274,11 @@ class _GoalsScreenState extends State<GoalsScreen> {
           ),
         ),
         const SizedBox(height: AppSizes.m),
-        _buildProgressSummary(context, provider.completionRate, provider.completedGoalsCount),
+        _buildProgressSummary(
+          context,
+          provider.completionRate,
+          provider.completedGoalsCount,
+        ),
       ],
     );
   }
@@ -261,7 +298,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
           '${isVietnamese ? 'Tỉ lệ hoàn thành' : 'Completion rate'}: $percent% • ${isVietnamese ? 'Đã hoàn thành' : 'Completed'}: $completedCount',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.72),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.72),
             fontWeight: FontWeight.w500,
             fontFamily: 'GoogleSansFlex',
           ),
@@ -278,53 +317,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
     return Column(
       children: [
-        TextField(
-          controller: _searchController,
-          textInputAction: TextInputAction.search,
-          onChanged: provider.setSearchKeyword,
-          onSubmitted: provider.setSearchKeyword,
-          decoration: InputDecoration(
-            hintText: isVietnamese
-                ? 'Tìm theo tên mục tiêu'
-                : 'Search by goal name',
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: _searchController.text.trim().isEmpty
-                ? null
-                : IconButton(
-                    onPressed: () {
-                      _searchController.clear();
-                      provider.setSearchKeyword('');
-                    },
-                    icon: const Icon(Symbols.close_rounded),
-                  ),
-            filled: true,
-            fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(22),
-              borderSide: BorderSide(
-                color: colors.neutralBorder.withValues(alpha: 0.8),
-                width: 1.3,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(22),
-              borderSide: BorderSide(
-                color: colors.neutralBorder.withValues(alpha: 0.8),
-                width: 1.3,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(22),
-              borderSide: BorderSide(
-                color: Theme.of(context).colorScheme.primary,
-                width: 1.6,
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16),
-            prefixIconConstraints: const BoxConstraints(minWidth: 48),
-            suffixIconConstraints: const BoxConstraints(minWidth: 48),
-          ),
-        ),
+        const SizedBox.shrink(),
         const SizedBox(height: AppSizes.m),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -350,7 +343,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 context,
                 label: isVietnamese ? 'Hoàn thành' : 'Completed',
                 selected: selectedStatus == GoalStatus.completed,
-                onSelected: () => provider.setStatusFilter(GoalStatus.completed),
+                onSelected: () =>
+                    provider.setStatusFilter(GoalStatus.completed),
                 activeChipColor: activeChipColor,
               ),
               const SizedBox(width: AppSizes.m),
@@ -365,6 +359,145 @@ class _GoalsScreenState extends State<GoalsScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPaginationSectionForGoals(
+    AppColorExtension colors,
+    int totalItems,
+  ) {
+    final totalPages = totalItems == 0
+        ? 1
+        : (totalItems + _pageSize - 1) ~/ _pageSize;
+    final current = _currentPage.clamp(1, totalPages);
+    final pageStart = totalItems == 0 ? 0 : ((current - 1) * _pageSize) + 1;
+    final visible = totalItems == 0
+        ? 0
+        : ((pageStart + _pageSize - 1) > totalItems
+              ? (totalItems - pageStart + 1)
+              : _pageSize);
+    final pageEnd = visible == 0 ? 0 : pageStart + visible - 1;
+    final progress = totalPages <= 1 ? 1.0 : current / totalPages;
+
+    final canPrev = current > 1;
+    final canNext = current < totalPages;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSizes.m),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.m,
+        vertical: AppSizes.s,
+      ),
+      decoration: BoxDecoration(
+        color: colors.neutralSurface,
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusSmall),
+        border: Border.all(color: colors.neutralBorder.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _textByLocale(
+                    vi: 'Trang $current/$totalPages — Hiển thị $pageStart-$pageEnd/$totalItems',
+                    en: 'Page $current/$totalPages — Showing $pageStart-$pageEnd/$totalItems',
+                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.neutralTextSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: canPrev
+                        ? () {
+                            setState(() {
+                              _currentPage = (_currentPage - 1).clamp(
+                                1,
+                                totalPages,
+                              );
+                            });
+                          }
+                        : null,
+                    icon: Icon(
+                      Icons.chevron_left_rounded,
+                      size: AppSizes.iconM,
+                    ),
+                    color: canPrev
+                        ? colors.primaryMain
+                        : colors.neutralTextDisable,
+                    padding: const EdgeInsets.all(6),
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: AppSizes.s),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.s,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.primaryMain.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$current / $totalPages',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colors.primaryMain,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: canNext
+                        ? () {
+                            setState(() {
+                              _currentPage = (_currentPage + 1).clamp(
+                                1,
+                                totalPages,
+                              );
+                            });
+                          }
+                        : null,
+                    icon: Icon(
+                      Icons.chevron_right_rounded,
+                      size: AppSizes.iconM,
+                    ),
+                    color: canNext
+                        ? colors.primaryMain
+                        : colors.neutralTextDisable,
+                    padding: const EdgeInsets.all(6),
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSizes.s),
+          SizedBox(
+            height: 6,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: progress,
+                backgroundColor: colors.neutralBorder.withValues(alpha: 0.35),
+                valueColor: AlwaysStoppedAnimation<Color>(colors.primaryMain),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -437,13 +570,17 @@ class _GoalsScreenState extends State<GoalsScreen> {
           child: Container(
             padding: const EdgeInsets.all(AppSizes.s),
             decoration: BoxDecoration(
-              color: Theme.of(context).extension<AppColorExtension>()!.neutralBackground,
+              color: Theme.of(
+                context,
+              ).extension<AppColorExtension>()!.neutralBackground,
               borderRadius: BorderRadius.circular(AppSizes.borderRadiusLarge),
             ),
             child: Icon(
               Symbols.check_rounded,
               size: AppSizes.iconL,
-              color: Theme.of(context).extension<AppColorExtension>()!.primaryActive,
+              color: Theme.of(
+                context,
+              ).extension<AppColorExtension>()!.primaryActive,
             ),
           ),
         ),
@@ -602,16 +739,24 @@ class _GoalsScreenState extends State<GoalsScreen> {
     if (!mounted) return;
 
     if (success) {
-      AppFlash.success(context, isVietnamese ? 'Đã xoá mục tiêu' : 'Goal deleted');
+      AppFlash.success(
+        context,
+        isVietnamese ? 'Đã xoá mục tiêu' : 'Goal deleted',
+      );
     } else {
       AppFlash.error(
         context,
-        provider.errorMessage ?? (isVietnamese ? 'Xoá thất bại' : 'Delete failed'),
+        provider.errorMessage ??
+            (isVietnamese ? 'Xoá thất bại' : 'Delete failed'),
       );
     }
   }
 
   bool _isVietnamese(BuildContext context) {
     return Localizations.localeOf(context).languageCode == 'vi';
+  }
+
+  String _textByLocale({required String vi, required String en}) {
+    return _isVietnamese(context) ? vi : en;
   }
 }

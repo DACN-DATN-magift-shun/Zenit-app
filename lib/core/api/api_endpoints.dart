@@ -4,16 +4,17 @@ class ApiEndpoints {
   static const String productionBaseUrl =
       "https://zenit-api-tuir.onrender.com/";
 
-    static const String _apiBaseUrlOverride = String.fromEnvironment(
-        'API_BASE_URL',
-        defaultValue: '',
-    );
+  static const String _apiBaseUrlOverride = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: '',
+  );
 
-  // Toggle this when switching between local backend and deployed backend.
-    static const bool useProduction = bool.fromEnvironment(
-        'USE_PRODUCTION',
-        defaultValue: true,
-    );
+  // Toggle this when switching between local backend and deployed backend. False for local development, true for production deployment. Can also be overridden by setting the USE_PRODUCTION environment variable
+
+  static const bool useProduction = bool.fromEnvironment(
+    'USE_PRODUCTION',
+    defaultValue: false,
+  );
 
   static const String demoURL = _apiBaseUrlOverride != ''
       ? _apiBaseUrlOverride
@@ -28,8 +29,9 @@ class ApiEndpoints {
   // Default base URL (for ApiClient compatibility)
   static const String baseUrl = authBaseUrl;
 
-  static const int connectionTimeout = 60000;
-  static const int receiveTimeout = 60000;
+  // Increased timeouts for long-running chatbot responses (milliseconds)
+  static const int connectionTimeout = 180000; // 3 minutes
+  static const int receiveTimeout = 180000; // 3 minutes
 
   // Auth Endpoints (using authBaseUrl)
   static const String accounts = "${authBaseUrl}Accounts/me";

@@ -75,8 +75,8 @@
   "chatRenameConversation": "Đổi tên hội thoại",
   "chatConversationTitleHint": "Tên hội thoại",
   "chatSave": "Lưu",
-  "chatStartConversationHint": "Hãy bắt đầu một cuộc trò chuyện. Tin nhắn sẽ được gửi đến backend và phản hồi AI sẽ được lấy từ lịch sử tin nhắn.",
-  "chatInputHint": "Hỏi bất cứ điều gì...",
+  "chatStartConversationHint": "Hãy bắt đầu một cuộc trò chuyện.",
+  "chatInputHint": "Ra lệnh cho Zenos...",
   "chatUpdatedAt": "Cập nhật {date}",
   "@chatUpdatedAt": {
     "placeholders": {
@@ -327,6 +327,7 @@
   "groupSelfDevelopment": "Phát triển bản thân",
   "groupEntertainment": "Giải trí",
   "groupGiving": "Cho đi",
+  "groupIncome": "Thu nhập",
 
   "usernameLabel": "Tên người dùng: {username}",
   "@usernameLabel": {

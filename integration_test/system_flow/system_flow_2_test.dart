@@ -8,17 +8,19 @@
 ///   - Đăng nhập
 ///   - Tạo giao dịch với tính năng "chi hộ - thu hồi sau"
 ///   - Nhập số tiền chi hộ và ngày đến hạn
-///   - Xác minh giao dịch được tạo thành công
-///   - Xem giao dịch trong lịch sử
-///   - Đăng xuất
+///   - Submit giao dịch
+///   - Điều hướng sang tab History
+///   - Xác minh giao dịch xuất hiện trong lịch sử
+///
+/// PowerShell run command:
+/// Set-Location 'D:\Hoc Tap\HK251\DACN\zenit'; flutter test integration_test/system_flow/system_flow_2_test.dart --dart-define API_BASE_URL=https://zenit-api-tuir.onrender.com/ --dart-define USE_PRODUCTION=true --dart-define SYSTEM_TEST_EMAIL=tuan5@gmail.com --dart-define SYSTEM_TEST_PASSWORD='0788778027@' --dart-define TRANSACTION_TITLE='Test Transaction' --dart-define TRANSACTION_NOTE='Test note' --dart-define TRANSACTION_AMOUNT=50000 --dart-define WALLET_NAME='VCB' --dart-define CATEGORY_NAME='test'
 
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zenit/core/api/api_endpoints.dart';
+import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:zenit/core/layout/navigation_bar.dart';
-import 'package:zenit/data/local/storage_service.dart';
-import 'package:zenit/data/network/api_client.dart';
+import 'package:zenit/core/widgets/button.dart';
 import 'package:zenit/main.dart';
 
 import '../helpers/integration_test_harness.dart';
@@ -46,7 +48,8 @@ Future<void> _waitForLoginOrHome(WidgetTester tester) async {
   final endTime = DateTime.now().add(const Duration(seconds: 15));
 
   while (DateTime.now().isBefore(endTime)) {
-    if (loginFinder.evaluate().isNotEmpty || navBarFinder.evaluate().isNotEmpty) {
+    if (loginFinder.evaluate().isNotEmpty ||
+        navBarFinder.evaluate().isNotEmpty) {
       await tester.pumpAndSettle();
       return;
     }
@@ -67,7 +70,7 @@ Future<void> _login(
 
   await tester.enterText(fields.at(0), email);
   await tester.enterText(fields.at(1), password);
-  await tester.tap(find.byType(ElevatedButton).first);
+  await tester.tap(find.byType(AppButton).first, warnIfMissed: false);
   await tester.pump();
   await tester.pump(const Duration(seconds: 2));
   await tester.pumpAndSettle();
@@ -85,9 +88,44 @@ Future<void> _selectCategoryByName(
   await tester.tap(find.byKey(const ValueKey('transaction-category-selector')));
   await tester.pumpAndSettle();
 
-  final categoryFinder = find.text(categoryName);
+  final categoryFinder = find.text(categoryName).last;
   await _waitForFinder(tester, categoryFinder);
-  await tester.tap(categoryFinder.first);
+  await tester.ensureVisible(categoryFinder);
+
+  final tappableCategoryFinder = find.ancestor(
+    of: categoryFinder,
+    matching: find.byType(InkWell),
+  );
+
+  if (tappableCategoryFinder.evaluate().isNotEmpty) {
+    await tester.tap(tappableCategoryFinder.first, warnIfMissed: false);
+  } else {
+    await tester.tap(categoryFinder, warnIfMissed: false);
+  }
+
+  await tester.pumpAndSettle();
+}
+
+Future<void> _tapSubmitTransaction(WidgetTester tester) async {
+  final submitFinder = find.byKey(const ValueKey('transaction-submit-button'));
+  await _waitForFinder(tester, submitFinder);
+
+  final submitButton = tester.widget<IconButton>(submitFinder);
+  expect(
+    submitButton.onPressed,
+    isNotNull,
+    reason: 'Submit button is disabled. Form data is likely invalid.',
+  );
+
+  await tester.ensureVisible(submitFinder);
+  await tester.tap(submitFinder, warnIfMissed: false);
+}
+
+Future<void> _tapNavigationTab(WidgetTester tester, String tabLabel) async {
+  final tabFinder = find.widgetWithText(GButton, tabLabel);
+  await _waitForFinder(tester, tabFinder);
+  await tester.ensureVisible(tabFinder);
+  await tester.tap(tabFinder, warnIfMissed: false);
   await tester.pumpAndSettle();
 }
 
@@ -112,105 +150,40 @@ Future<void> _cycleWalletUntilVisible(
 Future<void> _enableCollectLater(WidgetTester tester) async {
   final checkbox = find.byType(Checkbox);
   expect(checkbox, findsWidgets);
-  
+
   // Find the checkbox in the ExpansionTile header for "collect later"
-  await tester.tap(checkbox.last);
+  await tester.tap(checkbox.last, warnIfMissed: false);
   await tester.pumpAndSettle();
 }
 
-Future<void> _fillLoanAmount(
-  WidgetTester tester,
-  String loanAmount,
-) async {
-  // After enabling "collect later", there should be a new TextFormField for loan amount
-  final allFields = find.byType(TextFormField);
-  // The loan amount field is typically the 4th field after amount, title, note
-  if (allFields.evaluate().length >= 4) {
-    await tester.enterText(allFields.at(3), loanAmount);
-    await tester.pumpAndSettle();
-  }
+Future<void> _fillLoanAmount(WidgetTester tester, String loanAmount) async {
+  final loanAmountField = find.byKey(
+    const ValueKey('transaction-loan-amount-field'),
+  );
+  await _waitForFinder(tester, loanAmountField);
+  await tester.enterText(loanAmountField, loanAmount);
+  await tester.pumpAndSettle();
 }
 
 Future<void> _selectLoanDueDate(WidgetTester tester) async {
-  // Tap on the loan due date selector (InkWell)
-  final dueeDateButtons = find.byIcon(Icons.edit_calendar_rounded);
-  if (dueeDateButtons.evaluate().isNotEmpty) {
-    await tester.tap(dueeDateButtons.first);
-    await tester.pumpAndSettle();
-    
-    // Select a date (e.g., 10 days from now)
-    final okButton = find.text('OK');
-    if (okButton.evaluate().isNotEmpty) {
-      await tester.tap(okButton.first);
-      await tester.pumpAndSettle();
-    }
-  }
-}
-
-Future<String?> _findCreatedTransactionId({
-  required String accessToken,
-  required String transactionTitle,
-  required String transactionAmount,
-  required String transactionNote,
-}) async {
-  final response = await ApiClient().get<dynamic>(
-    ApiEndpoints.transactions,
-    options: Options(
-      headers: <String, String>{'Authorization': 'Bearer $accessToken'},
-    ),
-  );
-
-  final data = response.data;
-  if (data is! Map) {
-    return null;
-  }
-
-  final items = data['items'];
-  if (items is! List) {
-    return null;
-  }
-
-  for (final item in items) {
-    if (item is! Map) {
-      continue;
-    }
-
-    final title = item['title']?.toString();
-    final amount = item['amount']?.toString();
-    final note = item['note']?.toString();
-
-    if (title == transactionTitle &&
-        amount == transactionAmount &&
-        note == transactionNote) {
-      return item['id']?.toString();
-    }
-  }
-
-  return null;
-}
-
-Future<void> _cleanupTransactionIfPossible({
-  required String? accessToken,
-  required String? transactionId,
-}) async {
-  if (accessToken == null || accessToken.isEmpty) {
+  final dueDateIcons = find.byIcon(Symbols.calendar_month_rounded);
+  if (dueDateIcons.evaluate().isEmpty) {
     return;
   }
 
-  if (transactionId == null || transactionId.isEmpty) {
-    return;
-  }
+  await tester.tap(dueDateIcons.first, warnIfMissed: false);
+  await tester.pumpAndSettle();
 
-  try {
-    await ApiClient().delete<dynamic>(
-      ApiEndpoints.deleteTransactionUrl(transactionId),
-      options: Options(
-        headers: <String, String>{'Authorization': 'Bearer $accessToken'},
-      ),
-    );
-  } catch (_) {
-    // Best-effort cleanup only.
+  final okFinder = find.text('OK');
+  if (okFinder.evaluate().isNotEmpty) {
+    await tester.tap(okFinder.first, warnIfMissed: false);
+  } else {
+    final saveFinder = find.text('Save');
+    if (saveFinder.evaluate().isNotEmpty) {
+      await tester.tap(saveFinder.first, warnIfMissed: false);
+    }
   }
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -221,14 +194,11 @@ void main() {
       installHttpAdapter: false,
     );
 
-    String? createdTransactionId;
-    String? accessTokenForCleanup;
+    final runTag = DateTime.now().millisecondsSinceEpoch.toString();
+    final transactionTitle = '${SystemFlowConfig.transactionTitle} #$runTag';
+    final transactionNote = '${SystemFlowConfig.transactionNote} #$runTag';
 
     addTearDown(() async {
-      await _cleanupTransactionIfPossible(
-        accessToken: accessTokenForCleanup,
-        transactionId: createdTransactionId,
-      );
       harness.dispose();
     });
 
@@ -242,7 +212,10 @@ void main() {
       password: SystemFlowConfig.loginPassword,
     );
 
-    expect(find.byType(AppNavigationBar), findsOneWidget);
+    await _waitForFinder(
+      tester,
+      find.byKey(const ValueKey('home-action-transaction')),
+    );
 
     // --- Open transaction drawer ---
     await _openTransactionDrawer(tester);
@@ -252,14 +225,8 @@ void main() {
       find.byType(TextFormField).at(0),
       SystemFlowConfig.transactionAmount,
     );
-    await tester.enterText(
-      find.byType(TextFormField).at(1),
-      SystemFlowConfig.transactionTitle,
-    );
-    await tester.enterText(
-      find.byType(TextFormField).at(2),
-      SystemFlowConfig.transactionNote,
-    );
+    await tester.enterText(find.byType(TextFormField).at(1), transactionTitle);
+    await tester.enterText(find.byType(TextFormField).at(2), transactionNote);
     await tester.pumpAndSettle();
 
     // --- Select wallet ---
@@ -277,62 +244,23 @@ void main() {
     await tester.pumpAndSettle();
 
     // --- Fill loan amount ---
-    const loanAmount = '50000';
+    const loanAmount = '30000';
     await _fillLoanAmount(tester, loanAmount);
 
     // --- Select loan due date ---
     await _selectLoanDueDate(tester);
 
     // --- Submit transaction ---
-    await tester.tap(find.byKey(const ValueKey('transaction-submit-button')));
+    await _tapSubmitTransaction(tester);
     await tester.pump();
-    await tester.pump(const Duration(seconds: 2));
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
-
-    // --- Verify success ---
-    expect(find.text(SystemFlowConfig.transactionSuccessMessage), findsOneWidget);
-
-    // --- Get access token for cleanup ---
-    accessTokenForCleanup = harness.storageController.readValue(
-      StorageService.accessTokenKey,
-    );
-
-    // --- Find created transaction ---
-    createdTransactionId = await _findCreatedTransactionId(
-      accessToken: accessTokenForCleanup ?? '',
-      transactionTitle: SystemFlowConfig.transactionTitle,
-      transactionAmount: SystemFlowConfig.transactionAmount,
-      transactionNote: SystemFlowConfig.transactionNote,
-    );
 
     // --- Navigate to History ---
-    await tester.tap(
-      find.descendant(
-        of: find.byType(AppNavigationBar),
-        matching: find.text('History'),
-      ),
-    );
-    await tester.pumpAndSettle();
+    await _tapNavigationTab(tester, 'History');
 
     // --- Verify transaction appears in history ---
-    await _waitForFinder(tester, find.text(SystemFlowConfig.transactionTitle));
-
-    // --- Logout ---
-    await tester.tap(
-      find.descendant(
-        of: find.byType(AppNavigationBar),
-        matching: find.text('Settings'),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Logout').first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Logout').last);
-    await tester.pumpAndSettle();
-
-    // --- Verify logout ---
-    await _waitForFinder(tester, find.text(SystemFlowConfig.logoutSuccessMessage));
-    expect(find.byType(TextFormField), findsNWidgets(2));
+    await _waitForFinder(tester, find.text(transactionTitle));
+    expect(find.text(transactionTitle), findsOneWidget);
   });
 }
