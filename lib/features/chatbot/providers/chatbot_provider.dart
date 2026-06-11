@@ -34,10 +34,9 @@ class ChatbotProvider extends ChangeNotifier {
   final Map<String, List<ChatMessage>> _messagesByConversation = {};
   final Map<String, bool> _displayAcceptButtonByMessageId = {};
 
-  /// IDs of assistant messages that were received live (via SSE or mock) in
-  /// the current app session. Only these messages play the typewriter animation.
-  /// Messages loaded from history are never added here.
-  final Set<String> _sseReceivedMessageIds = {};
+  /// IDs of messages that were received live and should animate.
+  /// Once they finish animating, the UI calls markMessageAsAnimated() to remove them.
+  final Set<String> _pendingAnimationMessageIds = {};
 
   bool _isInitializing = false;
   bool _isLoadingConversations = false;
@@ -54,10 +53,15 @@ class ChatbotProvider extends ChangeNotifier {
   bool get isSending => _isSending;
   String? get activeConversationId => _activeConversationId;
 
-  /// Returns true only for assistant messages that arrived live via SSE
-  /// (not fetched from history). Used to gate the typewriter animation.
+  /// Returns true only for messages that are newly received and haven't finished animating.
   bool shouldAnimateMessage(String messageId) =>
-      _sseReceivedMessageIds.contains(messageId);
+      _pendingAnimationMessageIds.contains(messageId);
+
+  void markMessageAsAnimated(String messageId) {
+    if (_pendingAnimationMessageIds.remove(messageId)) {
+      notifyListeners();
+    }
+  }
 
   List<ChatMessage> get activeMessages {
     final conversationId = _activeConversationId;
@@ -240,8 +244,8 @@ class ChatbotProvider extends ChangeNotifier {
         isMarkdown: true,
       ),
     );
-    // Mark as live-received so the typewriter animation fires for this message.
-    _sseReceivedMessageIds.add(pendingAssistantMessageId);
+    // Mark as pending animation so the typewriter effect plays for this message.
+    _pendingAnimationMessageIds.add(pendingAssistantMessageId);
 
     _isSending = true;
     notifyListeners();
@@ -366,7 +370,7 @@ class ChatbotProvider extends ChangeNotifier {
                 }
 
                 debugPrint('SSE: dispatching parsed SSE message');
-                _handleSseMessage(data);
+                _handleSseMessage(data, conversationId);
               } catch (e, st) {
                 debugPrint('SSE: malformed payload, decode error: $e\n$st');
                 // Ignore malformed event payloads and keep stream alive.
@@ -402,8 +406,8 @@ class ChatbotProvider extends ChangeNotifier {
     }
   }
 
-  void _handleSseMessage(Map<String, dynamic> data) {
-    final conversationId = data['conversationId']?.toString() ?? '';
+  void _handleSseMessage(Map<String, dynamic> data, String expectedConversationId) {
+    final conversationId = data['conversationId']?.toString() ?? expectedConversationId;
     debugPrint(
       'SSE: handleSseMessage for conversationId="$conversationId", rawData=${data.toString()}',
     );
@@ -412,7 +416,7 @@ class ChatbotProvider extends ChangeNotifier {
       return;
     }
 
-    final content = data['chatbotMessage']?.toString().trim() ?? '';
+    final content = (data['chatbotMessage'] ?? data['message'] ?? data['content'] ?? data['text'])?.toString().trim() ?? '';
     final suggestions = ChatSuggestion.fromList(data['suggestions']);
     final displayAcceptButton =
         data['display_accept_button'] == true ||
@@ -491,8 +495,8 @@ class ChatbotProvider extends ChangeNotifier {
       ),
     );
     _displayAcceptButtonByMessageId[messages.last.id] = displayAcceptButton;
-    // Mark as live-received so the typewriter animation fires.
-    _sseReceivedMessageIds.add(messages.last.id);
+    // Update the pending animation set
+    _pendingAnimationMessageIds.add(messages.last.id);
 
     _isSending = false;
     _promoteConversation(conversationId);
@@ -764,8 +768,8 @@ class ChatbotProvider extends ChangeNotifier {
     );
 
     _isSending = true;
-    // Mark the mock message as live-received so the typewriter animation fires.
-    _sseReceivedMessageIds.add(pendingId);
+    // Mark the mock message as pending animation.
+    _pendingAnimationMessageIds.add(pendingId);
     notifyListeners();
 
     // Simulate a 2-second network delay

@@ -170,6 +170,7 @@ class _MoneySourceManageScreenState extends State<MoneySourceManageScreen> {
     }
 
     final isEditing = ValueNotifier<bool>(false);
+    final formController = AddEditMoneySourceFormController();
 
     try {
       await AppDrawer.showAsBottomSheet(
@@ -180,27 +181,45 @@ class _MoneySourceManageScreenState extends State<MoneySourceManageScreen> {
           ValueListenableBuilder<bool>(
             valueListenable: isEditing,
             builder: (context, editing, _) {
-              if (editing) {
-                return const SizedBox.shrink();
-              }
-
               final colors = Theme.of(context).extension<AppColorExtension>()!;
-              return GestureDetector(
-                onTap: () => isEditing.value = !editing,
-                child: Container(
-                  padding: const EdgeInsets.all(AppSizes.s),
-                  decoration: BoxDecoration(
-                    color: colors.neutralBackground,
-                    borderRadius: BorderRadius.circular(
-                      AppSizes.borderRadiusLarge,
+
+              Widget buildButton({
+                required VoidCallback onTap,
+                required IconData icon,
+                required Color iconColor,
+                Color? backgroundColor,
+              }) {
+                return GestureDetector(
+                  onTap: onTap,
+                  child: Container(
+                    padding: const EdgeInsets.all(AppSizes.s),
+                    decoration: BoxDecoration(
+                      color: backgroundColor ?? colors.neutralBackground,
+                      borderRadius: BorderRadius.circular(
+                        AppSizes.borderRadiusLarge,
+                      ),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: AppSizes.iconL,
+                      color: iconColor,
                     ),
                   ),
-                  child: Icon(
-                    Symbols.edit_rounded,
-                    size: AppSizes.iconL,
-                    color: colors.primaryActive,
-                  ),
-                ),
+                );
+              }
+
+              if (editing) {
+                return buildButton(
+                  onTap: () => formController.submit(),
+                  icon: Symbols.check_rounded,
+                  iconColor: colors.primaryActive,
+                );
+              }
+
+              return buildButton(
+                onTap: () => isEditing.value = true,
+                icon: Symbols.edit_rounded,
+                iconColor: colors.primaryActive,
               );
             },
           ),
@@ -208,6 +227,7 @@ class _MoneySourceManageScreenState extends State<MoneySourceManageScreen> {
         body: ViewEditMoneySourceForm(
           moneySourceId: source.id,
           isEditing: isEditing,
+          controller: formController,
           onUpdated: () async {
             await context.read<MoneySourceProvider>().refreshMoneySources();
           },

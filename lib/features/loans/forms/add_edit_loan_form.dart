@@ -137,7 +137,7 @@ class _AddEditLoanFormState extends State<AddEditLoanForm> {
             const SizedBox(height: AppSizes.m),
             SegmentedButton<int>(
               segments: [
-                ButtonSegment<int>(value: 0, label: Text(isVietnamese ? 'Đang tiến hành' : 'Ongoing')),
+                ButtonSegment<int>(value: 0, label: Text(isVietnamese ? 'Đang nợ' : 'Ongoing')),
                 ButtonSegment<int>(value: 1, label: Text(isVietnamese ? 'Hoàn thành' : 'Completed')),
                 ButtonSegment<int>(value: 2, label: Text(isVietnamese ? 'Đã huỷ' : 'Canceled')),
               ],

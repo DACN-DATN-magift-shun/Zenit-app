@@ -12,12 +12,14 @@ class ChatMessageBubble extends StatelessWidget {
     super.key,
     required this.message,
     this.shouldAnimate = false,
+    this.onAnimationComplete,
   });
 
   final ChatMessage message;
   /// When true, assistant text reveals with the typewriter effect.
   /// Should only be true for freshly received (live SSE) messages.
   final bool shouldAnimate;
+  final VoidCallback? onAnimationComplete;
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +65,7 @@ class ChatMessageBubble extends StatelessWidget {
                         message: message,
                         isUser: isUser,
                         shouldAnimate: shouldAnimate,
+                        onAnimationComplete: onAnimationComplete,
                       ),
               ),
               const SizedBox(height: AppSizes.s),
@@ -93,11 +96,13 @@ class _MessageContent extends StatelessWidget {
     required this.message,
     required this.isUser,
     required this.shouldAnimate,
+    this.onAnimationComplete,
   });
 
   final ChatMessage message;
   final bool isUser;
   final bool shouldAnimate;
+  final VoidCallback? onAnimationComplete;
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +123,7 @@ class _MessageContent extends StatelessWidget {
         textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
           color: AppColors.light.neutralTextPrimary,
         ),
+        onComplete: onAnimationComplete,
       );
     }
 
@@ -127,6 +133,7 @@ class _MessageContent extends StatelessWidget {
       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
         color: AppColors.light.neutralTextPrimary,
       ),
+      onComplete: onAnimationComplete,
     );
   }
 }
@@ -140,11 +147,13 @@ class _TypewriterText extends StatefulWidget {
     required this.fullText,
     required this.animate,
     this.style,
+    this.onComplete,
   });
 
   final String fullText;
   final bool animate;
   final TextStyle? style;
+  final VoidCallback? onComplete;
 
   @override
   State<_TypewriterText> createState() => _TypewriterTextState();
@@ -202,7 +211,10 @@ class _TypewriterTextState extends State<_TypewriterText> {
 
   void _startAnimation() {
     if (_visibleWordCount >= _words.length) {
-      if (mounted) setState(() {});
+      if (mounted) {
+        widget.onComplete?.call();
+        setState(() {});
+      }
       return;
     }
     _timer = Timer.periodic(_wordDelay, (t) {
@@ -215,6 +227,7 @@ class _TypewriterTextState extends State<_TypewriterText> {
       });
       if (_visibleWordCount >= _words.length) {
         t.cancel();
+        widget.onComplete?.call();
       }
     });
   }
@@ -235,11 +248,13 @@ class _TypewriterMarkdown extends StatefulWidget {
     required this.fullText,
     required this.animate,
     this.textStyle,
+    this.onComplete,
   });
 
   final String fullText;
   final bool animate;
   final TextStyle? textStyle;
+  final VoidCallback? onComplete;
 
   @override
   State<_TypewriterMarkdown> createState() => _TypewriterMarkdownState();
@@ -312,7 +327,10 @@ class _TypewriterMarkdownState extends State<_TypewriterMarkdown> {
 
   void _startAnimation() {
     if (_visibleCount >= _chunks.length) {
-      if (mounted) setState(() {});
+      if (mounted) {
+        widget.onComplete?.call();
+        setState(() {});
+      }
       return;
     }
     _timer = Timer.periodic(_wordDelay, (t) {
@@ -325,6 +343,7 @@ class _TypewriterMarkdownState extends State<_TypewriterMarkdown> {
       });
       if (_visibleCount >= _chunks.length) {
         t.cancel();
+        widget.onComplete?.call();
       }
     });
   }

@@ -51,7 +51,7 @@ class LoanListItem extends StatelessWidget {
         case 2:
           return isVietnamese ? 'Đã huỷ' : 'Canceled';
         default:
-          return isVietnamese ? 'Đang tiến hành' : 'Ongoing';
+          return isVietnamese ? 'Đang nợ' : 'Ongoing';
       }
     }();
 

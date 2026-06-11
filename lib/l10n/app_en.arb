@@ -75,7 +75,7 @@
   "chatRenameConversation": "Rename conversation",
   "chatConversationTitleHint": "Conversation title",
   "chatSave": "Save",
-  "chatStartConversationHint": "Start a conversation. Messages are sent to the backend and AI replies are fetched from message history.",
+  "chatStartConversationHint": "Start a conversation.",
   "chatInputHint": "Command Zenos...",
   "chatUpdatedAt": "Updated {date}",
   "@chatUpdatedAt": {

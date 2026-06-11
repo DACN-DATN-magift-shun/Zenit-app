@@ -476,18 +476,18 @@ class _ChatbotScreenState extends State<ChatbotScreen>
         ),
         actions: [
           // ── MOCK TEST BUTTON (remove before release) ──────────────────────
-          // Consumer<ChatbotProvider>(
-          //   builder: (context, provider, child) {
-          //     return IconButton(
-          //       onPressed:
-          //           provider.isSending ? null : provider.mockSimulateAiResponse,
-          //       icon: const Icon(Icons.science_outlined),
-          //       tooltip: 'Mock AI Test',
-          //       color: Colors.white70,
-          //     );
-          //   },
-          // ),
-          // // ─────────────────────────────────────────────────────────────────
+          Consumer<ChatbotProvider>(
+            builder: (context, provider, child) {
+              return IconButton(
+                onPressed:
+                    provider.isSending ? null : provider.mockSimulateAiResponse,
+                icon: const Icon(Icons.science_outlined),
+                tooltip: 'Mock AI Test',
+                color: Colors.white70,
+              );
+            },
+          ),
+          // ─────────────────────────────────────────────────────────────────
           IconButton(
             onPressed: _openHistorySheet,
             icon: const Icon(Icons.history_rounded),
@@ -592,6 +592,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                         ChatMessageBubble(
                           message: message,
                           shouldAnimate: provider.shouldAnimateMessage(message.id),
+                          onAnimationComplete: () => provider.markMessageAsAnimated(message.id),
                         ),
                         if (chipItems.isNotEmpty)
                           Padding(
@@ -632,12 +633,12 @@ class _ChatbotScreenState extends State<ChatbotScreen>
           builder: (context, provider, child) {
             final isSending = provider.isSending;
 
-            // Gradient border colors: primaryMain → neon purple → cyan → secondaryHover
+            // Continuous, smooth vibrant glowing ring
             final gradientColors = [
               colors.primaryMain,
-              const Color(0xFF9B59F5), // neon purple
               const Color(0xFF00E5FF), // neon cyan
               colors.secondaryHover,
+              const Color(0xFF9B59F5), // neon purple
               colors.primaryMain,
             ];
 
@@ -655,8 +656,9 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                       ? _GradientBorderPainter(
                           progress: _gradientController.value,
                           gradientColors: gradientColors,
+                          gradientStops: null,
                           borderRadius: 36.0,
-                          borderWidth: 3.0,
+                          borderWidth: 4.0, // slightly thicker for the soft glow
                         )
                       : null,
                   child: composerChild,
@@ -787,12 +789,14 @@ class _GradientBorderPainter extends CustomPainter {
   const _GradientBorderPainter({
     required this.progress,
     required this.gradientColors,
+    this.gradientStops,
     required this.borderRadius,
     required this.borderWidth,
   });
 
   final double progress;
   final List<Color> gradientColors;
+  final List<double>? gradientStops;
   final double borderRadius;
   final double borderWidth;
 
@@ -804,19 +808,6 @@ class _GradientBorderPainter extends CustomPainter {
       Radius.circular(borderRadius),
     );
 
-    // Outer clip path = rounded rect border ring
-    final outerPath = Path()..addRRect(rrect);
-    final innerRRect = RRect.fromRectAndRadius(
-      rect.deflate(borderWidth),
-      Radius.circular(borderRadius - borderWidth),
-    );
-    final innerPath = Path()..addRRect(innerRRect);
-    final borderPath = Path.combine(
-      PathOperation.difference,
-      outerPath,
-      innerPath,
-    );
-
     // Sweep gradient rotated by progress (full 2π rotation per cycle)
     final center = rect.center;
     final sweepGradient = SweepGradient(
@@ -824,16 +815,34 @@ class _GradientBorderPainter extends CustomPainter {
       startAngle: 0,
       endAngle: math.pi * 2,
       colors: gradientColors,
+      stops: gradientStops,
       transform: GradientRotation(progress * math.pi * 2),
     );
 
     final paint = Paint()
-      ..shader = sweepGradient.createShader(rect)
-      ..style = PaintingStyle.fill;
+      ..shader = sweepGradient.createShader(rect.inflate(10))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = borderWidth * 2 // Thicker stroke to make the blur visible and soft
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8.0);
 
     canvas.save();
-    canvas.clipPath(borderPath);
-    canvas.drawCircle(center, math.max(size.width, size.height), paint);
+    
+    // Clip out the inside of the input field so the misty glow only spills outwards
+    // Deflate by 1.5 to leave the original solid grey border intact beneath the glow
+    final innerPath = Path()
+      ..addRRect(RRect.fromRectAndRadius(
+        rect.deflate(1.5),
+        Radius.circular(borderRadius - 1.5),
+      ));
+    
+    final clipPath = Path.combine(
+      PathOperation.difference,
+      Path()..addRect(rect.inflate(40)), // Allow plenty of room for outward glow
+      innerPath,
+    );
+    
+    canvas.clipPath(clipPath);
+    canvas.drawRRect(rrect, paint);
     canvas.restore();
   }
 

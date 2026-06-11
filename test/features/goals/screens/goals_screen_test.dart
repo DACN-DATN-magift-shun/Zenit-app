@@ -65,11 +65,9 @@ class FakeGoalsProvider extends GoalsProvider {
   String? _errorMessage;
   bool _keepLoadingOnLoad = false;
   GoalStatus? _selectedStatusFilter;
-  String _searchKeyword = '';
 
   int loadGoalsCalls = 0;
   int refreshGoalsCalls = 0;
-  int setSearchKeywordCalls = 0;
   int setStatusFilterCalls = 0;
 
   @override
@@ -90,9 +88,6 @@ class FakeGoalsProvider extends GoalsProvider {
 
   @override
   GoalStatus? get selectedStatusFilter => _selectedStatusFilter;
-
-  @override
-  String get searchKeyword => _searchKeyword;
 
   @override
   bool get hasData => goals.isNotEmpty;
@@ -118,20 +113,12 @@ class FakeGoalsProvider extends GoalsProvider {
     if (!_keepLoadingOnLoad) {
       _isLoading = false;
     }
-    _searchKeyword = search ?? _searchKeyword;
     notifyListeners();
   }
 
   @override
   Future<void> refreshGoals() async {
     refreshGoalsCalls += 1;
-  }
-
-  @override
-  Future<void> setSearchKeyword(String keyword) async {
-    setSearchKeywordCalls += 1;
-    _searchKeyword = keyword.trim();
-    notifyListeners();
   }
 
   @override
@@ -185,35 +172,14 @@ void main() {
     expect(find.text('Retry'), findsOneWidget);
   });
 
-  testWidgets('GoalsScreen shows search branch', (tester) async {
-    final provider = FakeGoalsProvider(
-      initialGoals: [
-        GoalModel(
-          id: 'g-1',
-          name: 'Buy laptop',
-          targetAmount: 10000000,
-          currentAmount: 2500000,
-          backgroundColor: '#D2E4FF',
-          icon: 'savings',
-          createdAt: DateTime(2026, 4, 1),
-          dueDate: DateTime(2026, 8, 1),
-          note: 'saving plan',
-          status: GoalStatus.ongoing,
-        ),
-      ],
-    );
+  testWidgets('GoalsScreen shows empty state', (tester) async {
+    final provider = FakeGoalsProvider();
 
     await tester.pumpWidget(_buildApp(const Scaffold(body: GoalsScreen()), provider));
 
     await tester.pump();
 
-    expect(find.text('Buy laptop'), findsOneWidget);
-
-    await tester.enterText(find.byType(TextField), '  laptop  ');
-    await tester.pump();
-
-    expect(provider.setSearchKeywordCalls, 1);
-    expect(provider.searchKeyword, 'laptop');
+    expect(find.text('No goals yet'), findsOneWidget);
   });
 
   testWidgets('GoalsScreen shows summary, filters and opens add drawer', (tester) async {

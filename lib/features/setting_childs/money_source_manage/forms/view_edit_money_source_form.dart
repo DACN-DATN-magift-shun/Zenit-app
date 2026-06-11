@@ -14,11 +14,13 @@ class ViewEditMoneySourceForm extends StatefulWidget {
     super.key,
     required this.moneySourceId,
     required this.isEditing,
+    this.controller,
     this.onUpdated,
   });
 
   final String moneySourceId;
   final ValueNotifier<bool> isEditing;
+  final AddEditMoneySourceFormController? controller;
   final Future<void> Function()? onUpdated;
 
   @override
@@ -145,6 +147,7 @@ class _ViewEditMoneySourceFormState extends State<ViewEditMoneySourceForm> {
                 _moneySource!.isIncludeInTotalBalance,
             isEditMode: true,
             onSubmit: _handleUpdate,
+            controller: widget.controller,
           );
         }
 

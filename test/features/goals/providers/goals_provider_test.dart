@@ -20,7 +20,7 @@ void main() {
   group('GoalsProvider', () {
     test('loadGoals success updates state and computed metrics', () async {
       when(
-        () => goalsService.getGoals(search: '', pageSize: 100),
+        () => goalsService.getGoals(search: null, pageSize: 100),
       ).thenAnswer((_) async => goalsProviderMockGoals);
 
       await provider.loadGoals();
@@ -35,7 +35,7 @@ void main() {
 
     test('loadGoals failure stores error message', () async {
       when(
-        () => goalsService.getGoals(search: '', pageSize: 100),
+        () => goalsService.getGoals(search: null, pageSize: 100),
       ).thenThrow(Exception('boom'));
 
       await provider.loadGoals();
@@ -46,7 +46,7 @@ void main() {
 
     test('setStatusFilter filters goals by status', () async {
       when(
-        () => goalsService.getGoals(search: '', pageSize: 100),
+        () => goalsService.getGoals(search: null, pageSize: 100),
       ).thenAnswer((_) async => goalsProviderMockGoals);
 
       await provider.loadGoals();
@@ -73,7 +73,7 @@ void main() {
       ).thenAnswer((_) async => goalsProviderUpdatedList.last);
 
       when(
-        () => goalsService.getGoals(search: '', pageSize: 100),
+        () => goalsService.getGoals(search: null, pageSize: 100),
       ).thenAnswer((_) async => goalsProviderUpdatedList);
 
       final result = await provider.addGoal(

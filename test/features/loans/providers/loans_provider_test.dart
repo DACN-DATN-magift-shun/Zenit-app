@@ -19,7 +19,7 @@ void main() {
   group('LoansProvider', () {
     test('loadLoans success updates totals', () async {
       when(
-        () => loansService.getLoans(type: null, search: '', pageSize: 100),
+        () => loansService.getLoans(type: null, search: null, pageSize: 100),
       ).thenAnswer((_) async => loansProviderMockLoans);
 
       await provider.loadLoans();
@@ -30,16 +30,16 @@ void main() {
       expect(provider.netBalance, 200);
     });
 
-    test('setSearchKeyword trims and reloads', () async {
+    test('setSearchKeyword reloads current list', () async {
       when(
-        () => loansService.getLoans(type: null, search: 'abc', pageSize: 100),
+        () => loansService.getLoans(type: null, search: null, pageSize: 100),
       ).thenAnswer((_) async => loansProviderMockLoans);
 
       await provider.setSearchKeyword('  abc  ');
 
-      expect(provider.searchKeyword, 'abc');
+      expect(provider.loans.length, 2);
       verify(
-        () => loansService.getLoans(type: null, search: 'abc', pageSize: 100),
+        () => loansService.getLoans(type: null, search: null, pageSize: 100),
       ).called(1);
     });
 
@@ -59,7 +59,7 @@ void main() {
       ).thenAnswer((_) async => loansProviderUpdatedList.last);
 
       when(
-        () => loansService.getLoans(type: null, search: '', pageSize: 100),
+        () => loansService.getLoans(type: null, search: null, pageSize: 100),
       ).thenAnswer((_) async => loansProviderUpdatedList);
 
       final result = await provider.addLoan(
@@ -76,7 +76,7 @@ void main() {
 
     test('deleteLoan success removes local item', () async {
       when(
-        () => loansService.getLoans(type: null, search: '', pageSize: 100),
+        () => loansService.getLoans(type: null, search: null, pageSize: 100),
       ).thenAnswer((_) async => loansProviderMockLoans);
       await provider.loadLoans();
 

@@ -80,7 +80,7 @@ void main() {
     expect(find.text('monthly return'), findsOneWidget);
 
     final segmentedButton = tester.widget<SegmentedButton<int>>(
-      find.byType(SegmentedButton<int>),
+      find.byType(SegmentedButton<int>).last,
     );
     expect(segmentedButton.selected, {1});
   });

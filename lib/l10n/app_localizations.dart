@@ -533,7 +533,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatStartConversationHint.
   ///
   /// In en, this message translates to:
-  /// **'Start a conversation. Messages are sent to the backend and AI replies are fetched from message history.'**
+  /// **'Start a conversation.'**
   String get chatStartConversationHint;
 
   /// No description provided for @chatInputHint.

@@ -46,10 +46,12 @@ void main() {
 
     await tester.pumpWidget(const MainApp());
     await tester.pump(const Duration(milliseconds: 1400));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(find.byKey(const ValueKey('home-action-transaction')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.enterText(
       find.byKey(const ValueKey('transaction-title-field')),
@@ -62,19 +64,24 @@ void main() {
     await tester.pump();
 
     await tester.tap(find.byKey(const ValueKey('transaction-category-selector')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(find.byKey(const ValueKey('category-option-cat-necessary-food')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(find.byKey(const ValueKey('transaction-submit-button')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('Lunch'), findsWidgets);
   });
@@ -191,10 +198,12 @@ void main() {
 
     await tester.pumpWidget(const MainApp());
     await tester.pump(const Duration(milliseconds: 1400));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(find.byKey(const ValueKey('home-action-transaction')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.enterText(
       find.byKey(const ValueKey('transaction-title-field')),
@@ -204,10 +213,12 @@ void main() {
       find.byKey(const ValueKey('transaction-amount-field')),
       '120000',
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(find.byType(Checkbox).first);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await _waitForFinder(
       tester,
@@ -217,7 +228,8 @@ void main() {
       find.byKey(const ValueKey('transaction-loan-amount-field')),
       '30000',
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('transaction-category-selector')),
@@ -225,9 +237,11 @@ void main() {
       scrollable: find.byType(Scrollable).last,
     );
     await tester.tap(find.byKey(const ValueKey('transaction-category-selector')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     await tester.tap(find.byKey(const ValueKey('category-option-cat-necessary-food')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(find.byKey(const ValueKey('transaction-submit-button')));
     await tester.pump();

@@ -84,20 +84,20 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ],
               ),
             ),
-            IconButton(
-              onPressed:
-                  onNotificationTap ??
-                  () {
-                    NavigationService.instance.navigateTo('/notifications');
-                  },
-              constraints: const BoxConstraints.tightFor(width: 36, height: 36),
-              padding: EdgeInsets.zero,
-              icon: Icon(
-                Symbols.notifications_rounded,
-                size: 20,
-                color: Theme.of(context).iconTheme.color,
-              ),
-            ),
+            // IconButton(
+            //   onPressed:
+            //       onNotificationTap ??
+            //       () {
+            //         NavigationService.instance.navigateTo('/notifications');
+            //       },
+            //   constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+            //   padding: EdgeInsets.zero,
+            //   icon: Icon(
+            //     Symbols.notifications_rounded,
+            //     size: 20,
+            //     color: Theme.of(context).iconTheme.color,
+            //   ),
+            // ),
           ],
         ),
       ),

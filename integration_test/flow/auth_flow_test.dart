@@ -22,7 +22,8 @@ void main() {
     await tester.pumpWidget(const MainApp());
 
     await tester.pump(const Duration(milliseconds: 1400));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(LoginScreen), findsOneWidget);
   });
@@ -42,7 +43,8 @@ void main() {
     await tester.pumpWidget(const MainApp());
 
     await tester.pump(const Duration(milliseconds: 1400));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(AppNavigationBar), findsOneWidget);
   });
@@ -68,7 +70,8 @@ void main() {
     await tester.pumpWidget(const MainApp());
 
     await tester.pump(const Duration(milliseconds: 1400));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     final textFields = find.byType(TextFormField);
     expect(textFields, findsNWidgets(2));
@@ -104,7 +107,8 @@ void main() {
     await tester.pumpWidget(const MainApp());
 
     await tester.pump(const Duration(milliseconds: 1400));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     final textFields = find.byType(TextFormField);
     expect(textFields, findsNWidgets(2));
@@ -115,7 +119,8 @@ void main() {
     await tester.tap(find.byType(ElevatedButton).first);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(AppNavigationBar), findsOneWidget);
   });

@@ -27,7 +27,8 @@ void main() {
     await tester.pumpWidget(const MainApp());
 
     await tester.pump(const Duration(milliseconds: 1400));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     AppNavigationBar navBar = tester.widget<AppNavigationBar>(
       find.byType(AppNavigationBar),
@@ -35,13 +36,15 @@ void main() {
     expect(navBar.selectedIndex, 0);
 
     await tester.tap(_navLabel('Statistics'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     navBar = tester.widget<AppNavigationBar>(find.byType(AppNavigationBar));
     expect(navBar.selectedIndex, 1);
 
     await tester.tap(_navLabel('Settings'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     navBar = tester.widget<AppNavigationBar>(find.byType(AppNavigationBar));
     expect(navBar.selectedIndex, 3);

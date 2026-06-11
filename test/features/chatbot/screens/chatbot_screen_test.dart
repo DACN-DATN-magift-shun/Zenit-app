@@ -163,8 +163,6 @@ void main() {
 
     await tester.pumpWidget(_buildApp(const ChatbotScreen(), provider));
     await tester.pump();
-    // Advance time so the typewriter animations complete (30ms/word × ~20 words max)
-    await tester.pump(const Duration(milliseconds: 600));
 
     expect(find.text('Hello AI'), findsOneWidget);
     expect(find.text('Pick a suggestion'), findsOneWidget);

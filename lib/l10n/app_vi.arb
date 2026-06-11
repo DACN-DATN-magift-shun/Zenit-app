@@ -75,7 +75,7 @@
   "chatRenameConversation": "Đổi tên hội thoại",
   "chatConversationTitleHint": "Tên hội thoại",
   "chatSave": "Lưu",
-  "chatStartConversationHint": "Hãy bắt đầu một cuộc trò chuyện. Tin nhắn sẽ được gửi đến backend và phản hồi AI sẽ được lấy từ lịch sử tin nhắn.",
+  "chatStartConversationHint": "Hãy bắt đầu một cuộc trò chuyện.",
   "chatInputHint": "Ra lệnh cho Zenos...",
   "chatUpdatedAt": "Cập nhật {date}",
   "@chatUpdatedAt": {

@@ -54,7 +54,8 @@ void main() {
 
     await tester.pumpWidget(const MainApp());
     await tester.pump(const Duration(milliseconds: 1400));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(
       find.descendant(
@@ -62,13 +63,16 @@ void main() {
         matching: find.text('Settings'),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(find.text('Category management'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(find.text('Thêm').first);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(AddCategoryForm), findsOneWidget);
 
@@ -77,7 +81,8 @@ void main() {
       matching: find.byType(TextFormField),
     );
     await tester.enterText(formTextFields.first, 'Groceries Plus');
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(
       find.descendant(
@@ -85,12 +90,14 @@ void main() {
         matching: find.byIcon(Symbols.shopping_cart_rounded),
       ).first,
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(find.byIcon(Symbols.check_rounded).first);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(categoryCreated, isTrue);
     expect(find.text('Groceries Plus'), findsWidgets);

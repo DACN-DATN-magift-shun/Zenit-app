@@ -72,18 +72,7 @@ class _HomeContentState extends State<HomeContent> {
           AppColors.light.primaryActive,
         ],
       ),
-      HomeActionItem(
-        title: l10n.actionQuickImport,
-        icon: Icons.library_add_rounded,
-        backgroundColor: AppColors.light.primaryMain,
-        iconColor: Colors.white,
-        type: ActionType.quickImport,
-        useGradient: true,
-        gradientColors: [
-          AppColors.light.primaryMain,
-          AppColors.light.primaryActive,
-        ],
-      ),
+
       HomeActionItem(
         title: l10n.actionLoans,
         icon: Icons.receipt_long_rounded,
@@ -268,9 +257,7 @@ class _HomeContentState extends State<HomeContent> {
       case ActionType.transaction:
         _navigateToTransaction();
         break;
-      case ActionType.quickImport:
-        _navigateToQuickImport();
-        break;
+
       case ActionType.loans:
         _navigateToLoans();
         break;
@@ -479,10 +466,7 @@ class _HomeContentState extends State<HomeContent> {
     return null;
   }
 
-  void _navigateToQuickImport() {
-    // TODO: Navigate to Quick Import screen
-    AppFlash.info(context, context.l10n.navigateQuickImport);
-  }
+
 
   void _navigateToLoans() {
     NavigationService.instance.navigateTo('/loans');

@@ -81,15 +81,18 @@ void main() {
 
     await tester.pumpWidget(const MainApp());
     await tester.pump(const Duration(milliseconds: 1400));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(find.byKey(const ValueKey('home-action-loans')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('Loans and Debts'), findsOneWidget);
 
     await tester.tap(find.byType(FloatingActionButton));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(AddEditLoanForm), findsOneWidget);
 
@@ -101,12 +104,14 @@ void main() {
     await tester.enterText(formFields.at(0), 'Coworker Lunch Loan');
     await tester.enterText(formFields.at(1), '250000');
     await tester.enterText(formFields.at(2), 'Will collect next week');
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     await tester.tap(find.byIcon(Symbols.check_rounded).first);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(loanCreated, isTrue);
     expect(find.text('Coworker Lunch Loan'), findsWidgets);

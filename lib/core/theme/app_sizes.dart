@@ -27,7 +27,7 @@ class AppSizes {
   static const double sectionSpacing = 24.0;
 
   // navigation bar specific
-  static const double navBarPadding = 10.0;
+  static const double navBarPadding = 18.0;
   static const double navBarTabPadding = 20.0;
 
   // border radius
