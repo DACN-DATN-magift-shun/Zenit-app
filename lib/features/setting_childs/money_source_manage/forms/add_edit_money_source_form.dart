@@ -73,6 +73,8 @@ class _AddEditMoneySourceFormState extends State<AddEditMoneySourceForm> {
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
 
+  bool _isSubmitting = false;
+
   String? _selectedIconName;
   bool _isIncludedInTotalBalance = true;
 
@@ -106,9 +108,15 @@ class _AddEditMoneySourceFormState extends State<AddEditMoneySourceForm> {
   }
 
   void _handleSubmit() {
+    setState(() {
+      _isSubmitting = true;
+    });
     FocusScope.of(context).unfocus();
 
     if (!(_formKey.currentState?.validate() ?? false)) {
+      setState(() {
+        _isSubmitting = false;
+      });
       return;
     }
 
@@ -120,19 +128,30 @@ class _AddEditMoneySourceFormState extends State<AddEditMoneySourceForm> {
     final amountText = _amountController.text.trim();
     final parsedAmount = amountText.isEmpty ? 0 : int.tryParse(amountText);
     if (parsedAmount == null) {
+      setState(() {
+        _isSubmitting = false;
+      });
       AppFlash.warning(context, context.l10n.enterValidAmount);
       return;
     }
 
-    widget.onSubmit?.call(
-      AddEditMoneySourceData(
-        name: _nameController.text.trim(),
-        iconName: _selectedIconName!,
-        amount: parsedAmount,
-        note: _noteController.text.trim(),
-        isIncludeInTotalBalance: _isIncludedInTotalBalance,
-      ),
-    );
+    try {
+      widget.onSubmit?.call(
+        AddEditMoneySourceData(
+          name: _nameController.text.trim(),
+          iconName: _selectedIconName!,
+          amount: parsedAmount,
+          note: _noteController.text.trim(),
+          isIncludeInTotalBalance: _isIncludedInTotalBalance,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 
   @override
@@ -204,6 +223,31 @@ class _AddEditMoneySourceFormState extends State<AddEditMoneySourceForm> {
             ),
             const SizedBox(height: AppSizes.m),
             _buildIconGrid(colors),
+            const SizedBox(height: AppSizes.l),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _isSubmitting ? null : _handleSubmit,
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(56),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: _isSubmitting
+                    ? SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation(
+                            Theme.of(context).colorScheme.onPrimary,
+                          ),
+                        ),
+                      )
+                    : Text(widget.isEditMode ? l10n.saveChanges : l10n.chatSave),
+              ),
+            ),
             const SizedBox(height: 64),
           ],
         ),

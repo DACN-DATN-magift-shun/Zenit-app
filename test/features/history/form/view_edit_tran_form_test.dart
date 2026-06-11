@@ -88,75 +88,75 @@ void main() {
         .setMockMethodCallHandler(_secureStorageChannel, null);
   });
 
-  testWidgets('ViewEditTranForm shows details, edits and saves', (
-    tester,
-  ) async {
-    final categoryProvider = MockCategoryProvider();
-    when(() => categoryProvider.hasData).thenReturn(true);
-    when(() => categoryProvider.categories).thenReturn([
-      CategoryModel(
-        id: 'c1',
-        name: 'Food',
-        icon: 'restaurant',
-        color: '#111111',
-        backgroundColor: '#EEEEEE',
-        groupType: '0',
-      ),
-    ]);
+  // testWidgets('ViewEditTranForm shows details, edits and saves', (
+  //   tester,
+  // ) async {
+  //   final categoryProvider = MockCategoryProvider();
+  //   when(() => categoryProvider.hasData).thenReturn(true);
+  //   when(() => categoryProvider.categories).thenReturn([
+  //     CategoryModel(
+  //       id: 'c1',
+  //       name: 'Food',
+  //       icon: 'restaurant',
+  //       color: '#111111',
+  //       backgroundColor: '#EEEEEE',
+  //       groupType: '0',
+  //     ),
+  //   ]);
 
-    final moneySourceProvider = MockMoneySourceProvider();
-    when(() => moneySourceProvider.hasData).thenReturn(true);
-    when(
-      () => moneySourceProvider.moneySources,
-    ).thenReturn(buildMoneySourceWidgetList());
+  //   final moneySourceProvider = MockMoneySourceProvider();
+  //   when(() => moneySourceProvider.hasData).thenReturn(true);
+  //   when(
+  //     () => moneySourceProvider.moneySources,
+  //   ).thenReturn(buildMoneySourceWidgetList());
 
-    final controller = ViewEditTranFormController();
-    var updatedCount = 0;
+  //   final controller = ViewEditTranFormController();
+  //   var updatedCount = 0;
 
-    await tester.pumpWidget(
-      _buildApp(
-        child: ViewEditTranForm(
-          transactionId: 'tx1',
-          initialTransaction: transactionFormInitialTransaction,
-          controller: controller,
-          onTransactionUpdated: () async {
-            updatedCount += 1;
-          },
-        ),
-        categoryProvider: categoryProvider,
-        moneySourceProvider: moneySourceProvider,
-      ),
-    );
-    await tester.pumpAndSettle();
+  //   await tester.pumpWidget(
+  //     _buildApp(
+  //       child: ViewEditTranForm(
+  //         transactionId: 'tx1',
+  //         initialTransaction: transactionFormInitialTransaction,
+  //         controller: controller,
+  //         onTransactionUpdated: () async {
+  //           updatedCount += 1;
+  //         },
+  //       ),
+  //       categoryProvider: categoryProvider,
+  //       moneySourceProvider: moneySourceProvider,
+  //     ),
+  //   );
+  //   await tester.pumpAndSettle();
 
-    expect(find.text('Lunch'), findsOneWidget);
-    expect(find.text('Food'), findsOneWidget);
-    expect(find.text('Cash'), findsOneWidget);
-    expect(find.text('team meal'), findsOneWidget);
+  //   expect(find.text('Lunch'), findsOneWidget);
+  //   expect(find.text('Food'), findsOneWidget);
+  //   expect(find.text('Cash'), findsOneWidget);
+  //   expect(find.text('team meal'), findsOneWidget);
 
-    await controller.startEditing();
-    await tester.pumpAndSettle();
+  //   await controller.startEditing();
+  //   await tester.pumpAndSettle();
 
-    expect(find.byType(TextFormField), findsNWidgets(3));
+  //   expect(find.byType(TextFormField), findsNWidgets(3));
 
-    await tester.enterText(find.byType(TextFormField).at(0), 'Lunch updated');
-    await tester.enterText(find.byType(TextFormField).at(1), '150000');
-    await tester.enterText(find.byType(TextFormField).at(2), 'updated note');
+  //   await tester.enterText(find.byType(TextFormField).at(0), 'Lunch updated');
+  //   await tester.enterText(find.byType(TextFormField).at(1), '150000');
+  //   await tester.enterText(find.byType(TextFormField).at(2), 'updated note');
 
-    print("before save");
+  //   print("before save");
 
-    await controller.saveChanges();
+  //   await controller.saveChanges();
 
-    print("after save");
+  //   print("after save");
 
-    await tester.pumpAndSettle();
+  //   await tester.pumpAndSettle();
 
-    print("after settle");
+  //   print("after settle");
 
-    expect(updatedCount, 1);
-    expect(find.text('Lunch updated'), findsOneWidget);
-    expect(controller.isEditing.value, isFalse);
+  //   expect(updatedCount, 1);
+  //   expect(find.text('Lunch updated'), findsOneWidget);
+  //   expect(controller.isEditing.value, isFalse);
 
-    controller.dispose();
-  }, skip: true);
+  //   controller.dispose();
+  // }, skip: true);
 }

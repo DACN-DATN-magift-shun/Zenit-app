@@ -34,10 +34,12 @@ class AppConfirmDialog {
           actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
           actions: [
             TextButton(
+              key: const ValueKey('app-confirm-dialog-cancel'),
               onPressed: () => Navigator.of(dialogContext).pop(false),
               child: Text(cancelText ?? context.l10n.cancel),
             ),
             FilledButton(
+              key: const ValueKey('app-confirm-dialog-confirm'),
               style: FilledButton.styleFrom(
                 backgroundColor: isDestructive
                     ? colorScheme.error

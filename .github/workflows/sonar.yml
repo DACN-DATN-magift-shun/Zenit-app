@@ -3,6 +3,7 @@ name: SonarCloud Analysis
 on:
   push:
     branches:
+      - main
       - manage-feat
   pull_request:
     branches:
@@ -22,26 +23,21 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable' # Dùng channel stable cho ổn định
-          cache: true       # Bật cache để lần sau chạy cho nhanh
+          channel: 'stable'
+          # TẮT cái này để không bị dính lỗi actions/cache cũ của bản thân subosito
+          cache: false
 
       - name: Get dependencies
         run: flutter pub get
 
-      # - name: Build Runner
-      #   run: dart run build_runner build --delete-conflicting-outputs
-      
       - name: Run tests with coverage
         run: flutter test --coverage
       
-      # SonarCloud đôi khi cần file lcov.info ở đúng định dạng, bước này đảm bảo điều đó
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        # Dùng v3.1.0 để ổn định trên môi trường Linux/Docker, tránh lỗi .exe
+        uses: SonarSource/sonarcloud-github-action@v3.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          SONAR_BRANCH_NAME: manage-feat 
-
-
-# add something to test sonarcloud integration
+        # XÓA SONAR_BRANCH_NAME: main ở đây vì nó sẽ tự nhận diện từ Git Context.
+        # Ép nó về main khi đang ở nhánh feat là nó loạn coverage ngay.

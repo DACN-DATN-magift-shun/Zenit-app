@@ -98,6 +98,7 @@ class MainApp extends StatelessWidget {
             themeMode: ThemeMode.light,
             navigatorKey: NavigationService.instance.navigatorKey,
             initialRoute: '/opening',
+            // initialRoute: '/',
             routes: {
               '/opening': (c) => const OpeningSplashScreen(),
               '/': (c) => _buildMainShell(c),

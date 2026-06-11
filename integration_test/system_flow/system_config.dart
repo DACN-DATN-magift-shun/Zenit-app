@@ -20,37 +20,69 @@ class SystemFlowConfig {
   );
 
   static const String transactionTitle = String.fromEnvironment(
-    'SYSTEM_TEST_TRANSACTION_TITLE',
-    defaultValue: 'System flow lunch',
+    'TRANSACTION_TITLE',
+    defaultValue: String.fromEnvironment(
+      'SYSTEM_TEST_TRANSACTION_TITLE',
+      defaultValue: 'System flow lunch',
+    ),
   );
 
   static const String transactionNote = String.fromEnvironment(
-    'SYSTEM_TEST_TRANSACTION_NOTE',
-    defaultValue: 'System flow test',
+    'TRANSACTION_NOTE',
+    defaultValue: String.fromEnvironment(
+      'SYSTEM_TEST_TRANSACTION_NOTE',
+      defaultValue: 'System flow test',
+    ),
   );
 
   static const String transactionAmount = String.fromEnvironment(
-    'SYSTEM_TEST_TRANSACTION_AMOUNT',
-    defaultValue: '120000',
+    'TRANSACTION_AMOUNT',
+    defaultValue: String.fromEnvironment(
+      'SYSTEM_TEST_TRANSACTION_AMOUNT',
+      defaultValue: '120000',
+    ),
+  );
+
+  static const String walletName = String.fromEnvironment(
+    'WALLET_NAME',
+    defaultValue: String.fromEnvironment(
+      'SYSTEM_TEST_TARGET_WALLET_NAME',
+      defaultValue: 'Cash',
+    ),
   );
 
   static const String initialWalletName = String.fromEnvironment(
-    'SYSTEM_TEST_INITIAL_WALLET_NAME',
-    defaultValue: 'Cash',
+    'INITIAL_WALLET_NAME',
+    defaultValue: String.fromEnvironment(
+      'SYSTEM_TEST_INITIAL_WALLET_NAME',
+      defaultValue: walletName,
+    ),
   );
 
   static const String targetWalletName = String.fromEnvironment(
-    'SYSTEM_TEST_TARGET_WALLET_NAME',
-    defaultValue: 'Bank',
+    'TARGET_WALLET_NAME',
+    defaultValue: String.fromEnvironment(
+      'SYSTEM_TEST_TARGET_WALLET_NAME',
+      defaultValue: walletName,
+    ),
   );
 
   static const String categoryName = String.fromEnvironment(
-    'SYSTEM_TEST_CATEGORY_NAME',
-    defaultValue: 'Food',
+    'CATEGORY_NAME',
+    defaultValue: String.fromEnvironment(
+      'SYSTEM_TEST_CATEGORY_NAME',
+      defaultValue: 'Food',
+    ),
   );
 
-  static const String transactionSuccessMessage =
-      'Transaction added successfully!';
+  static const String transactionSuccessMessage = String.fromEnvironment(
+    'TRANSACTION_SUCCESS_MESSAGE',
+    defaultValue: 'Transaction added successfully!',
+  );
+  static const String transactionSuccessMessageVi = String.fromEnvironment(
+    'TRANSACTION_SUCCESS_MESSAGE_VI',
+    defaultValue: 'Thêm giao dịch thành công!',
+  );
   static const String logoutSuccessMessage = 'Logged out successfully';
 
   static Map<String, String?> initialStorage() {
